@@ -9,9 +9,10 @@ PROYECTO = {
     'sistema': 'Sistema de distribución de fertilizantes a granel — Redler — AGD Río Primero',
     'integrantes': 'Fernández · Planckensteiner · Quiroga Palacio · Solera',
     'dibujo': 'Gabriel Planckensteiner',
+    'dibujo_corto': 'G. Planckensteiner',
     'verifico': 'Ing. R. Bonaiuti',
     'tutor': 'C. D. Solera (AGD)',
-    'n_proyecto': 'PF-26-AGD01',
+    'n_proyecto': 'VJN001',
     'archivo': 'PLANOS_AGD-2026.dwg',
     'fecha': '03/10/2026',
     'rev': 'E',
@@ -84,14 +85,39 @@ TIPOS_LINEA = [
 # ---------------------------------------------------------------- texto (IRAM 4503 / ISO 3098 B)
 FUENTE_TTF = 'isocpeur.ttf'      # TrueType: el PDF conserva el texto como texto
 FAMILIA_TTF = 'ISOCPEUR'
+ST_ANNO = 'IRAM'                 # anotativo: textos, cotas y referencias en el espacio modelo
+ST_N = 'IRAM-N'                  # no anotativo: contenido de bloques y espacio papel
+ST_NEG = 'IRAM-NEGRITA'          # no anotativo, negrita: encabezados de tabla
 H_TXT = 2.5        # cotas, referencias, tablas
 H_TIT = 3.5        # títulos de vista y encabezados
 H_ROT_TIT = 5.0    # título del rótulo
 H_COD = 7.0        # código de lámina
 AVANCE = 0.80      # avance medio estimado por carácter / altura (estimación conservadora)
 
+# color ACI para el recorrido del producto (el CTB lo imprime en rojo)
+ACI_FLUJO = 10
+
 # ---------------------------------------------------------------- formato A3 (IRAM 4504)
 PAPEL = (420.0, 297.0)
 MARGEN_IZQ, MARGEN = 25.0, 10.0
 MARCO = (MARGEN_IZQ, MARGEN, PAPEL[0] - MARGEN, PAPEL[1] - MARGEN)   # x0, y0, x1, y1
 ROT_ANCHO = 175.0
+MEDIA_A3 = 'ISO_full_bleed_A3_(420.00_x_297.00_MM)'
+PLOTTER = 'DWG To PDF.pc3'
+CTB = 'PF-IRAM-MONO.ctb'
+
+# ---------------------------------------------------------------- zonas del espacio modelo (§6.3)
+# nombre: (origen (x, y) en mm, eje X del UCS, rectángulo de zona (x0, y0, x1, y1), contenido)
+ZONAS = {
+    'P': ((0, 0), (1, 0, 0), (-3000, -48000, 26000, 3000), 'Planta general (X, −s)'),
+    'A': ((0, 60000), (1, 0, 0), (-3000, 55000, 26000, 70000), 'Corte A-A, s = 26,85, mirando al norte (X, Z)'),
+    'B': ((110000, 60000), (-1, 0, 0), (62000, 55000, 113000, 73000),
+          'Corte B-B quebrado, mirando al oeste (s creciente hacia la izquierda, Z)'),
+    'C': ((120000, 60000), (1, 0, 0), (118000, 55000, 140000, 73000), 'Vista C-C desde el exterior (X, Z)'),
+    'R': ((120000, 0), (1, 0, 0), (118000, -25000, 200000, 25000), 'Recepción: vistas de DET-11'),
+}
+for _k in range(4, 13):
+    if _k == 11:
+        continue   # DET-11 se dibuja en la zona R
+    _y = 120000 + 30000 * (_k - 4)
+    ZONAS[f'DET{_k:02d}'] = ((0, _y), (1, 0, 0), (-3000, _y - 3000, 110000, _y + 26000), f'Detalles de DET-{_k:02d}')
