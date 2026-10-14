@@ -1,0 +1,55 @@
+{
+  "sonido": {
+    "activado": true,
+    "volumen": 0.6,
+    "ambiente": true
+  },
+  "confirmarAntesDeActuar": true,
+  "procesos": {
+    "memoriaMinimaMB": 5,
+    "protegidos": [
+      "obs64", "obs32",
+      "steam", "steamwebhelper", "steamservice", "EpicGamesLauncher", "EpicWebHelper", "Battle.net*", "GalaxyClient*",
+      "KeePass", "KeePassXC", "Bitwarden", "1Password*",
+      "openvpn*", "NordVPN*", "ProtonVPN*", "wireguard", "tailscale*",
+      "PowerToys*", "AutoHotkey*", "Claude",
+      "RtkAudUService64", "RtkAudioService64", "RAVBg64", "RAVCpl64",
+      "SynTPEnh", "SynTPHelper", "ETDCtrl", "ETDTouch", "igfxEM", "igfxHK", "igfxTray",
+      "RadeonSoftware", "AMDRSServ", "AMDRSSrcExt", "atieclxx", "NVDisplay.Container", "nvcontainer",
+      "DAX3API", "WavesSvc64", "WavesSysSvc64", "MaxxAudio*"
+    ],
+    "rutasProtegidas": [
+      "%ProgramFiles%\\WindowsApps\\",
+      "%ProgramFiles%\\Windows Defender\\",
+      "%ProgramData%\\Microsoft\\Windows Defender\\",
+      "\\Realtek\\", "\\Synaptics\\", "\\Elantech\\", "\\Intel\\", "\\NVIDIA Corporation\\", "\\AMD\\",
+      "\\Dolby\\", "\\Waves\\", "\\Lenovo\\", "\\HP\\", "\\Hewlett-Packard\\", "\\ASUS\\", "\\Dell\\",
+      "\\Acer\\", "\\MSI\\", "\\Samsung\\",
+      "\\Avast Software\\", "\\AVG\\", "\\ESET\\", "\\Kaspersky Lab\\", "\\Malwarebytes\\",
+      "\\Norton\\", "\\McAfee\\", "\\Bitdefender\\"
+    ]
+  },
+  "duplicados": {
+    "carpetas": ["{Descargas}", "{Escritorio}", "{Documentos}", "{Imagenes}", "{Videos}", "{Musica}"],
+    "tamanoMinimoKB": 4,
+    "omitirRepositoriosYProyectos": true,
+    "carpetasExcluidas": [
+      "node_modules", ".git", ".svn", ".hg", ".venv", "venv", "__pycache__", "AppData",
+      "$RECYCLE.BIN", "System Volume Information", "My Games", "Saved Games"
+    ],
+    "extensionesExcluidas": [
+      ".lnk", ".url", ".ini", ".dll", ".exe", ".sys", ".tmp", ".part", ".crdownload", ".lock", ".db", ".pst", ".ost"
+    ]
+  },
+  "memoria": {
+    "purgarListaEnEspera": false
+  },
+  "general": {
+    "diasMinimosTemporales": 1,
+    "limpiarTemporales": true,
+    "limpiarInformesDeError": true,
+    "vaciarCacheDNS": true,
+    "optimizarDisco": true,
+    "desfragmentarHDD": false
+  }
+}
