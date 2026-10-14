@@ -1,0 +1,1010 @@
+[
+  {
+    "elemento": "*",
+    "material": "CG",
+    "espesor": "03",
+    "terminacion": "N",
+    "banda": "30",
+    "codigo": "CG03N30"
+  },
+  {
+    "elemento": "*",
+    "material": "CG",
+    "espesor": "03",
+    "terminacion": "N",
+    "banda": "60",
+    "codigo": "CG03N60"
+  },
+  {
+    "elemento": "*",
+    "material": "CG",
+    "espesor": "03",
+    "terminacion": "N",
+    "banda": "120",
+    "codigo": "CG03N120"
+  },
+  {
+    "elemento": "*",
+    "material": "CG",
+    "espesor": "03",
+    "terminacion": "P",
+    "banda": "30",
+    "codigo": "CG03P30"
+  },
+  {
+    "elemento": "*",
+    "material": "CG",
+    "espesor": "03",
+    "terminacion": "P",
+    "banda": "60",
+    "codigo": "CG03P60"
+  },
+  {
+    "elemento": "*",
+    "material": "CG",
+    "espesor": "03",
+    "terminacion": "P",
+    "banda": "120",
+    "codigo": "CG03P120"
+  },
+  {
+    "elemento": "*",
+    "material": "CG",
+    "espesor": "036",
+    "terminacion": "N",
+    "banda": "30",
+    "codigo": "CG036N30"
+  },
+  {
+    "elemento": "*",
+    "material": "CG",
+    "espesor": "036",
+    "terminacion": "N",
+    "banda": "60",
+    "codigo": "CG036N60"
+  },
+  {
+    "elemento": "*",
+    "material": "CG",
+    "espesor": "036",
+    "terminacion": "N",
+    "banda": "120",
+    "codigo": "CG036N120"
+  },
+  {
+    "elemento": "*",
+    "material": "CG",
+    "espesor": "036",
+    "terminacion": "P",
+    "banda": "30",
+    "codigo": "CG036P30"
+  },
+  {
+    "elemento": "*",
+    "material": "CG",
+    "espesor": "036",
+    "terminacion": "P",
+    "banda": "60",
+    "codigo": "CG036P60"
+  },
+  {
+    "elemento": "*",
+    "material": "CG",
+    "espesor": "036",
+    "terminacion": "P",
+    "banda": "120",
+    "codigo": "CG036P120"
+  },
+  {
+    "elemento": "*",
+    "material": "CG",
+    "espesor": "04",
+    "terminacion": "N",
+    "banda": "30",
+    "codigo": "CG04N30"
+  },
+  {
+    "elemento": "*",
+    "material": "CG",
+    "espesor": "04",
+    "terminacion": "N",
+    "banda": "60",
+    "codigo": "CG04N60"
+  },
+  {
+    "elemento": "*",
+    "material": "CG",
+    "espesor": "04",
+    "terminacion": "N",
+    "banda": "120",
+    "codigo": "CG04N120"
+  },
+  {
+    "elemento": "*",
+    "material": "CG",
+    "espesor": "04",
+    "terminacion": "P",
+    "banda": "30",
+    "codigo": "CG04P30"
+  },
+  {
+    "elemento": "*",
+    "material": "CG",
+    "espesor": "04",
+    "terminacion": "P",
+    "banda": "60",
+    "codigo": "CG04P60"
+  },
+  {
+    "elemento": "*",
+    "material": "CG",
+    "espesor": "04",
+    "terminacion": "P",
+    "banda": "120",
+    "codigo": "CG04P120"
+  },
+  {
+    "elemento": "*",
+    "material": "CG",
+    "espesor": "05",
+    "terminacion": "N",
+    "banda": "30",
+    "codigo": "CG05N30"
+  },
+  {
+    "elemento": "*",
+    "material": "CG",
+    "espesor": "05",
+    "terminacion": "N",
+    "banda": "60",
+    "codigo": "CG05N60"
+  },
+  {
+    "elemento": "*",
+    "material": "CG",
+    "espesor": "05",
+    "terminacion": "N",
+    "banda": "120",
+    "codigo": "CG05N120"
+  },
+  {
+    "elemento": "*",
+    "material": "CG",
+    "espesor": "05",
+    "terminacion": "P",
+    "banda": "30",
+    "codigo": "CG05P30"
+  },
+  {
+    "elemento": "*",
+    "material": "CG",
+    "espesor": "05",
+    "terminacion": "P",
+    "banda": "60",
+    "codigo": "CG05P60"
+  },
+  {
+    "elemento": "*",
+    "material": "CG",
+    "espesor": "05",
+    "terminacion": "P",
+    "banda": "120",
+    "codigo": "CG05P120"
+  },
+  {
+    "elemento": "*",
+    "material": "CG",
+    "espesor": "06",
+    "terminacion": "N",
+    "banda": "30",
+    "codigo": "CG06N30"
+  },
+  {
+    "elemento": "*",
+    "material": "CG",
+    "espesor": "06",
+    "terminacion": "N",
+    "banda": "60",
+    "codigo": "CG06N60"
+  },
+  {
+    "elemento": "*",
+    "material": "CG",
+    "espesor": "06",
+    "terminacion": "N",
+    "banda": "120",
+    "codigo": "CG06N120"
+  },
+  {
+    "elemento": "*",
+    "material": "CG",
+    "espesor": "06",
+    "terminacion": "P",
+    "banda": "30",
+    "codigo": "CG06P30"
+  },
+  {
+    "elemento": "*",
+    "material": "CG",
+    "espesor": "06",
+    "terminacion": "P",
+    "banda": "60",
+    "codigo": "CG06P60"
+  },
+  {
+    "elemento": "*",
+    "material": "CG",
+    "espesor": "06",
+    "terminacion": "P",
+    "banda": "120",
+    "codigo": "CG06P120"
+  },
+  {
+    "elemento": "*",
+    "material": "CG",
+    "espesor": "07",
+    "terminacion": "N",
+    "banda": "30",
+    "codigo": "CG07N30"
+  },
+  {
+    "elemento": "*",
+    "material": "CG",
+    "espesor": "07",
+    "terminacion": "N",
+    "banda": "60",
+    "codigo": "CG07N60"
+  },
+  {
+    "elemento": "*",
+    "material": "CG",
+    "espesor": "07",
+    "terminacion": "N",
+    "banda": "120",
+    "codigo": "CG07N120"
+  },
+  {
+    "elemento": "*",
+    "material": "CG",
+    "espesor": "07",
+    "terminacion": "P",
+    "banda": "30",
+    "codigo": "CG07P30"
+  },
+  {
+    "elemento": "*",
+    "material": "CG",
+    "espesor": "07",
+    "terminacion": "P",
+    "banda": "60",
+    "codigo": "CG07P60"
+  },
+  {
+    "elemento": "*",
+    "material": "CG",
+    "espesor": "07",
+    "terminacion": "P",
+    "banda": "120",
+    "codigo": "CG07P120"
+  },
+  {
+    "elemento": "*",
+    "material": "CG",
+    "espesor": "09",
+    "terminacion": "N",
+    "banda": "30",
+    "codigo": "CG09N30"
+  },
+  {
+    "elemento": "*",
+    "material": "CG",
+    "espesor": "09",
+    "terminacion": "N",
+    "banda": "60",
+    "codigo": "CG09N60"
+  },
+  {
+    "elemento": "*",
+    "material": "CG",
+    "espesor": "09",
+    "terminacion": "N",
+    "banda": "120",
+    "codigo": "CG09N120"
+  },
+  {
+    "elemento": "*",
+    "material": "CG",
+    "espesor": "09",
+    "terminacion": "P",
+    "banda": "30",
+    "codigo": "CG09P30"
+  },
+  {
+    "elemento": "*",
+    "material": "CG",
+    "espesor": "09",
+    "terminacion": "P",
+    "banda": "60",
+    "codigo": "CG09P60"
+  },
+  {
+    "elemento": "*",
+    "material": "CG",
+    "espesor": "09",
+    "terminacion": "P",
+    "banda": "120",
+    "codigo": "CG09P120"
+  },
+  {
+    "elemento": "*",
+    "material": "CZ",
+    "espesor": "03",
+    "terminacion": "N",
+    "banda": "30",
+    "codigo": "CZ03N30"
+  },
+  {
+    "elemento": "*",
+    "material": "CZ",
+    "espesor": "03",
+    "terminacion": "N",
+    "banda": "60",
+    "codigo": "CZ03N60"
+  },
+  {
+    "elemento": "*",
+    "material": "CZ",
+    "espesor": "03",
+    "terminacion": "N",
+    "banda": "120",
+    "codigo": "CZ03N120"
+  },
+  {
+    "elemento": "*",
+    "material": "CZ",
+    "espesor": "036",
+    "terminacion": "N",
+    "banda": "30",
+    "codigo": "CZ036N30"
+  },
+  {
+    "elemento": "*",
+    "material": "CZ",
+    "espesor": "036",
+    "terminacion": "N",
+    "banda": "60",
+    "codigo": "CZ036N60"
+  },
+  {
+    "elemento": "*",
+    "material": "CZ",
+    "espesor": "036",
+    "terminacion": "N",
+    "banda": "120",
+    "codigo": "CZ036N120"
+  },
+  {
+    "elemento": "*",
+    "material": "CZ",
+    "espesor": "04",
+    "terminacion": "N",
+    "banda": "30",
+    "codigo": "CZ04N30"
+  },
+  {
+    "elemento": "*",
+    "material": "CZ",
+    "espesor": "04",
+    "terminacion": "N",
+    "banda": "60",
+    "codigo": "CZ04N60"
+  },
+  {
+    "elemento": "*",
+    "material": "CZ",
+    "espesor": "04",
+    "terminacion": "N",
+    "banda": "120",
+    "codigo": "CZ04N120"
+  },
+  {
+    "elemento": "*",
+    "material": "CZ",
+    "espesor": "05",
+    "terminacion": "N",
+    "banda": "30",
+    "codigo": "CZ05N30"
+  },
+  {
+    "elemento": "*",
+    "material": "CZ",
+    "espesor": "05",
+    "terminacion": "N",
+    "banda": "60",
+    "codigo": "CZ05N60"
+  },
+  {
+    "elemento": "*",
+    "material": "CZ",
+    "espesor": "05",
+    "terminacion": "N",
+    "banda": "120",
+    "codigo": "CZ05N120"
+  },
+  {
+    "elemento": "*",
+    "material": "CZ",
+    "espesor": "06",
+    "terminacion": "N",
+    "banda": "30",
+    "codigo": "CZ06N30"
+  },
+  {
+    "elemento": "*",
+    "material": "CZ",
+    "espesor": "06",
+    "terminacion": "N",
+    "banda": "60",
+    "codigo": "CZ06N60"
+  },
+  {
+    "elemento": "*",
+    "material": "CZ",
+    "espesor": "06",
+    "terminacion": "N",
+    "banda": "120",
+    "codigo": "CZ06N120"
+  },
+  {
+    "elemento": "*",
+    "material": "CZ",
+    "espesor": "07",
+    "terminacion": "N",
+    "banda": "30",
+    "codigo": "CZ07N30"
+  },
+  {
+    "elemento": "*",
+    "material": "CZ",
+    "espesor": "07",
+    "terminacion": "N",
+    "banda": "60",
+    "codigo": "CZ07N60"
+  },
+  {
+    "elemento": "*",
+    "material": "CZ",
+    "espesor": "07",
+    "terminacion": "N",
+    "banda": "120",
+    "codigo": "CZ07N120"
+  },
+  {
+    "elemento": "*",
+    "material": "CZ",
+    "espesor": "09",
+    "terminacion": "N",
+    "banda": "30",
+    "codigo": "CZ09N30"
+  },
+  {
+    "elemento": "*",
+    "material": "CZ",
+    "espesor": "09",
+    "terminacion": "N",
+    "banda": "60",
+    "codigo": "CZ09N60"
+  },
+  {
+    "elemento": "*",
+    "material": "CZ",
+    "espesor": "09",
+    "terminacion": "N",
+    "banda": "120",
+    "codigo": "CZ09N120"
+  },
+  {
+    "elemento": "*",
+    "material": "IN",
+    "espesor": "03",
+    "terminacion": "N",
+    "banda": "30",
+    "codigo": "IN03N30"
+  },
+  {
+    "elemento": "*",
+    "material": "IN",
+    "espesor": "03",
+    "terminacion": "N",
+    "banda": "60",
+    "codigo": "IN03N60"
+  },
+  {
+    "elemento": "*",
+    "material": "IN",
+    "espesor": "03",
+    "terminacion": "N",
+    "banda": "120",
+    "codigo": "IN03N120"
+  },
+  {
+    "elemento": "*",
+    "material": "IN",
+    "espesor": "036",
+    "terminacion": "N",
+    "banda": "30",
+    "codigo": "IN036N30"
+  },
+  {
+    "elemento": "*",
+    "material": "IN",
+    "espesor": "036",
+    "terminacion": "N",
+    "banda": "60",
+    "codigo": "IN036N60"
+  },
+  {
+    "elemento": "*",
+    "material": "IN",
+    "espesor": "036",
+    "terminacion": "N",
+    "banda": "120",
+    "codigo": "IN036N120"
+  },
+  {
+    "elemento": "*",
+    "material": "IN",
+    "espesor": "04",
+    "terminacion": "N",
+    "banda": "30",
+    "codigo": "IN04N30"
+  },
+  {
+    "elemento": "*",
+    "material": "IN",
+    "espesor": "04",
+    "terminacion": "N",
+    "banda": "60",
+    "codigo": "IN04N60"
+  },
+  {
+    "elemento": "*",
+    "material": "IN",
+    "espesor": "04",
+    "terminacion": "N",
+    "banda": "120",
+    "codigo": "IN04N120"
+  },
+  {
+    "elemento": "*",
+    "material": "IN",
+    "espesor": "05",
+    "terminacion": "N",
+    "banda": "30",
+    "codigo": "IN05N30"
+  },
+  {
+    "elemento": "*",
+    "material": "IN",
+    "espesor": "05",
+    "terminacion": "N",
+    "banda": "60",
+    "codigo": "IN05N60"
+  },
+  {
+    "elemento": "*",
+    "material": "IN",
+    "espesor": "05",
+    "terminacion": "N",
+    "banda": "120",
+    "codigo": "IN05N120"
+  },
+  {
+    "elemento": "*",
+    "material": "IN",
+    "espesor": "06",
+    "terminacion": "N",
+    "banda": "30",
+    "codigo": "IN06N30"
+  },
+  {
+    "elemento": "*",
+    "material": "IN",
+    "espesor": "06",
+    "terminacion": "N",
+    "banda": "60",
+    "codigo": "IN06N60"
+  },
+  {
+    "elemento": "*",
+    "material": "IN",
+    "espesor": "06",
+    "terminacion": "N",
+    "banda": "120",
+    "codigo": "IN06N120"
+  },
+  {
+    "elemento": "*",
+    "material": "IN",
+    "espesor": "07",
+    "terminacion": "N",
+    "banda": "30",
+    "codigo": "IN07N30"
+  },
+  {
+    "elemento": "*",
+    "material": "IN",
+    "espesor": "07",
+    "terminacion": "N",
+    "banda": "60",
+    "codigo": "IN07N60"
+  },
+  {
+    "elemento": "*",
+    "material": "IN",
+    "espesor": "07",
+    "terminacion": "N",
+    "banda": "120",
+    "codigo": "IN07N120"
+  },
+  {
+    "elemento": "*",
+    "material": "IN",
+    "espesor": "09",
+    "terminacion": "N",
+    "banda": "30",
+    "codigo": "IN09N30"
+  },
+  {
+    "elemento": "*",
+    "material": "IN",
+    "espesor": "09",
+    "terminacion": "N",
+    "banda": "60",
+    "codigo": "IN09N60"
+  },
+  {
+    "elemento": "*",
+    "material": "IN",
+    "espesor": "09",
+    "terminacion": "N",
+    "banda": "120",
+    "codigo": "IN09N120"
+  },
+  {
+    "elemento": "*",
+    "material": "AL",
+    "espesor": "03",
+    "terminacion": "N",
+    "banda": "30",
+    "codigo": "AL03N30"
+  },
+  {
+    "elemento": "*",
+    "material": "AL",
+    "espesor": "03",
+    "terminacion": "N",
+    "banda": "60",
+    "codigo": "AL03N60"
+  },
+  {
+    "elemento": "*",
+    "material": "AL",
+    "espesor": "03",
+    "terminacion": "N",
+    "banda": "120",
+    "codigo": "AL03N120"
+  },
+  {
+    "elemento": "*",
+    "material": "AL",
+    "espesor": "036",
+    "terminacion": "N",
+    "banda": "30",
+    "codigo": "AL036N30"
+  },
+  {
+    "elemento": "*",
+    "material": "AL",
+    "espesor": "036",
+    "terminacion": "N",
+    "banda": "60",
+    "codigo": "AL036N60"
+  },
+  {
+    "elemento": "*",
+    "material": "AL",
+    "espesor": "036",
+    "terminacion": "N",
+    "banda": "120",
+    "codigo": "AL036N120"
+  },
+  {
+    "elemento": "*",
+    "material": "AL",
+    "espesor": "04",
+    "terminacion": "N",
+    "banda": "30",
+    "codigo": "AL04N30"
+  },
+  {
+    "elemento": "*",
+    "material": "AL",
+    "espesor": "04",
+    "terminacion": "N",
+    "banda": "60",
+    "codigo": "AL04N60"
+  },
+  {
+    "elemento": "*",
+    "material": "AL",
+    "espesor": "04",
+    "terminacion": "N",
+    "banda": "120",
+    "codigo": "AL04N120"
+  },
+  {
+    "elemento": "*",
+    "material": "AL",
+    "espesor": "05",
+    "terminacion": "N",
+    "banda": "30",
+    "codigo": "AL05N30"
+  },
+  {
+    "elemento": "*",
+    "material": "AL",
+    "espesor": "05",
+    "terminacion": "N",
+    "banda": "60",
+    "codigo": "AL05N60"
+  },
+  {
+    "elemento": "*",
+    "material": "AL",
+    "espesor": "05",
+    "terminacion": "N",
+    "banda": "120",
+    "codigo": "AL05N120"
+  },
+  {
+    "elemento": "*",
+    "material": "AL",
+    "espesor": "06",
+    "terminacion": "N",
+    "banda": "30",
+    "codigo": "AL06N30"
+  },
+  {
+    "elemento": "*",
+    "material": "AL",
+    "espesor": "06",
+    "terminacion": "N",
+    "banda": "60",
+    "codigo": "AL06N60"
+  },
+  {
+    "elemento": "*",
+    "material": "AL",
+    "espesor": "06",
+    "terminacion": "N",
+    "banda": "120",
+    "codigo": "AL06N120"
+  },
+  {
+    "elemento": "*",
+    "material": "AL",
+    "espesor": "07",
+    "terminacion": "N",
+    "banda": "30",
+    "codigo": "AL07N30"
+  },
+  {
+    "elemento": "*",
+    "material": "AL",
+    "espesor": "07",
+    "terminacion": "N",
+    "banda": "60",
+    "codigo": "AL07N60"
+  },
+  {
+    "elemento": "*",
+    "material": "AL",
+    "espesor": "07",
+    "terminacion": "N",
+    "banda": "120",
+    "codigo": "AL07N120"
+  },
+  {
+    "elemento": "*",
+    "material": "AL",
+    "espesor": "09",
+    "terminacion": "N",
+    "banda": "30",
+    "codigo": "AL09N30"
+  },
+  {
+    "elemento": "*",
+    "material": "AL",
+    "espesor": "09",
+    "terminacion": "N",
+    "banda": "60",
+    "codigo": "AL09N60"
+  },
+  {
+    "elemento": "*",
+    "material": "AL",
+    "espesor": "09",
+    "terminacion": "N",
+    "banda": "120",
+    "codigo": "AL09N120"
+  },
+  {
+    "elemento": "*",
+    "material": "CU",
+    "espesor": "03",
+    "terminacion": "N",
+    "banda": "30",
+    "codigo": "CU03N30"
+  },
+  {
+    "elemento": "*",
+    "material": "CU",
+    "espesor": "03",
+    "terminacion": "N",
+    "banda": "60",
+    "codigo": "CU03N60"
+  },
+  {
+    "elemento": "*",
+    "material": "CU",
+    "espesor": "03",
+    "terminacion": "N",
+    "banda": "120",
+    "codigo": "CU03N120"
+  },
+  {
+    "elemento": "*",
+    "material": "CU",
+    "espesor": "036",
+    "terminacion": "N",
+    "banda": "30",
+    "codigo": "CU036N30"
+  },
+  {
+    "elemento": "*",
+    "material": "CU",
+    "espesor": "036",
+    "terminacion": "N",
+    "banda": "60",
+    "codigo": "CU036N60"
+  },
+  {
+    "elemento": "*",
+    "material": "CU",
+    "espesor": "036",
+    "terminacion": "N",
+    "banda": "120",
+    "codigo": "CU036N120"
+  },
+  {
+    "elemento": "*",
+    "material": "CU",
+    "espesor": "04",
+    "terminacion": "N",
+    "banda": "30",
+    "codigo": "CU04N30"
+  },
+  {
+    "elemento": "*",
+    "material": "CU",
+    "espesor": "04",
+    "terminacion": "N",
+    "banda": "60",
+    "codigo": "CU04N60"
+  },
+  {
+    "elemento": "*",
+    "material": "CU",
+    "espesor": "04",
+    "terminacion": "N",
+    "banda": "120",
+    "codigo": "CU04N120"
+  },
+  {
+    "elemento": "*",
+    "material": "CU",
+    "espesor": "05",
+    "terminacion": "N",
+    "banda": "30",
+    "codigo": "CU05N30"
+  },
+  {
+    "elemento": "*",
+    "material": "CU",
+    "espesor": "05",
+    "terminacion": "N",
+    "banda": "60",
+    "codigo": "CU05N60"
+  },
+  {
+    "elemento": "*",
+    "material": "CU",
+    "espesor": "05",
+    "terminacion": "N",
+    "banda": "120",
+    "codigo": "CU05N120"
+  },
+  {
+    "elemento": "*",
+    "material": "CU",
+    "espesor": "06",
+    "terminacion": "N",
+    "banda": "30",
+    "codigo": "CU06N30"
+  },
+  {
+    "elemento": "*",
+    "material": "CU",
+    "espesor": "06",
+    "terminacion": "N",
+    "banda": "60",
+    "codigo": "CU06N60"
+  },
+  {
+    "elemento": "*",
+    "material": "CU",
+    "espesor": "06",
+    "terminacion": "N",
+    "banda": "120",
+    "codigo": "CU06N120"
+  },
+  {
+    "elemento": "*",
+    "material": "CU",
+    "espesor": "07",
+    "terminacion": "N",
+    "banda": "30",
+    "codigo": "CU07N30"
+  },
+  {
+    "elemento": "*",
+    "material": "CU",
+    "espesor": "07",
+    "terminacion": "N",
+    "banda": "60",
+    "codigo": "CU07N60"
+  },
+  {
+    "elemento": "*",
+    "material": "CU",
+    "espesor": "07",
+    "terminacion": "N",
+    "banda": "120",
+    "codigo": "CU07N120"
+  },
+  {
+    "elemento": "*",
+    "material": "CU",
+    "espesor": "09",
+    "terminacion": "N",
+    "banda": "30",
+    "codigo": "CU09N30"
+  },
+  {
+    "elemento": "*",
+    "material": "CU",
+    "espesor": "09",
+    "terminacion": "N",
+    "banda": "60",
+    "codigo": "CU09N60"
+  },
+  {
+    "elemento": "*",
+    "material": "CU",
+    "espesor": "09",
+    "terminacion": "N",
+    "banda": "120",
+    "codigo": "CU09N120"
+  }
+]
