@@ -1,0 +1,2461 @@
+{
+  "_leeme": "Plantillas de piezas (sección 7). Las medidas por defecto con supuesto: true son de ejemplo: producción tiene que validarlas. Para agregar una pieza, copiá una parecida y cambiale el id.",
+  "grupos": [
+    {
+      "id": "canaletas",
+      "nombre": "Canaletas"
+    },
+    {
+      "id": "babetas",
+      "nombre": "Babetas"
+    },
+    {
+      "id": "cumbreras",
+      "nombre": "Cumbreras y limahoyas"
+    },
+    {
+      "id": "cenefas",
+      "nombre": "Cenefas, goteros y cierres"
+    },
+    {
+      "id": "perfiles",
+      "nombre": "Perfiles y ángulos"
+    },
+    {
+      "id": "boquetas",
+      "nombre": "Boquetas y caños"
+    },
+    {
+      "id": "tapas",
+      "nombre": "Tapas"
+    },
+    {
+      "id": "ventilacion",
+      "nombre": "Ventilación"
+    },
+    {
+      "id": "especial",
+      "nombre": "Pieza especial a medida"
+    }
+  ],
+  "plantillas": [
+    {
+      "id": "canaleta_nota_real",
+      "nombre": "Canaleta (ejemplo de nota real)",
+      "grupo": "canaletas",
+      "tipoPieza": "plegada",
+      "elemento": "canaleta",
+      "textoDescripcion": "canaleta",
+      "usaLargo": true,
+      "generador3d": "extrusion",
+      "perfil": {
+        "direccionInicial": "arriba",
+        "tramos": [
+          {
+            "medidaCm": 1,
+            "anguloPliegue": 90,
+            "sentido": "izquierda",
+            "tipo": "dobladillo_aplastado",
+            "observacion": "",
+            "corteLaser": null
+          },
+          {
+            "medidaCm": 20,
+            "anguloPliegue": 90,
+            "sentido": "derecha",
+            "tipo": "normal",
+            "observacion": "",
+            "corteLaser": null
+          },
+          {
+            "medidaCm": 32,
+            "anguloPliegue": 90,
+            "sentido": "izquierda",
+            "tipo": "normal",
+            "observacion": "",
+            "corteLaser": null
+          },
+          {
+            "medidaCm": 7,
+            "anguloPliegue": 90,
+            "sentido": "izquierda",
+            "tipo": "normal",
+            "observacion": "",
+            "corteLaser": null
+          }
+        ]
+      },
+      "supuesto": false,
+      "referencia": "Nota de pedido real de la empresa",
+      "palabrasClave": [
+        "canaleta",
+        "d60"
+      ],
+      "ayuda": "1 dobladillo aplastado + 20 + 32 + 7 = 60. Forma confirmada por la nota real."
+    },
+    {
+      "id": "canaleta_americana_chica",
+      "nombre": "Canaleta americana chica",
+      "grupo": "canaletas",
+      "tipoPieza": "plegada",
+      "elemento": "canaleta",
+      "textoDescripcion": "canaleta americana",
+      "usaLargo": true,
+      "generador3d": "extrusion",
+      "perfil": {
+        "direccionInicial": 100,
+        "tramos": [
+          {
+            "medidaCm": 1,
+            "anguloPliegue": 90,
+            "sentido": "izquierda",
+            "tipo": "dobladillo_aplastado",
+            "observacion": "",
+            "corteLaser": null
+          },
+          {
+            "medidaCm": 8,
+            "anguloPliegue": 90,
+            "sentido": "derecha",
+            "tipo": "normal",
+            "observacion": "",
+            "corteLaser": null
+          },
+          {
+            "medidaCm": 9,
+            "anguloPliegue": 100,
+            "sentido": "izquierda",
+            "tipo": "normal",
+            "observacion": "",
+            "corteLaser": null
+          },
+          {
+            "medidaCm": 10,
+            "anguloPliegue": 90,
+            "sentido": "izquierda",
+            "tipo": "normal",
+            "observacion": "",
+            "corteLaser": null
+          },
+          {
+            "medidaCm": 5,
+            "anguloPliegue": 90,
+            "sentido": "derecha",
+            "tipo": "normal",
+            "observacion": "",
+            "corteLaser": null
+          }
+        ]
+      },
+      "supuesto": true,
+      "referencia": "Guía Leroy Merlin, desarrollos de canalón 16/25/33 cm: https://biblioteca.org.ar/libros/210136.pdf",
+      "palabrasClave": [
+        "americana",
+        "d33"
+      ],
+      "ayuda": ""
+    },
+    {
+      "id": "canaleta_americana_mediana",
+      "nombre": "Canaleta americana mediana",
+      "grupo": "canaletas",
+      "tipoPieza": "plegada",
+      "elemento": "canaleta",
+      "textoDescripcion": "canaleta americana",
+      "usaLargo": true,
+      "generador3d": "extrusion",
+      "perfil": {
+        "direccionInicial": 100,
+        "tramos": [
+          {
+            "medidaCm": 1,
+            "anguloPliegue": 90,
+            "sentido": "izquierda",
+            "tipo": "dobladillo_aplastado",
+            "observacion": "",
+            "corteLaser": null
+          },
+          {
+            "medidaCm": 6,
+            "anguloPliegue": 90,
+            "sentido": "derecha",
+            "tipo": "normal",
+            "observacion": "",
+            "corteLaser": null
+          },
+          {
+            "medidaCm": 7,
+            "anguloPliegue": 100,
+            "sentido": "izquierda",
+            "tipo": "normal",
+            "observacion": "",
+            "corteLaser": null
+          },
+          {
+            "medidaCm": 8,
+            "anguloPliegue": 90,
+            "sentido": "izquierda",
+            "tipo": "normal",
+            "observacion": "",
+            "corteLaser": null
+          },
+          {
+            "medidaCm": 3,
+            "anguloPliegue": 90,
+            "sentido": "derecha",
+            "tipo": "normal",
+            "observacion": "",
+            "corteLaser": null
+          }
+        ]
+      },
+      "supuesto": true,
+      "referencia": "Guía Leroy Merlin, desarrollos de canalón 16/25/33 cm: https://biblioteca.org.ar/libros/210136.pdf",
+      "palabrasClave": [
+        "americana",
+        "d25"
+      ],
+      "ayuda": ""
+    },
+    {
+      "id": "canaleta_galponera",
+      "nombre": "Canaleta galponera",
+      "grupo": "canaletas",
+      "tipoPieza": "plegada",
+      "elemento": "canaleta",
+      "textoDescripcion": "canaleta galponera",
+      "usaLargo": true,
+      "generador3d": "extrusion",
+      "perfil": {
+        "direccionInicial": "arriba",
+        "tramos": [
+          {
+            "medidaCm": 2,
+            "anguloPliegue": 90,
+            "sentido": "izquierda",
+            "tipo": "dobladillo",
+            "observacion": "",
+            "corteLaser": null
+          },
+          {
+            "medidaCm": 15,
+            "anguloPliegue": 90,
+            "sentido": "derecha",
+            "tipo": "normal",
+            "observacion": "",
+            "corteLaser": null
+          },
+          {
+            "medidaCm": 25,
+            "anguloPliegue": 90,
+            "sentido": "izquierda",
+            "tipo": "normal",
+            "observacion": "",
+            "corteLaser": null
+          },
+          {
+            "medidaCm": 15,
+            "anguloPliegue": 90,
+            "sentido": "izquierda",
+            "tipo": "normal",
+            "observacion": "",
+            "corteLaser": null
+          },
+          {
+            "medidaCm": 3,
+            "anguloPliegue": 90,
+            "sentido": "derecha",
+            "tipo": "normal",
+            "observacion": "",
+            "corteLaser": null
+          }
+        ]
+      },
+      "supuesto": true,
+      "referencia": "Familia 'galponera' (canaleta de gran sección para galpones)",
+      "palabrasClave": [
+        "galpon",
+        "galponera"
+      ],
+      "ayuda": ""
+    },
+    {
+      "id": "canaleta_contramuro",
+      "nombre": "Canaleta contramuro",
+      "grupo": "canaletas",
+      "tipoPieza": "plegada",
+      "elemento": "canaleta",
+      "textoDescripcion": "canaleta contramuro",
+      "usaLargo": true,
+      "generador3d": "extrusion",
+      "perfil": {
+        "direccionInicial": 315,
+        "tramos": [
+          {
+            "medidaCm": 10,
+            "anguloPliegue": 90,
+            "sentido": "izquierda",
+            "tipo": "normal",
+            "observacion": "va bajo la chapa del techo",
+            "corteLaser": null
+          },
+          {
+            "medidaCm": 12,
+            "anguloPliegue": 135,
+            "sentido": "derecha",
+            "tipo": "normal",
+            "observacion": "",
+            "corteLaser": null
+          },
+          {
+            "medidaCm": 10,
+            "anguloPliegue": 90,
+            "sentido": "izquierda",
+            "tipo": "normal",
+            "observacion": "",
+            "corteLaser": null
+          },
+          {
+            "medidaCm": 12,
+            "anguloPliegue": 90,
+            "sentido": "izquierda",
+            "tipo": "normal",
+            "observacion": "",
+            "corteLaser": null
+          },
+          {
+            "medidaCm": 3,
+            "anguloPliegue": 90,
+            "sentido": "derecha",
+            "tipo": "normal",
+            "observacion": "entra en el muro",
+            "corteLaser": null
+          }
+        ]
+      },
+      "supuesto": true,
+      "referencia": "GEA Zinguería (Mercado Libre): https://www.mercadolibre.com.ar/pagina/geazingueria",
+      "palabrasClave": [
+        "contramuro",
+        "muro",
+        "pared"
+      ],
+      "ayuda": ""
+    },
+    {
+      "id": "canaleta_cuadrada",
+      "nombre": "Canaleta cuadrada",
+      "grupo": "canaletas",
+      "tipoPieza": "plegada",
+      "elemento": "canaleta",
+      "textoDescripcion": "canaleta cuadrada",
+      "usaLargo": true,
+      "generador3d": "extrusion",
+      "perfil": {
+        "direccionInicial": "arriba",
+        "tramos": [
+          {
+            "medidaCm": 1,
+            "anguloPliegue": 90,
+            "sentido": "izquierda",
+            "tipo": "dobladillo_aplastado",
+            "observacion": "",
+            "corteLaser": null
+          },
+          {
+            "medidaCm": 12,
+            "anguloPliegue": 90,
+            "sentido": "derecha",
+            "tipo": "normal",
+            "observacion": "",
+            "corteLaser": null
+          },
+          {
+            "medidaCm": 12,
+            "anguloPliegue": 90,
+            "sentido": "izquierda",
+            "tipo": "normal",
+            "observacion": "",
+            "corteLaser": null
+          },
+          {
+            "medidaCm": 12,
+            "anguloPliegue": 90,
+            "sentido": "izquierda",
+            "tipo": "normal",
+            "observacion": "",
+            "corteLaser": null
+          },
+          {
+            "medidaCm": 3,
+            "anguloPliegue": 90,
+            "sentido": "derecha",
+            "tipo": "normal",
+            "observacion": "",
+            "corteLaser": null
+          }
+        ]
+      },
+      "supuesto": true,
+      "referencia": "GEA Zinguería (Mercado Libre): https://www.mercadolibre.com.ar/pagina/geazingueria",
+      "palabrasClave": [
+        "cuadrada"
+      ],
+      "ayuda": ""
+    },
+    {
+      "id": "canaleta_pecho_paloma",
+      "nombre": "Canaleta pecho paloma",
+      "grupo": "canaletas",
+      "tipoPieza": "plegada",
+      "elemento": "canaleta",
+      "textoDescripcion": "canaleta pecho paloma",
+      "usaLargo": true,
+      "generador3d": "extrusion",
+      "perfil": {
+        "direccionInicial": "arriba",
+        "tramos": [
+          {
+            "medidaCm": 1,
+            "anguloPliegue": 90,
+            "sentido": "izquierda",
+            "tipo": "dobladillo_aplastado",
+            "observacion": "",
+            "corteLaser": null
+          },
+          {
+            "medidaCm": 4,
+            "anguloPliegue": 90,
+            "sentido": "derecha",
+            "tipo": "normal",
+            "observacion": "",
+            "corteLaser": null
+          },
+          {
+            "medidaCm": 6,
+            "anguloPliegue": 135,
+            "sentido": "derecha",
+            "tipo": "normal",
+            "observacion": "",
+            "corteLaser": null
+          },
+          {
+            "medidaCm": 6,
+            "anguloPliegue": 90,
+            "sentido": "izquierda",
+            "tipo": "normal",
+            "observacion": "",
+            "corteLaser": null
+          },
+          {
+            "medidaCm": 10,
+            "anguloPliegue": 135,
+            "sentido": "izquierda",
+            "tipo": "normal",
+            "observacion": "",
+            "corteLaser": null
+          },
+          {
+            "medidaCm": 14,
+            "anguloPliegue": 90,
+            "sentido": "izquierda",
+            "tipo": "normal",
+            "observacion": "",
+            "corteLaser": null
+          },
+          {
+            "medidaCm": 3,
+            "anguloPliegue": 90,
+            "sentido": "derecha",
+            "tipo": "normal",
+            "observacion": "",
+            "corteLaser": null
+          }
+        ]
+      },
+      "supuesto": true,
+      "referencia": "GEA Zinguería (Mercado Libre): https://www.mercadolibre.com.ar/pagina/geazingueria",
+      "palabrasClave": [
+        "pecho",
+        "paloma"
+      ],
+      "ayuda": ""
+    },
+    {
+      "id": "canaleta_cajon_pluvial",
+      "nombre": "Cajón pluvial / canaleta interna",
+      "grupo": "canaletas",
+      "tipoPieza": "plegada",
+      "elemento": "canaleta",
+      "textoDescripcion": "cajón pluvial",
+      "usaLargo": true,
+      "generador3d": "extrusion",
+      "perfil": {
+        "direccionInicial": "derecha",
+        "tramos": [
+          {
+            "medidaCm": 5,
+            "anguloPliegue": 90,
+            "sentido": "izquierda",
+            "tipo": "normal",
+            "observacion": "",
+            "corteLaser": null
+          },
+          {
+            "medidaCm": 15,
+            "anguloPliegue": 90,
+            "sentido": "derecha",
+            "tipo": "normal",
+            "observacion": "",
+            "corteLaser": null
+          },
+          {
+            "medidaCm": 30,
+            "anguloPliegue": 90,
+            "sentido": "izquierda",
+            "tipo": "normal",
+            "observacion": "",
+            "corteLaser": null
+          },
+          {
+            "medidaCm": 15,
+            "anguloPliegue": 90,
+            "sentido": "izquierda",
+            "tipo": "normal",
+            "observacion": "",
+            "corteLaser": null
+          },
+          {
+            "medidaCm": 5,
+            "anguloPliegue": 90,
+            "sentido": "derecha",
+            "tipo": "normal",
+            "observacion": "",
+            "corteLaser": null
+          }
+        ]
+      },
+      "supuesto": true,
+      "referencia": "Forma típica de mercado; medidas propuestas para el prototipo",
+      "palabrasClave": [
+        "cajon",
+        "pluvial",
+        "interna",
+        "embutida"
+      ],
+      "ayuda": ""
+    },
+    {
+      "id": "canaleta_media_cana",
+      "nombre": "Canaleta media caña",
+      "grupo": "canaletas",
+      "tipoPieza": "especial",
+      "elemento": "canaleta",
+      "textoDescripcion": "canaleta media caña Ø{diametroCm}",
+      "usaLargo": true,
+      "calculoDesarrollo": "mediaCana",
+      "generador3d": "mediaCana",
+      "parametros": [
+        {
+          "id": "diametroCm",
+          "etiqueta": "Diámetro de la media caña",
+          "tipo": "diametro",
+          "unidad": "cm",
+          "valorPorDefecto": 12.5,
+          "minimo": 0
+        },
+        {
+          "id": "dobladilloCm",
+          "etiqueta": "Dobladillo del frente",
+          "tipo": "numero",
+          "unidad": "cm",
+          "valorPorDefecto": 1,
+          "minimo": 0,
+          "ayuda": ""
+        },
+        {
+          "id": "pestanaCm",
+          "etiqueta": "Pestaña trasera",
+          "tipo": "numero",
+          "unidad": "cm",
+          "valorPorDefecto": 3,
+          "minimo": 0,
+          "ayuda": ""
+        }
+      ],
+      "supuesto": true,
+      "referencia": "GEA Zinguería (Mercado Libre): https://www.mercadolibre.com.ar/pagina/geazingueria",
+      "palabrasClave": [
+        "media",
+        "caña",
+        "redonda",
+        "semicircular"
+      ],
+      "ayuda": "Desarrollo SUPUESTO: π·Ø/2 + dobladillo + pestaña."
+    },
+    {
+      "id": "babeta_l_15",
+      "nombre": "Babeta ele 15×15",
+      "grupo": "babetas",
+      "tipoPieza": "plegada",
+      "elemento": "babeta",
+      "textoDescripcion": "babeta L 15x15",
+      "usaLargo": true,
+      "generador3d": "extrusion",
+      "perfil": {
+        "direccionInicial": "arriba",
+        "tramos": [
+          {
+            "medidaCm": 15,
+            "anguloPliegue": 90,
+            "sentido": "izquierda",
+            "tipo": "normal",
+            "observacion": "",
+            "corteLaser": null
+          },
+          {
+            "medidaCm": 15,
+            "anguloPliegue": 90,
+            "sentido": "derecha",
+            "tipo": "normal",
+            "observacion": "",
+            "corteLaser": null
+          }
+        ]
+      },
+      "supuesto": false,
+      "referencia": "Rapimetal (Mercado Libre): https://www.mercadolibre.com.ar/tienda/rapimetal",
+      "palabrasClave": [
+        "ele",
+        "l",
+        "15"
+      ],
+      "ayuda": ""
+    },
+    {
+      "id": "babeta_l_20",
+      "nombre": "Babeta ele 20×20",
+      "grupo": "babetas",
+      "tipoPieza": "plegada",
+      "elemento": "babeta",
+      "textoDescripcion": "babeta L 20x20",
+      "usaLargo": true,
+      "generador3d": "extrusion",
+      "perfil": {
+        "direccionInicial": "arriba",
+        "tramos": [
+          {
+            "medidaCm": 20,
+            "anguloPliegue": 90,
+            "sentido": "izquierda",
+            "tipo": "normal",
+            "observacion": "",
+            "corteLaser": null
+          },
+          {
+            "medidaCm": 20,
+            "anguloPliegue": 90,
+            "sentido": "derecha",
+            "tipo": "normal",
+            "observacion": "",
+            "corteLaser": null
+          }
+        ]
+      },
+      "supuesto": false,
+      "referencia": "Rapimetal (Mercado Libre): https://www.mercadolibre.com.ar/tienda/rapimetal",
+      "palabrasClave": [
+        "ele",
+        "l",
+        "20"
+      ],
+      "ayuda": ""
+    },
+    {
+      "id": "babeta_lateral_15x10",
+      "nombre": "Babeta cierre lateral 15×10",
+      "grupo": "babetas",
+      "tipoPieza": "plegada",
+      "elemento": "babeta",
+      "textoDescripcion": "babeta cierre lateral 15x10",
+      "usaLargo": true,
+      "generador3d": "extrusion",
+      "perfil": {
+        "direccionInicial": "arriba",
+        "tramos": [
+          {
+            "medidaCm": 15,
+            "anguloPliegue": 90,
+            "sentido": "izquierda",
+            "tipo": "normal",
+            "observacion": "",
+            "corteLaser": null
+          },
+          {
+            "medidaCm": 10,
+            "anguloPliegue": 90,
+            "sentido": "derecha",
+            "tipo": "normal",
+            "observacion": "",
+            "corteLaser": null
+          }
+        ]
+      },
+      "supuesto": false,
+      "referencia": "Rapimetal (Mercado Libre): https://www.mercadolibre.com.ar/tienda/rapimetal",
+      "palabrasClave": [
+        "lateral",
+        "cierre"
+      ],
+      "ayuda": ""
+    },
+    {
+      "id": "babeta_sobre_chapa_lisa",
+      "nombre": "Babeta sobre chapa lisa",
+      "grupo": "babetas",
+      "tipoPieza": "plegada",
+      "elemento": "babeta",
+      "textoDescripcion": "babeta sobre chapa",
+      "usaLargo": true,
+      "generador3d": "extrusion",
+      "perfil": {
+        "direccionInicial": "arriba",
+        "tramos": [
+          {
+            "medidaCm": 1,
+            "anguloPliegue": 90,
+            "sentido": "izquierda",
+            "tipo": "dobladillo",
+            "observacion": "",
+            "corteLaser": null
+          },
+          {
+            "medidaCm": 12,
+            "anguloPliegue": 90,
+            "sentido": "derecha",
+            "tipo": "normal",
+            "observacion": "",
+            "corteLaser": null
+          },
+          {
+            "medidaCm": 10,
+            "anguloPliegue": 100,
+            "sentido": "izquierda",
+            "tipo": "normal",
+            "observacion": "",
+            "corteLaser": null
+          },
+          {
+            "medidaCm": 2,
+            "anguloPliegue": 90,
+            "sentido": "derecha",
+            "tipo": "normal",
+            "observacion": "",
+            "corteLaser": null
+          }
+        ]
+      },
+      "supuesto": true,
+      "referencia": "Catálogo de la empresa – Zinguería para techos: https://abastosoluciones.com.ar/4-zingueria-para-techos",
+      "palabrasClave": [
+        "sobre chapa",
+        "lisa"
+      ],
+      "ayuda": ""
+    },
+    {
+      "id": "babeta_sobre_chapa_sinusoidal",
+      "nombre": "Babeta sobre chapa sinusoidal (corte láser)",
+      "grupo": "babetas",
+      "tipoPieza": "plegada",
+      "elemento": "babeta",
+      "textoDescripcion": "babeta sobre chapa",
+      "usaLargo": true,
+      "generador3d": "extrusion",
+      "perfil": {
+        "direccionInicial": "arriba",
+        "tramos": [
+          {
+            "medidaCm": 1,
+            "anguloPliegue": 90,
+            "sentido": "izquierda",
+            "tipo": "dobladillo",
+            "observacion": "",
+            "corteLaser": null
+          },
+          {
+            "medidaCm": 12,
+            "anguloPliegue": 90,
+            "sentido": "derecha",
+            "tipo": "normal",
+            "observacion": "",
+            "corteLaser": null
+          },
+          {
+            "medidaCm": 12,
+            "anguloPliegue": 100,
+            "sentido": "izquierda",
+            "tipo": "normal",
+            "observacion": "",
+            "corteLaser": {
+              "tipo": "sinusoidal",
+              "alturaOndaCm": 3.6,
+              "separacionVallesCm": 7.6
+            }
+          }
+        ]
+      },
+      "supuesto": true,
+      "referencia": "Catálogo de la empresa – Zinguería para techos: https://abastosoluciones.com.ar/4-zingueria-para-techos",
+      "palabrasClave": [
+        "sinusoidal",
+        "onda",
+        "laser"
+      ],
+      "ayuda": "El ala que apoya sobre la chapa lleva corte láser sinusoidal (tercerizado) para copiar la onda."
+    },
+    {
+      "id": "babeta_sobre_chapa_trapezoidal",
+      "nombre": "Babeta sobre chapa trapezoidal (corte láser)",
+      "grupo": "babetas",
+      "tipoPieza": "plegada",
+      "elemento": "babeta",
+      "textoDescripcion": "babeta sobre chapa",
+      "usaLargo": true,
+      "generador3d": "extrusion",
+      "perfil": {
+        "direccionInicial": "arriba",
+        "tramos": [
+          {
+            "medidaCm": 1,
+            "anguloPliegue": 90,
+            "sentido": "izquierda",
+            "tipo": "dobladillo",
+            "observacion": "",
+            "corteLaser": null
+          },
+          {
+            "medidaCm": 12,
+            "anguloPliegue": 90,
+            "sentido": "derecha",
+            "tipo": "normal",
+            "observacion": "",
+            "corteLaser": null
+          },
+          {
+            "medidaCm": 12,
+            "anguloPliegue": 100,
+            "sentido": "izquierda",
+            "tipo": "normal",
+            "observacion": "",
+            "corteLaser": {
+              "tipo": "trapezoidal",
+              "alturaOndaCm": 3.6,
+              "separacionVallesCm": 20
+            }
+          }
+        ]
+      },
+      "supuesto": true,
+      "referencia": "Catálogo de la empresa – Zinguería para techos: https://abastosoluciones.com.ar/4-zingueria-para-techos",
+      "palabrasClave": [
+        "trapezoidal",
+        "laser"
+      ],
+      "ayuda": "El ala que apoya sobre la chapa lleva corte láser trapezoidal (tercerizado)."
+    },
+    {
+      "id": "babeta_frontal",
+      "nombre": "Babeta frontal (encuentro con muro)",
+      "grupo": "babetas",
+      "tipoPieza": "plegada",
+      "elemento": "babeta",
+      "textoDescripcion": "babeta frontal",
+      "usaLargo": true,
+      "generador3d": "extrusion",
+      "perfil": {
+        "direccionInicial": "izquierda",
+        "tramos": [
+          {
+            "medidaCm": 2,
+            "anguloPliegue": 90,
+            "sentido": "izquierda",
+            "tipo": "normal",
+            "observacion": "",
+            "corteLaser": null
+          },
+          {
+            "medidaCm": 10,
+            "anguloPliegue": 90,
+            "sentido": "izquierda",
+            "tipo": "normal",
+            "observacion": "",
+            "corteLaser": null
+          },
+          {
+            "medidaCm": 12,
+            "anguloPliegue": 100,
+            "sentido": "izquierda",
+            "tipo": "normal",
+            "observacion": "",
+            "corteLaser": null
+          },
+          {
+            "medidaCm": 2,
+            "anguloPliegue": 90,
+            "sentido": "derecha",
+            "tipo": "normal",
+            "observacion": "",
+            "corteLaser": null
+          }
+        ]
+      },
+      "supuesto": true,
+      "referencia": "Forma típica de mercado; medidas propuestas para el prototipo",
+      "palabrasClave": [
+        "frontal",
+        "muro",
+        "encuentro",
+        "pared"
+      ],
+      "ayuda": ""
+    },
+    {
+      "id": "cumbrera_lisa_15",
+      "nombre": "Cumbrera lisa 15×15",
+      "grupo": "cumbreras",
+      "tipoPieza": "plegada",
+      "elemento": "cumbrera",
+      "textoDescripcion": "cumbrera lisa 15x15",
+      "usaLargo": true,
+      "generador3d": "extrusion",
+      "perfil": {
+        "direccionInicial": 15,
+        "tramos": [
+          {
+            "medidaCm": 15,
+            "anguloPliegue": 90,
+            "sentido": "izquierda",
+            "tipo": "normal",
+            "observacion": "",
+            "corteLaser": null
+          },
+          {
+            "medidaCm": 15,
+            "anguloPliegue": 150,
+            "sentido": "derecha",
+            "tipo": "normal",
+            "observacion": "",
+            "corteLaser": null
+          }
+        ]
+      },
+      "supuesto": true,
+      "referencia": "Rapimetal (Mercado Libre): https://www.mercadolibre.com.ar/tienda/rapimetal",
+      "palabrasClave": [
+        "cumbrera",
+        "lisa"
+      ],
+      "ayuda": "El ángulo es el del techo: cambialo en el tramo 2."
+    },
+    {
+      "id": "cumbrera_lisa_20",
+      "nombre": "Cumbrera lisa 20×20",
+      "grupo": "cumbreras",
+      "tipoPieza": "plegada",
+      "elemento": "cumbrera",
+      "textoDescripcion": "cumbrera lisa 20x20",
+      "usaLargo": true,
+      "generador3d": "extrusion",
+      "perfil": {
+        "direccionInicial": 15,
+        "tramos": [
+          {
+            "medidaCm": 20,
+            "anguloPliegue": 90,
+            "sentido": "izquierda",
+            "tipo": "normal",
+            "observacion": "",
+            "corteLaser": null
+          },
+          {
+            "medidaCm": 20,
+            "anguloPliegue": 150,
+            "sentido": "derecha",
+            "tipo": "normal",
+            "observacion": "",
+            "corteLaser": null
+          }
+        ]
+      },
+      "supuesto": true,
+      "referencia": "Rapimetal (Mercado Libre): https://www.mercadolibre.com.ar/tienda/rapimetal",
+      "palabrasClave": [
+        "cumbrera",
+        "lisa"
+      ],
+      "ayuda": "El ángulo es el del techo: cambialo en el tramo 2."
+    },
+    {
+      "id": "cumbrera_sinusoidal_20",
+      "nombre": "Cumbrera 20×20 para chapa sinusoidal (corte láser)",
+      "grupo": "cumbreras",
+      "tipoPieza": "plegada",
+      "elemento": "cumbrera",
+      "textoDescripcion": "cumbrera 20x20",
+      "usaLargo": true,
+      "generador3d": "extrusion",
+      "perfil": {
+        "direccionInicial": 15,
+        "tramos": [
+          {
+            "medidaCm": 20,
+            "anguloPliegue": 90,
+            "sentido": "izquierda",
+            "tipo": "normal",
+            "observacion": "",
+            "corteLaser": {
+              "tipo": "sinusoidal",
+              "alturaOndaCm": 3.6,
+              "separacionVallesCm": 7.6
+            }
+          },
+          {
+            "medidaCm": 20,
+            "anguloPliegue": 150,
+            "sentido": "derecha",
+            "tipo": "normal",
+            "observacion": "",
+            "corteLaser": {
+              "tipo": "sinusoidal",
+              "alturaOndaCm": 3.6,
+              "separacionVallesCm": 7.6
+            }
+          }
+        ]
+      },
+      "supuesto": true,
+      "referencia": "Catálogo de la empresa – Plegados y cortes: https://abastosoluciones.com.ar/7-plegados-y-cortes",
+      "palabrasClave": [
+        "cumbrera",
+        "sinusoidal",
+        "troquelada",
+        "laser"
+      ],
+      "ayuda": ""
+    },
+    {
+      "id": "cumbrera_trapezoidal_20",
+      "nombre": "Cumbrera 20×20 para chapa trapezoidal (corte láser)",
+      "grupo": "cumbreras",
+      "tipoPieza": "plegada",
+      "elemento": "cumbrera",
+      "textoDescripcion": "cumbrera 20x20",
+      "usaLargo": true,
+      "generador3d": "extrusion",
+      "perfil": {
+        "direccionInicial": 15,
+        "tramos": [
+          {
+            "medidaCm": 20,
+            "anguloPliegue": 90,
+            "sentido": "izquierda",
+            "tipo": "normal",
+            "observacion": "",
+            "corteLaser": {
+              "tipo": "trapezoidal",
+              "alturaOndaCm": 3.6,
+              "separacionVallesCm": 20
+            }
+          },
+          {
+            "medidaCm": 20,
+            "anguloPliegue": 150,
+            "sentido": "derecha",
+            "tipo": "normal",
+            "observacion": "",
+            "corteLaser": {
+              "tipo": "trapezoidal",
+              "alturaOndaCm": 3.6,
+              "separacionVallesCm": 20
+            }
+          }
+        ]
+      },
+      "supuesto": true,
+      "referencia": "Catálogo de la empresa – Plegados y cortes: https://abastosoluciones.com.ar/7-plegados-y-cortes",
+      "palabrasClave": [
+        "cumbrera",
+        "trapezoidal",
+        "troquelada",
+        "laser"
+      ],
+      "ayuda": ""
+    },
+    {
+      "id": "cumbrera_con_dobladillos",
+      "nombre": "Cumbrera con dobladillos",
+      "grupo": "cumbreras",
+      "tipoPieza": "plegada",
+      "elemento": "cumbrera",
+      "textoDescripcion": "cumbrera c/dobladillo",
+      "usaLargo": true,
+      "generador3d": "extrusion",
+      "perfil": {
+        "direccionInicial": 195,
+        "tramos": [
+          {
+            "medidaCm": 1,
+            "anguloPliegue": 90,
+            "sentido": "izquierda",
+            "tipo": "dobladillo",
+            "observacion": "",
+            "corteLaser": null
+          },
+          {
+            "medidaCm": 15,
+            "anguloPliegue": 90,
+            "sentido": "derecha",
+            "tipo": "normal",
+            "observacion": "",
+            "corteLaser": null
+          },
+          {
+            "medidaCm": 15,
+            "anguloPliegue": 150,
+            "sentido": "derecha",
+            "tipo": "normal",
+            "observacion": "",
+            "corteLaser": null
+          },
+          {
+            "medidaCm": 1,
+            "anguloPliegue": 90,
+            "sentido": "derecha",
+            "tipo": "dobladillo",
+            "observacion": "",
+            "corteLaser": null
+          }
+        ]
+      },
+      "supuesto": true,
+      "referencia": "Forma típica de mercado; medidas propuestas para el prototipo",
+      "palabrasClave": [
+        "cumbrera",
+        "dobladillo"
+      ],
+      "ayuda": ""
+    },
+    {
+      "id": "media_cumbrera",
+      "nombre": "Media cumbrera",
+      "grupo": "cumbreras",
+      "tipoPieza": "plegada",
+      "elemento": "cumbrera",
+      "textoDescripcion": "media cumbrera",
+      "usaLargo": true,
+      "generador3d": "extrusion",
+      "perfil": {
+        "direccionInicial": "abajo",
+        "tramos": [
+          {
+            "medidaCm": 15,
+            "anguloPliegue": 90,
+            "sentido": "izquierda",
+            "tipo": "normal",
+            "observacion": "contra el muro",
+            "corteLaser": null
+          },
+          {
+            "medidaCm": 15,
+            "anguloPliegue": 120,
+            "sentido": "izquierda",
+            "tipo": "normal",
+            "observacion": "",
+            "corteLaser": null
+          }
+        ]
+      },
+      "supuesto": true,
+      "referencia": "Catálogo de la empresa – Plegados y cortes: https://abastosoluciones.com.ar/7-plegados-y-cortes",
+      "palabrasClave": [
+        "media"
+      ],
+      "ayuda": ""
+    },
+    {
+      "id": "limahoya",
+      "nombre": "Limahoya",
+      "grupo": "cumbreras",
+      "tipoPieza": "plegada",
+      "elemento": "limahoya",
+      "textoDescripcion": "limahoya",
+      "usaLargo": true,
+      "generador3d": "extrusion",
+      "perfil": {
+        "direccionInicial": 165,
+        "tramos": [
+          {
+            "medidaCm": 1,
+            "anguloPliegue": 90,
+            "sentido": "izquierda",
+            "tipo": "dobladillo",
+            "observacion": "",
+            "corteLaser": null
+          },
+          {
+            "medidaCm": 25,
+            "anguloPliegue": 90,
+            "sentido": "derecha",
+            "tipo": "normal",
+            "observacion": "",
+            "corteLaser": null
+          },
+          {
+            "medidaCm": 25,
+            "anguloPliegue": 150,
+            "sentido": "izquierda",
+            "tipo": "normal",
+            "observacion": "",
+            "corteLaser": null
+          },
+          {
+            "medidaCm": 1,
+            "anguloPliegue": 90,
+            "sentido": "derecha",
+            "tipo": "dobladillo",
+            "observacion": "",
+            "corteLaser": null
+          }
+        ]
+      },
+      "supuesto": true,
+      "referencia": "Catálogo de la empresa – Plegados y cortes: https://abastosoluciones.com.ar/7-plegados-y-cortes",
+      "palabrasClave": [
+        "limahoya",
+        "valle"
+      ],
+      "ayuda": ""
+    },
+    {
+      "id": "limatesa",
+      "nombre": "Limatesa",
+      "grupo": "cumbreras",
+      "tipoPieza": "plegada",
+      "elemento": "cumbrera",
+      "textoDescripcion": "limatesa",
+      "usaLargo": true,
+      "generador3d": "extrusion",
+      "perfil": {
+        "direccionInicial": 15,
+        "tramos": [
+          {
+            "medidaCm": 20,
+            "anguloPliegue": 90,
+            "sentido": "izquierda",
+            "tipo": "normal",
+            "observacion": "",
+            "corteLaser": null
+          },
+          {
+            "medidaCm": 20,
+            "anguloPliegue": 150,
+            "sentido": "derecha",
+            "tipo": "normal",
+            "observacion": "",
+            "corteLaser": null
+          }
+        ]
+      },
+      "supuesto": true,
+      "referencia": "Forma típica de mercado; medidas propuestas para el prototipo",
+      "palabrasClave": [
+        "limatesa",
+        "arista"
+      ],
+      "ayuda": ""
+    },
+    {
+      "id": "cenefa_lisa",
+      "nombre": "Cenefa lisa / alero",
+      "grupo": "cenefas",
+      "tipoPieza": "plegada",
+      "elemento": "cenefa",
+      "textoDescripcion": "cenefa",
+      "usaLargo": true,
+      "generador3d": "extrusion",
+      "perfil": {
+        "direccionInicial": "abajo",
+        "tramos": [
+          {
+            "medidaCm": 1,
+            "anguloPliegue": 90,
+            "sentido": "izquierda",
+            "tipo": "dobladillo",
+            "observacion": "",
+            "corteLaser": null
+          },
+          {
+            "medidaCm": 20,
+            "anguloPliegue": 90,
+            "sentido": "izquierda",
+            "tipo": "normal",
+            "observacion": "",
+            "corteLaser": null
+          },
+          {
+            "medidaCm": 3,
+            "anguloPliegue": 90,
+            "sentido": "derecha",
+            "tipo": "normal",
+            "observacion": "",
+            "corteLaser": null
+          }
+        ]
+      },
+      "supuesto": true,
+      "referencia": "Catálogo de la empresa – Zinguería para techos: https://abastosoluciones.com.ar/4-zingueria-para-techos",
+      "palabrasClave": [
+        "cenefa",
+        "alero",
+        "frente"
+      ],
+      "ayuda": "Las cenefas decorativas troqueladas son de reventa: cargalas como texto en observaciones."
+    },
+    {
+      "id": "gotero",
+      "nombre": "Gotero",
+      "grupo": "cenefas",
+      "tipoPieza": "plegada",
+      "elemento": "gotero",
+      "textoDescripcion": "gotero",
+      "usaLargo": true,
+      "generador3d": "extrusion",
+      "perfil": {
+        "direccionInicial": "derecha",
+        "tramos": [
+          {
+            "medidaCm": 6,
+            "anguloPliegue": 90,
+            "sentido": "izquierda",
+            "tipo": "normal",
+            "observacion": "",
+            "corteLaser": null
+          },
+          {
+            "medidaCm": 4,
+            "anguloPliegue": 100,
+            "sentido": "derecha",
+            "tipo": "normal",
+            "observacion": "",
+            "corteLaser": null
+          },
+          {
+            "medidaCm": 1,
+            "anguloPliegue": 90,
+            "sentido": "izquierda",
+            "tipo": "dobladillo_aplastado",
+            "observacion": "",
+            "corteLaser": null
+          }
+        ]
+      },
+      "supuesto": true,
+      "referencia": "Forma típica de mercado; medidas propuestas para el prototipo",
+      "palabrasClave": [
+        "gotero",
+        "goterón",
+        "borde"
+      ],
+      "ayuda": ""
+    },
+    {
+      "id": "cupertina",
+      "nombre": "Cupertina / cubremuro",
+      "grupo": "cenefas",
+      "tipoPieza": "plegada",
+      "elemento": "cupertina",
+      "textoDescripcion": "cupertina",
+      "usaLargo": true,
+      "generador3d": "extrusion",
+      "perfil": {
+        "direccionInicial": "abajo",
+        "tramos": [
+          {
+            "medidaCm": 1,
+            "anguloPliegue": 90,
+            "sentido": "izquierda",
+            "tipo": "dobladillo",
+            "observacion": "",
+            "corteLaser": null
+          },
+          {
+            "medidaCm": 4,
+            "anguloPliegue": 90,
+            "sentido": "izquierda",
+            "tipo": "normal",
+            "observacion": "",
+            "corteLaser": null
+          },
+          {
+            "medidaCm": 20,
+            "anguloPliegue": 90,
+            "sentido": "derecha",
+            "tipo": "normal",
+            "observacion": "",
+            "corteLaser": null
+          },
+          {
+            "medidaCm": 4,
+            "anguloPliegue": 90,
+            "sentido": "derecha",
+            "tipo": "normal",
+            "observacion": "",
+            "corteLaser": null
+          },
+          {
+            "medidaCm": 1,
+            "anguloPliegue": 90,
+            "sentido": "derecha",
+            "tipo": "dobladillo",
+            "observacion": "",
+            "corteLaser": null
+          }
+        ]
+      },
+      "supuesto": true,
+      "referencia": "Forma típica de mercado; medidas propuestas para el prototipo",
+      "palabrasClave": [
+        "cupertina",
+        "cubremuro",
+        "tapa de muro",
+        "coronamiento"
+      ],
+      "ayuda": ""
+    },
+    {
+      "id": "alfeizar",
+      "nombre": "Alféizar / vierteaguas",
+      "grupo": "cenefas",
+      "tipoPieza": "plegada",
+      "elemento": "alfeizar",
+      "textoDescripcion": "alféizar",
+      "usaLargo": true,
+      "generador3d": "extrusion",
+      "perfil": {
+        "direccionInicial": "abajo",
+        "tramos": [
+          {
+            "medidaCm": 3,
+            "anguloPliegue": 90,
+            "sentido": "izquierda",
+            "tipo": "normal",
+            "observacion": "",
+            "corteLaser": null
+          },
+          {
+            "medidaCm": 20,
+            "anguloPliegue": 95,
+            "sentido": "izquierda",
+            "tipo": "normal",
+            "observacion": "",
+            "corteLaser": null
+          },
+          {
+            "medidaCm": 3,
+            "anguloPliegue": 95,
+            "sentido": "derecha",
+            "tipo": "normal",
+            "observacion": "",
+            "corteLaser": null
+          },
+          {
+            "medidaCm": 1,
+            "anguloPliegue": 90,
+            "sentido": "derecha",
+            "tipo": "dobladillo_aplastado",
+            "observacion": "",
+            "corteLaser": null
+          }
+        ]
+      },
+      "supuesto": true,
+      "referencia": "Forma típica de mercado; medidas propuestas para el prototipo",
+      "palabrasClave": [
+        "alfeizar",
+        "vierteaguas",
+        "ventana",
+        "antepecho"
+      ],
+      "ayuda": ""
+    },
+    {
+      "id": "tapajunta",
+      "nombre": "Tapajunta",
+      "grupo": "cenefas",
+      "tipoPieza": "plegada",
+      "elemento": "tapajunta",
+      "textoDescripcion": "tapajunta",
+      "usaLargo": true,
+      "generador3d": "extrusion",
+      "perfil": {
+        "direccionInicial": "derecha",
+        "tramos": [
+          {
+            "medidaCm": 1,
+            "anguloPliegue": 90,
+            "sentido": "izquierda",
+            "tipo": "dobladillo_aplastado",
+            "observacion": "",
+            "corteLaser": null
+          },
+          {
+            "medidaCm": 10,
+            "anguloPliegue": 90,
+            "sentido": "izquierda",
+            "tipo": "normal",
+            "observacion": "",
+            "corteLaser": null
+          },
+          {
+            "medidaCm": 1,
+            "anguloPliegue": 90,
+            "sentido": "izquierda",
+            "tipo": "dobladillo_aplastado",
+            "observacion": "",
+            "corteLaser": null
+          }
+        ]
+      },
+      "supuesto": true,
+      "referencia": "Forma típica de mercado; medidas propuestas para el prototipo",
+      "palabrasClave": [
+        "tapajunta",
+        "planchuela"
+      ],
+      "ayuda": ""
+    },
+    {
+      "id": "angulo_esquinero",
+      "nombre": "Ángulo esquinero 5×5",
+      "grupo": "perfiles",
+      "tipoPieza": "plegada",
+      "elemento": "perfil",
+      "textoDescripcion": "ángulo 5x5",
+      "usaLargo": true,
+      "generador3d": "extrusion",
+      "perfil": {
+        "direccionInicial": "arriba",
+        "tramos": [
+          {
+            "medidaCm": 5,
+            "anguloPliegue": 90,
+            "sentido": "izquierda",
+            "tipo": "normal",
+            "observacion": "",
+            "corteLaser": null
+          },
+          {
+            "medidaCm": 5,
+            "anguloPliegue": 90,
+            "sentido": "derecha",
+            "tipo": "normal",
+            "observacion": "",
+            "corteLaser": null
+          }
+        ]
+      },
+      "supuesto": true,
+      "referencia": "Forma típica de mercado; medidas propuestas para el prototipo",
+      "palabrasClave": [
+        "angulo",
+        "esquinero",
+        "l"
+      ],
+      "ayuda": ""
+    },
+    {
+      "id": "perfil_u",
+      "nombre": "Perfil U",
+      "grupo": "perfiles",
+      "tipoPieza": "plegada",
+      "elemento": "perfil",
+      "textoDescripcion": "perfil U",
+      "usaLargo": true,
+      "generador3d": "extrusion",
+      "perfil": {
+        "direccionInicial": "abajo",
+        "tramos": [
+          {
+            "medidaCm": 3,
+            "anguloPliegue": 90,
+            "sentido": "izquierda",
+            "tipo": "normal",
+            "observacion": "",
+            "corteLaser": null
+          },
+          {
+            "medidaCm": 10,
+            "anguloPliegue": 90,
+            "sentido": "izquierda",
+            "tipo": "normal",
+            "observacion": "",
+            "corteLaser": null
+          },
+          {
+            "medidaCm": 3,
+            "anguloPliegue": 90,
+            "sentido": "izquierda",
+            "tipo": "normal",
+            "observacion": "",
+            "corteLaser": null
+          }
+        ]
+      },
+      "supuesto": true,
+      "referencia": "Forma típica de mercado; medidas propuestas para el prototipo",
+      "palabrasClave": [
+        "u",
+        "canal"
+      ],
+      "ayuda": ""
+    },
+    {
+      "id": "perfil_c",
+      "nombre": "Perfil C",
+      "grupo": "perfiles",
+      "tipoPieza": "plegada",
+      "elemento": "perfil",
+      "textoDescripcion": "perfil C",
+      "usaLargo": true,
+      "generador3d": "extrusion",
+      "perfil": {
+        "direccionInicial": "abajo",
+        "tramos": [
+          {
+            "medidaCm": 2,
+            "anguloPliegue": 90,
+            "sentido": "izquierda",
+            "tipo": "normal",
+            "observacion": "",
+            "corteLaser": null
+          },
+          {
+            "medidaCm": 5,
+            "anguloPliegue": 90,
+            "sentido": "derecha",
+            "tipo": "normal",
+            "observacion": "",
+            "corteLaser": null
+          },
+          {
+            "medidaCm": 10,
+            "anguloPliegue": 90,
+            "sentido": "izquierda",
+            "tipo": "normal",
+            "observacion": "",
+            "corteLaser": null
+          },
+          {
+            "medidaCm": 5,
+            "anguloPliegue": 90,
+            "sentido": "izquierda",
+            "tipo": "normal",
+            "observacion": "",
+            "corteLaser": null
+          },
+          {
+            "medidaCm": 2,
+            "anguloPliegue": 90,
+            "sentido": "izquierda",
+            "tipo": "normal",
+            "observacion": "",
+            "corteLaser": null
+          }
+        ]
+      },
+      "supuesto": true,
+      "referencia": "Forma típica de mercado; medidas propuestas para el prototipo",
+      "palabrasClave": [
+        "c"
+      ],
+      "ayuda": ""
+    },
+    {
+      "id": "perfil_z",
+      "nombre": "Perfil Z",
+      "grupo": "perfiles",
+      "tipoPieza": "plegada",
+      "elemento": "perfil",
+      "textoDescripcion": "perfil Z",
+      "usaLargo": true,
+      "generador3d": "extrusion",
+      "perfil": {
+        "direccionInicial": "derecha",
+        "tramos": [
+          {
+            "medidaCm": 5,
+            "anguloPliegue": 90,
+            "sentido": "izquierda",
+            "tipo": "normal",
+            "observacion": "",
+            "corteLaser": null
+          },
+          {
+            "medidaCm": 10,
+            "anguloPliegue": 90,
+            "sentido": "derecha",
+            "tipo": "normal",
+            "observacion": "",
+            "corteLaser": null
+          },
+          {
+            "medidaCm": 5,
+            "anguloPliegue": 90,
+            "sentido": "izquierda",
+            "tipo": "normal",
+            "observacion": "",
+            "corteLaser": null
+          }
+        ]
+      },
+      "supuesto": true,
+      "referencia": "Forma típica de mercado; medidas propuestas para el prototipo",
+      "palabrasClave": [
+        "z"
+      ],
+      "ayuda": ""
+    },
+    {
+      "id": "perfil_omega",
+      "nombre": "Perfil omega",
+      "grupo": "perfiles",
+      "tipoPieza": "plegada",
+      "elemento": "perfil",
+      "textoDescripcion": "perfil omega",
+      "usaLargo": true,
+      "generador3d": "extrusion",
+      "perfil": {
+        "direccionInicial": "derecha",
+        "tramos": [
+          {
+            "medidaCm": 3,
+            "anguloPliegue": 90,
+            "sentido": "izquierda",
+            "tipo": "normal",
+            "observacion": "",
+            "corteLaser": null
+          },
+          {
+            "medidaCm": 4,
+            "anguloPliegue": 90,
+            "sentido": "izquierda",
+            "tipo": "normal",
+            "observacion": "",
+            "corteLaser": null
+          },
+          {
+            "medidaCm": 6,
+            "anguloPliegue": 90,
+            "sentido": "derecha",
+            "tipo": "normal",
+            "observacion": "",
+            "corteLaser": null
+          },
+          {
+            "medidaCm": 4,
+            "anguloPliegue": 90,
+            "sentido": "derecha",
+            "tipo": "normal",
+            "observacion": "",
+            "corteLaser": null
+          },
+          {
+            "medidaCm": 3,
+            "anguloPliegue": 90,
+            "sentido": "izquierda",
+            "tipo": "normal",
+            "observacion": "",
+            "corteLaser": null
+          }
+        ]
+      },
+      "supuesto": true,
+      "referencia": "Forma típica de mercado; medidas propuestas para el prototipo",
+      "palabrasClave": [
+        "omega",
+        "sombrero"
+      ],
+      "ayuda": ""
+    },
+    {
+      "id": "boqueta_redonda",
+      "nombre": "Boqueta redonda",
+      "grupo": "boquetas",
+      "tipoPieza": "especial",
+      "elemento": "boqueta",
+      "textoDescripcion": "boqueta redonda Ø{diametroCm}",
+      "usaLargo": false,
+      "calculoDesarrollo": "perimetroRedondo",
+      "generador3d": "boquetaRedonda",
+      "parametros": [
+        {
+          "id": "diametroCm",
+          "etiqueta": "Diámetro del caño",
+          "tipo": "diametro",
+          "unidad": "cm",
+          "valorPorDefecto": 10,
+          "minimo": 0
+        },
+        {
+          "id": "largoBocaCm",
+          "etiqueta": "Largo de la boca",
+          "tipo": "numero",
+          "unidad": "cm",
+          "valorPorDefecto": 10,
+          "minimo": 0,
+          "ayuda": ""
+        },
+        {
+          "id": "pestanaCm",
+          "etiqueta": "Pestaña",
+          "tipo": "numero",
+          "unidad": "cm",
+          "valorPorDefecto": 2,
+          "minimo": 0,
+          "ayuda": ""
+        },
+        {
+          "id": "posicionCm",
+          "etiqueta": "Posición desde el extremo de la canaleta",
+          "tipo": "numero",
+          "unidad": "cm",
+          "valorPorDefecto": 30,
+          "minimo": 0,
+          "ayuda": "Distancia desde la punta izquierda de la canaleta al centro de la boqueta"
+        }
+      ],
+      "supuesto": true,
+      "referencia": "Catálogo de la empresa – Plegados y cortes: https://abastosoluciones.com.ar/7-plegados-y-cortes",
+      "palabrasClave": [
+        "boqueta",
+        "bajada",
+        "embudo"
+      ],
+      "ayuda": "Desarrollo SUPUESTO: π·Ø + solape de engrafe.",
+      "vinculablePara": [
+        "canaleta"
+      ]
+    },
+    {
+      "id": "boqueta_rectangular",
+      "nombre": "Boqueta rectangular",
+      "grupo": "boquetas",
+      "tipoPieza": "especial",
+      "elemento": "boqueta",
+      "textoDescripcion": "boqueta rectangular {ladoACm}x{ladoBCm}",
+      "usaLargo": false,
+      "calculoDesarrollo": "perimetroRectangular",
+      "generador3d": "boquetaRectangular",
+      "parametros": [
+        {
+          "id": "ladoACm",
+          "etiqueta": "Lado a",
+          "tipo": "numero",
+          "unidad": "cm",
+          "valorPorDefecto": 10,
+          "minimo": 0,
+          "ayuda": ""
+        },
+        {
+          "id": "ladoBCm",
+          "etiqueta": "Lado b",
+          "tipo": "numero",
+          "unidad": "cm",
+          "valorPorDefecto": 5,
+          "minimo": 0,
+          "ayuda": ""
+        },
+        {
+          "id": "largoBocaCm",
+          "etiqueta": "Largo de la boca",
+          "tipo": "numero",
+          "unidad": "cm",
+          "valorPorDefecto": 10,
+          "minimo": 0,
+          "ayuda": ""
+        },
+        {
+          "id": "pestanaCm",
+          "etiqueta": "Pestaña",
+          "tipo": "numero",
+          "unidad": "cm",
+          "valorPorDefecto": 2,
+          "minimo": 0,
+          "ayuda": ""
+        },
+        {
+          "id": "posicionCm",
+          "etiqueta": "Posición desde el extremo de la canaleta",
+          "tipo": "numero",
+          "unidad": "cm",
+          "valorPorDefecto": 30,
+          "minimo": 0,
+          "ayuda": ""
+        }
+      ],
+      "supuesto": true,
+      "referencia": "Catálogo de la empresa – Plegados y cortes: https://abastosoluciones.com.ar/7-plegados-y-cortes",
+      "palabrasClave": [
+        "boqueta",
+        "rectangular"
+      ],
+      "ayuda": "Desarrollo SUPUESTO: 2·(a+b) + solape.",
+      "vinculablePara": [
+        "canaleta"
+      ]
+    },
+    {
+      "id": "cano_redondo",
+      "nombre": "Caño de bajada redondo",
+      "grupo": "boquetas",
+      "tipoPieza": "especial",
+      "elemento": "cano",
+      "textoDescripcion": "caño redondo Ø{diametroCm}",
+      "usaLargo": true,
+      "calculoDesarrollo": "perimetroRedondo",
+      "generador3d": "canoRedondo",
+      "parametros": [
+        {
+          "id": "diametroCm",
+          "etiqueta": "Diámetro",
+          "tipo": "diametro",
+          "unidad": "cm",
+          "valorPorDefecto": 10,
+          "minimo": 0
+        }
+      ],
+      "supuesto": true,
+      "referencia": "Catálogo de la empresa – Caños, codos y curvas: https://abastosoluciones.com.ar/6-canos-codos-y-curvas",
+      "palabrasClave": [
+        "caño",
+        "bajada",
+        "redondo"
+      ],
+      "ayuda": ""
+    },
+    {
+      "id": "cano_rectangular",
+      "nombre": "Caño de bajada rectangular",
+      "grupo": "boquetas",
+      "tipoPieza": "especial",
+      "elemento": "cano",
+      "textoDescripcion": "caño rectangular {ladoACm}x{ladoBCm}",
+      "usaLargo": true,
+      "calculoDesarrollo": "perimetroRectangular",
+      "generador3d": "canoRectangular",
+      "parametros": [
+        {
+          "id": "ladoACm",
+          "etiqueta": "Lado a",
+          "tipo": "numero",
+          "unidad": "cm",
+          "valorPorDefecto": 10,
+          "minimo": 0,
+          "ayuda": ""
+        },
+        {
+          "id": "ladoBCm",
+          "etiqueta": "Lado b",
+          "tipo": "numero",
+          "unidad": "cm",
+          "valorPorDefecto": 5,
+          "minimo": 0,
+          "ayuda": ""
+        }
+      ],
+      "supuesto": true,
+      "referencia": "Catálogo de la empresa – Caños, codos y curvas: https://abastosoluciones.com.ar/6-canos-codos-y-curvas",
+      "palabrasClave": [
+        "caño",
+        "bajada",
+        "rectangular"
+      ],
+      "ayuda": ""
+    },
+    {
+      "id": "codo_redondo",
+      "nombre": "Codo / curva redonda",
+      "grupo": "boquetas",
+      "tipoPieza": "especial",
+      "elemento": "codo",
+      "textoDescripcion": "codo {anguloGrados}° Ø{diametroCm} {gajos} gajos",
+      "usaLargo": false,
+      "calculoDesarrollo": "unidad",
+      "generador3d": "codoRedondo",
+      "parametros": [
+        {
+          "id": "diametroCm",
+          "etiqueta": "Diámetro",
+          "tipo": "diametro",
+          "unidad": "cm",
+          "valorPorDefecto": 10,
+          "minimo": 0
+        },
+        {
+          "id": "anguloGrados",
+          "etiqueta": "Ángulo",
+          "tipo": "opciones",
+          "valorPorDefecto": 90,
+          "opciones": [
+            {
+              "valor": 45,
+              "etiqueta": "45°"
+            },
+            {
+              "valor": 90,
+              "etiqueta": "90°"
+            }
+          ]
+        },
+        {
+          "id": "gajos",
+          "etiqueta": "Cantidad de gajos",
+          "tipo": "numero",
+          "unidad": "cm",
+          "valorPorDefecto": 4,
+          "minimo": 2,
+          "ayuda": ""
+        }
+      ],
+      "supuesto": true,
+      "referencia": "Catálogo de la empresa – Caños, codos y curvas: https://abastosoluciones.com.ar/6-canos-codos-y-curvas",
+      "palabrasClave": [
+        "codo",
+        "curva"
+      ],
+      "ayuda": ""
+    },
+    {
+      "id": "codo_rectangular",
+      "nombre": "Codo rectangular",
+      "grupo": "boquetas",
+      "tipoPieza": "especial",
+      "elemento": "codo",
+      "textoDescripcion": "codo rectangular {anguloGrados}° {ladoACm}x{ladoBCm}",
+      "usaLargo": false,
+      "calculoDesarrollo": "unidad",
+      "generador3d": "codoRectangular",
+      "parametros": [
+        {
+          "id": "ladoACm",
+          "etiqueta": "Lado a",
+          "tipo": "numero",
+          "unidad": "cm",
+          "valorPorDefecto": 10,
+          "minimo": 0,
+          "ayuda": ""
+        },
+        {
+          "id": "ladoBCm",
+          "etiqueta": "Lado b",
+          "tipo": "numero",
+          "unidad": "cm",
+          "valorPorDefecto": 5,
+          "minimo": 0,
+          "ayuda": ""
+        },
+        {
+          "id": "anguloGrados",
+          "etiqueta": "Ángulo",
+          "tipo": "opciones",
+          "valorPorDefecto": 90,
+          "opciones": [
+            {
+              "valor": 45,
+              "etiqueta": "45°"
+            },
+            {
+              "valor": 90,
+              "etiqueta": "90°"
+            }
+          ]
+        }
+      ],
+      "supuesto": true,
+      "referencia": "Catálogo de la empresa – Caños, codos y curvas: https://abastosoluciones.com.ar/6-canos-codos-y-curvas",
+      "palabrasClave": [
+        "codo",
+        "rectangular"
+      ],
+      "ayuda": ""
+    },
+    {
+      "id": "ramal",
+      "nombre": "Ramal",
+      "grupo": "boquetas",
+      "tipoPieza": "especial",
+      "elemento": "ramal",
+      "textoDescripcion": "ramal {anguloGrados}° Ø{diametroCm}",
+      "usaLargo": false,
+      "calculoDesarrollo": "unidad",
+      "generador3d": "ramal",
+      "parametros": [
+        {
+          "id": "diametroCm",
+          "etiqueta": "Diámetro principal",
+          "tipo": "diametro",
+          "unidad": "cm",
+          "valorPorDefecto": 10,
+          "minimo": 0
+        },
+        {
+          "id": "diametroRamalCm",
+          "etiqueta": "Diámetro del ramal",
+          "tipo": "diametro",
+          "unidad": "cm",
+          "valorPorDefecto": 10,
+          "minimo": 0
+        },
+        {
+          "id": "anguloGrados",
+          "etiqueta": "Ángulo",
+          "tipo": "opciones",
+          "valorPorDefecto": 45,
+          "opciones": [
+            {
+              "valor": 45,
+              "etiqueta": "45°"
+            },
+            {
+              "valor": 90,
+              "etiqueta": "90°"
+            }
+          ]
+        }
+      ],
+      "supuesto": true,
+      "referencia": "Catálogo de la empresa – Caños, codos y curvas: https://abastosoluciones.com.ar/6-canos-codos-y-curvas",
+      "palabrasClave": [
+        "ramal",
+        "derivacion",
+        "te",
+        "y"
+      ],
+      "ayuda": ""
+    },
+    {
+      "id": "reduccion",
+      "nombre": "Reducción",
+      "grupo": "boquetas",
+      "tipoPieza": "especial",
+      "elemento": "reduccion",
+      "textoDescripcion": "reducción Ø{diametroMayorCm} a Ø{diametroMenorCm}",
+      "usaLargo": false,
+      "calculoDesarrollo": "unidad",
+      "generador3d": "reduccion",
+      "parametros": [
+        {
+          "id": "diametroMayorCm",
+          "etiqueta": "Diámetro mayor",
+          "tipo": "diametro",
+          "unidad": "cm",
+          "valorPorDefecto": 15,
+          "minimo": 0
+        },
+        {
+          "id": "diametroMenorCm",
+          "etiqueta": "Diámetro menor",
+          "tipo": "diametro",
+          "unidad": "cm",
+          "valorPorDefecto": 10,
+          "minimo": 0
+        },
+        {
+          "id": "altoCm",
+          "etiqueta": "Alto",
+          "tipo": "numero",
+          "unidad": "cm",
+          "valorPorDefecto": 10,
+          "minimo": 0,
+          "ayuda": ""
+        }
+      ],
+      "supuesto": true,
+      "referencia": "Catálogo de la empresa – Caños, codos y curvas: https://abastosoluciones.com.ar/6-canos-codos-y-curvas",
+      "palabrasClave": [
+        "reduccion",
+        "cono"
+      ],
+      "ayuda": ""
+    },
+    {
+      "id": "embudo_tronera",
+      "nombre": "Embudo / tronera",
+      "grupo": "boquetas",
+      "tipoPieza": "especial",
+      "elemento": "embudo",
+      "textoDescripcion": "embudo {bocaACm}x{bocaBCm} salida Ø{diametroSalidaCm}",
+      "usaLargo": false,
+      "calculoDesarrollo": "unidad",
+      "generador3d": "embudo",
+      "parametros": [
+        {
+          "id": "bocaACm",
+          "etiqueta": "Boca superior: lado a",
+          "tipo": "numero",
+          "unidad": "cm",
+          "valorPorDefecto": 30,
+          "minimo": 0,
+          "ayuda": ""
+        },
+        {
+          "id": "bocaBCm",
+          "etiqueta": "Boca superior: lado b",
+          "tipo": "numero",
+          "unidad": "cm",
+          "valorPorDefecto": 15,
+          "minimo": 0,
+          "ayuda": ""
+        },
+        {
+          "id": "diametroSalidaCm",
+          "etiqueta": "Diámetro de salida",
+          "tipo": "diametro",
+          "unidad": "cm",
+          "valorPorDefecto": 10,
+          "minimo": 0
+        },
+        {
+          "id": "altoCm",
+          "etiqueta": "Alto",
+          "tipo": "numero",
+          "unidad": "cm",
+          "valorPorDefecto": 20,
+          "minimo": 0,
+          "ayuda": ""
+        }
+      ],
+      "supuesto": true,
+      "referencia": "Catálogo de la empresa – Plegados y cortes: https://abastosoluciones.com.ar/7-plegados-y-cortes",
+      "palabrasClave": [
+        "embudo",
+        "tronera",
+        "colector"
+      ],
+      "ayuda": ""
+    },
+    {
+      "id": "tapa_izquierda",
+      "nombre": "Tapa de canaleta izquierda",
+      "grupo": "tapas",
+      "tipoPieza": "especial",
+      "elemento": "tapa",
+      "textoDescripcion": "tapa izquierda canaleta",
+      "usaLargo": false,
+      "calculoDesarrollo": "unidad",
+      "generador3d": "tapa",
+      "parametros": [
+        {
+          "id": "pestanaApoyoCm",
+          "etiqueta": "Pestaña de apoyo",
+          "tipo": "numero",
+          "unidad": "cm",
+          "valorPorDefecto": 1.5,
+          "minimo": 0,
+          "ayuda": ""
+        }
+      ],
+      "supuesto": true,
+      "referencia": "Tapa de canaleta izquierda/derecha (Easy): https://www.easy.com.ar/tapa-moldura-d-embut-ch-gv-nº30-15-cm-iz/p",
+      "palabrasClave": [
+        "tapa",
+        "cierre",
+        "final",
+        "izquierda"
+      ],
+      "ayuda": "Copia el perfil de la canaleta vinculada. Se cotiza por unidad.",
+      "lado": "izquierda",
+      "usaPerfilVinculado": true,
+      "vinculablePara": [
+        "canaleta"
+      ]
+    },
+    {
+      "id": "tapa_derecha",
+      "nombre": "Tapa de canaleta derecha",
+      "grupo": "tapas",
+      "tipoPieza": "especial",
+      "elemento": "tapa",
+      "textoDescripcion": "tapa derecha canaleta",
+      "usaLargo": false,
+      "calculoDesarrollo": "unidad",
+      "generador3d": "tapa",
+      "parametros": [
+        {
+          "id": "pestanaApoyoCm",
+          "etiqueta": "Pestaña de apoyo",
+          "tipo": "numero",
+          "unidad": "cm",
+          "valorPorDefecto": 1.5,
+          "minimo": 0,
+          "ayuda": ""
+        }
+      ],
+      "supuesto": true,
+      "referencia": "Tapa de canaleta izquierda/derecha (Easy): https://www.easy.com.ar/tapa-moldura-d-embut-ch-gv-nº30-15-cm-iz/p",
+      "palabrasClave": [
+        "tapa",
+        "cierre",
+        "final",
+        "derecha"
+      ],
+      "ayuda": "Copia el perfil de la canaleta vinculada. Se cotiza por unidad.",
+      "lado": "derecha",
+      "usaPerfilVinculado": true,
+      "vinculablePara": [
+        "canaleta"
+      ]
+    },
+    {
+      "id": "sombrero_chino",
+      "nombre": "Sombrero chino",
+      "grupo": "ventilacion",
+      "tipoPieza": "especial",
+      "elemento": "sombrero",
+      "textoDescripcion": "sombrero chino Ø{diametroCm}",
+      "usaLargo": false,
+      "calculoDesarrollo": "unidad",
+      "generador3d": "sombreroChino",
+      "parametros": [
+        {
+          "id": "diametroCm",
+          "etiqueta": "Diámetro del caño",
+          "tipo": "diametro",
+          "unidad": "cm",
+          "valorPorDefecto": 15,
+          "minimo": 0
+        }
+      ],
+      "supuesto": true,
+      "referencia": "GEA Zinguería (Mercado Libre): https://www.mercadolibre.com.ar/pagina/geazingueria",
+      "palabrasClave": [
+        "sombrero",
+        "chino",
+        "remate"
+      ],
+      "ayuda": ""
+    },
+    {
+      "id": "sombrero_venturi",
+      "nombre": "Sombrero venturi",
+      "grupo": "ventilacion",
+      "tipoPieza": "especial",
+      "elemento": "sombrero",
+      "textoDescripcion": "sombrero venturi Ø{diametroCm}",
+      "usaLargo": false,
+      "calculoDesarrollo": "unidad",
+      "generador3d": "sombreroVenturi",
+      "parametros": [
+        {
+          "id": "diametroCm",
+          "etiqueta": "Diámetro del caño",
+          "tipo": "diametro",
+          "unidad": "cm",
+          "valorPorDefecto": 20,
+          "minimo": 0
+        }
+      ],
+      "supuesto": true,
+      "referencia": "GEA Zinguería (Mercado Libre): https://www.mercadolibre.com.ar/pagina/geazingueria",
+      "palabrasClave": [
+        "sombrero",
+        "venturi"
+      ],
+      "ayuda": ""
+    },
+    {
+      "id": "sombrero_canadiense",
+      "nombre": "Sombrero canadiense",
+      "grupo": "ventilacion",
+      "tipoPieza": "especial",
+      "elemento": "sombrero",
+      "textoDescripcion": "sombrero canadiense Ø{diametroCm}",
+      "usaLargo": false,
+      "calculoDesarrollo": "unidad",
+      "generador3d": "sombreroCanadiense",
+      "parametros": [
+        {
+          "id": "diametroCm",
+          "etiqueta": "Diámetro del caño",
+          "tipo": "diametro",
+          "unidad": "cm",
+          "valorPorDefecto": 10,
+          "minimo": 0
+        }
+      ],
+      "supuesto": true,
+      "referencia": "Pedido del área comercial. Forma SUPUESTA (doble cono): confirmar con producción",
+      "palabrasClave": [
+        "sombrero",
+        "canadiense",
+        "estufa",
+        "calefactor"
+      ],
+      "ayuda": ""
+    },
+    {
+      "id": "conducto_ventilacion",
+      "nombre": "Conducto de ventilación",
+      "grupo": "ventilacion",
+      "tipoPieza": "especial",
+      "elemento": "cano",
+      "textoDescripcion": "conducto Ø{diametroCm}",
+      "usaLargo": true,
+      "calculoDesarrollo": "perimetroRedondo",
+      "generador3d": "canoRedondo",
+      "parametros": [
+        {
+          "id": "diametroCm",
+          "etiqueta": "Diámetro",
+          "tipo": "diametro",
+          "unidad": "cm",
+          "valorPorDefecto": 10,
+          "minimo": 0
+        }
+      ],
+      "supuesto": true,
+      "referencia": "Catálogo de la empresa – Caños, codos y curvas: https://abastosoluciones.com.ar/6-canos-codos-y-curvas",
+      "palabrasClave": [
+        "conducto",
+        "ventilacion",
+        "extractor",
+        "campana"
+      ],
+      "ayuda": ""
+    },
+    {
+      "id": "pieza_libre",
+      "nombre": "Pieza especial libre",
+      "grupo": "especial",
+      "tipoPieza": "plegada",
+      "elemento": "especial",
+      "textoDescripcion": "pieza especial",
+      "usaLargo": true,
+      "generador3d": "extrusion",
+      "perfil": {
+        "direccionInicial": "arriba",
+        "tramos": []
+      },
+      "supuesto": false,
+      "referencia": "—",
+      "palabrasClave": [
+        "libre",
+        "especial",
+        "a medida",
+        "dibujar"
+      ],
+      "ayuda": "Arranca vacía: agregá tramos o dibujá a mano en el 2D."
+    }
+  ]
+}

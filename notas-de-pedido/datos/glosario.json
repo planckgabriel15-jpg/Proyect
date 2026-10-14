@@ -1,0 +1,230 @@
+{
+  "_leeme": "Explicaciones de una línea para el ícono '?' (sección 8).",
+  "terminos": [
+    {
+      "id": "desarrollo",
+      "termino": "Desarrollo",
+      "explicacion": "Ancho de chapa que hay que cortar: suma de las medidas exteriores de todos los tramos, en cm."
+    },
+    {
+      "id": "banda",
+      "termino": "Banda de cotización",
+      "explicacion": "Parte de la chapa de 1,22 m que ocupa la pieza: 1/4 (hasta 30 cm), 1/2 (hasta 60) o completa (hasta 120)."
+    },
+    {
+      "id": "medida_exterior",
+      "termino": "Medida exterior",
+      "explicacion": "Medida tomada por el lado de afuera de la pieza ya plegada. Siempre se cargan medidas exteriores."
+    },
+    {
+      "id": "tramo",
+      "termino": "Tramo",
+      "explicacion": "Cada lado recto del perfil, entre dos pliegues."
+    },
+    {
+      "id": "angulo_interior",
+      "termino": "Ángulo interior",
+      "explicacion": "Ángulo que queda entre un tramo y el anterior. 90° = escuadra; más chico = más cerrado."
+    },
+    {
+      "id": "sentido",
+      "termino": "Sentido del pliegue",
+      "explicacion": "Hacia qué lado dobla el tramo, mirando desde el tramo anterior: izquierda o derecha."
+    },
+    {
+      "id": "dobladillo",
+      "termino": "Dobladillo",
+      "explicacion": "Borde doblado 180° sobre sí mismo, abierto. Da rigidez y evita el filo."
+    },
+    {
+      "id": "dobladillo_aplastado",
+      "termino": "Dobladillo aplastado",
+      "explicacion": "Dobladillo de 180° cerrado del todo (aplastado contra la chapa)."
+    },
+    {
+      "id": "pestana_engrafe",
+      "termino": "Pestaña de engrafe",
+      "explicacion": "Pestaña que se dobla para unir dos chapas enganchándolas entre sí."
+    },
+    {
+      "id": "engrafe",
+      "termino": "Engrafe",
+      "explicacion": "Unión de dos chapas plegando sus bordes uno dentro del otro."
+    },
+    {
+      "id": "solape",
+      "termino": "Solape",
+      "explicacion": "Parte que se superpone para unir; en caños y boquetas se suma al perímetro."
+    },
+    {
+      "id": "calibre",
+      "termino": "Calibre (CH)",
+      "explicacion": "Número que indica el espesor de la chapa: a mayor número, más fina (C25 = 0,50 mm)."
+    },
+    {
+      "id": "galvanizada",
+      "termino": "Chapa galvanizada",
+      "explicacion": "Chapa de acero con baño de zinc contra el óxido. Color gris metálico."
+    },
+    {
+      "id": "prepintada",
+      "termino": "Chapa prepintada (pp)",
+      "explicacion": "Chapa galvanizada que viene pintada de fábrica de un lado."
+    },
+    {
+      "id": "lado_pintura",
+      "termino": "Lado de la pintura",
+      "explicacion": "En prepintado: si la cara pintada queda afuera o adentro de la pieza. Evita que se pliegue al revés."
+    },
+    {
+      "id": "cincalum",
+      "termino": "Cincalum",
+      "explicacion": "Chapa de acero con baño de aluminio y zinc; más duradera que la galvanizada."
+    },
+    {
+      "id": "canaleta",
+      "termino": "Canaleta",
+      "explicacion": "Pieza que junta el agua del borde del techo y la lleva a la bajada."
+    },
+    {
+      "id": "babeta",
+      "termino": "Babeta",
+      "explicacion": "Pieza que tapa la unión entre el techo y una pared, para que no entre agua."
+    },
+    {
+      "id": "cumbrera",
+      "termino": "Cumbrera",
+      "explicacion": "Pieza que cubre la parte más alta del techo, donde se juntan dos aguas."
+    },
+    {
+      "id": "media_cumbrera",
+      "termino": "Media cumbrera",
+      "explicacion": "Cumbrera de un solo lado, para techos de un agua contra una pared."
+    },
+    {
+      "id": "limahoya",
+      "termino": "Limahoya",
+      "explicacion": "Canal en la unión hundida (valle) de dos aguas del techo."
+    },
+    {
+      "id": "limatesa",
+      "termino": "Limatesa",
+      "explicacion": "Cubre la arista saliente donde se juntan dos aguas del techo."
+    },
+    {
+      "id": "cenefa",
+      "termino": "Cenefa",
+      "explicacion": "Frente de terminación en el borde del techo."
+    },
+    {
+      "id": "gotero",
+      "termino": "Gotero",
+      "explicacion": "Borde que hace caer el agua lejos de la pared o del borde."
+    },
+    {
+      "id": "cupertina",
+      "termino": "Cupertina",
+      "explicacion": "Tapa que cubre la parte de arriba de un muro."
+    },
+    {
+      "id": "alfeizar",
+      "termino": "Alféizar",
+      "explicacion": "Pieza bajo la ventana que tira el agua hacia afuera."
+    },
+    {
+      "id": "tapajunta",
+      "termino": "Tapajunta",
+      "explicacion": "Planchuela que tapa una junta entre dos piezas."
+    },
+    {
+      "id": "boqueta",
+      "termino": "Boqueta",
+      "explicacion": "Salida de la canaleta hacia el caño de bajada."
+    },
+    {
+      "id": "tapa",
+      "termino": "Tapa de canaleta",
+      "explicacion": "Cierre del extremo de la canaleta; izquierda o derecha según el lado."
+    },
+    {
+      "id": "cano_bajada",
+      "termino": "Caño de bajada",
+      "explicacion": "Caño vertical que baja el agua desde la canaleta."
+    },
+    {
+      "id": "codo",
+      "termino": "Codo / curva",
+      "explicacion": "Pieza para cambiar la dirección del caño (45° o 90°), armada con gajos."
+    },
+    {
+      "id": "gajo",
+      "termino": "Gajo",
+      "explicacion": "Cada uno de los anillos cortados en bisel que forman un codo."
+    },
+    {
+      "id": "ramal",
+      "termino": "Ramal",
+      "explicacion": "Pieza que une un caño secundario a uno principal."
+    },
+    {
+      "id": "reduccion",
+      "termino": "Reducción",
+      "explicacion": "Pieza que pasa de un diámetro de caño a otro más chico."
+    },
+    {
+      "id": "embudo",
+      "termino": "Embudo / tronera",
+      "explicacion": "Colector que recibe agua (por ejemplo, de un muro) y la pasa a un caño."
+    },
+    {
+      "id": "sombrero",
+      "termino": "Sombrero",
+      "explicacion": "Remate del caño de ventilación que impide la entrada de lluvia (chino, venturi, canadiense)."
+    },
+    {
+      "id": "corte_laser",
+      "termino": "Corte láser",
+      "explicacion": "Corte del borde de una cara con forma de onda (sinusoidal o trapezoidal) para copiar la chapa del techo. Se hace afuera (tercerizado)."
+    },
+    {
+      "id": "altura_onda",
+      "termino": "Altura de onda",
+      "explicacion": "Distancia entre la cresta y el fondo del valle del corte láser. Mínimo 3,6 cm."
+    },
+    {
+      "id": "separacion_valles",
+      "termino": "Separación entre valles",
+      "explicacion": "Distancia entre dos valles seguidos de la onda (el paso de la chapa del techo)."
+    },
+    {
+      "id": "chapa_sinusoidal",
+      "termino": "Chapa sinusoidal",
+      "explicacion": "Chapa de techo con onda redonda (acanalada)."
+    },
+    {
+      "id": "chapa_trapezoidal",
+      "termino": "Chapa trapezoidal",
+      "explicacion": "Chapa de techo con ondas de forma de trapecio."
+    },
+    {
+      "id": "empalme",
+      "termino": "Empalme",
+      "explicacion": "Unión de dos piezas cuando la pieza es más larga que la chapa (2,44 m)."
+    },
+    {
+      "id": "soldar",
+      "termino": "Requiere soldar",
+      "explicacion": "El desarrollo pasa de 120 cm: la pieza no sale de una chapa y hay que unir partes."
+    },
+    {
+      "id": "codigo_pendiente",
+      "termino": "Código pendiente",
+      "explicacion": "El código no está en la tabla: se emite igual y administración lo completa."
+    },
+    {
+      "id": "plegadora",
+      "termino": "Plegadora",
+      "explicacion": "Máquina que dobla la chapa. Su largo limita el largo máximo de la pieza."
+    }
+  ]
+}

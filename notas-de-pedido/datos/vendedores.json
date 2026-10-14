@@ -1,0 +1,155 @@
+{
+  "_leeme": "Vendedores FICTICIOS de ejemplo (3 por sucursal). En la versión con Google se reemplaza por la cuenta de la empresa.",
+  "vendedores": [
+    {
+      "id": "v01",
+      "nombre": "Ana Ejemplo",
+      "sucursalHabitualId": "colon"
+    },
+    {
+      "id": "v02",
+      "nombre": "Bruno Prueba",
+      "sucursalHabitualId": "colon"
+    },
+    {
+      "id": "v03",
+      "nombre": "Carla Muestra",
+      "sucursalHabitualId": "colon"
+    },
+    {
+      "id": "v04",
+      "nombre": "Diego Ficticio",
+      "sucursalHabitualId": "juan_b_justo"
+    },
+    {
+      "id": "v05",
+      "nombre": "Elena Demo",
+      "sucursalHabitualId": "juan_b_justo"
+    },
+    {
+      "id": "v06",
+      "nombre": "Facundo Modelo",
+      "sucursalHabitualId": "juan_b_justo"
+    },
+    {
+      "id": "v07",
+      "nombre": "Gabriela Ensayo",
+      "sucursalHabitualId": "donato_alvarez"
+    },
+    {
+      "id": "v08",
+      "nombre": "Hernán Simulado",
+      "sucursalHabitualId": "donato_alvarez"
+    },
+    {
+      "id": "v09",
+      "nombre": "Inés Borrador",
+      "sucursalHabitualId": "donato_alvarez"
+    },
+    {
+      "id": "v10",
+      "nombre": "Julián Maqueta",
+      "sucursalHabitualId": "ohiggins"
+    },
+    {
+      "id": "v11",
+      "nombre": "Karina Plantilla",
+      "sucursalHabitualId": "ohiggins"
+    },
+    {
+      "id": "v12",
+      "nombre": "Lucas Boceto",
+      "sucursalHabitualId": "ohiggins"
+    },
+    {
+      "id": "v13",
+      "nombre": "Marina Esquema",
+      "sucursalHabitualId": "monsenor_pablo_cabrera"
+    },
+    {
+      "id": "v14",
+      "nombre": "Nicolás Piloto",
+      "sucursalHabitualId": "monsenor_pablo_cabrera"
+    },
+    {
+      "id": "v15",
+      "nombre": "Olga Ejemplar",
+      "sucursalHabitualId": "monsenor_pablo_cabrera"
+    },
+    {
+      "id": "v16",
+      "nombre": "Pablo Testeo",
+      "sucursalHabitualId": "parque_ferreyra"
+    },
+    {
+      "id": "v17",
+      "nombre": "Quimey Prototipo",
+      "sucursalHabitualId": "parque_ferreyra"
+    },
+    {
+      "id": "v18",
+      "nombre": "Romina Caso",
+      "sucursalHabitualId": "parque_ferreyra"
+    },
+    {
+      "id": "v19",
+      "nombre": "Santiago Molde",
+      "sucursalHabitualId": "francisco_de_arteaga"
+    },
+    {
+      "id": "v20",
+      "nombre": "Tamara Patrón",
+      "sucursalHabitualId": "francisco_de_arteaga"
+    },
+    {
+      "id": "v21",
+      "nombre": "Ulises Muestreo",
+      "sucursalHabitualId": "francisco_de_arteaga"
+    },
+    {
+      "id": "v22",
+      "nombre": "Valeria Bosquejo",
+      "sucursalHabitualId": "carlos_paz_carcano"
+    },
+    {
+      "id": "v23",
+      "nombre": "Walter Ensayo",
+      "sucursalHabitualId": "carlos_paz_carcano"
+    },
+    {
+      "id": "v24",
+      "nombre": "Ximena Probeta",
+      "sucursalHabitualId": "carlos_paz_carcano"
+    },
+    {
+      "id": "v25",
+      "nombre": "Yamila Ficción",
+      "sucursalHabitualId": "carlos_paz_san_martin"
+    },
+    {
+      "id": "v26",
+      "nombre": "Zoe Demostración",
+      "sucursalHabitualId": "carlos_paz_san_martin"
+    },
+    {
+      "id": "v27",
+      "nombre": "Andrés Simulacro",
+      "sucursalHabitualId": "carlos_paz_san_martin"
+    },
+    {
+      "id": "v28",
+      "nombre": "Belén Tanteo",
+      "sucursalHabitualId": "sucursal_10"
+    },
+    {
+      "id": "v29",
+      "nombre": "César Prueba",
+      "sucursalHabitualId": "sucursal_10"
+    },
+    {
+      "id": "v30",
+      "nombre": "Daniela Ejercicio",
+      "sucursalHabitualId": "sucursal_10"
+    }
+  ]
+}

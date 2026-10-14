@@ -1,0 +1,12 @@
+{
+  "name": "notas-de-pedido-zingueria",
+  "version": "0.1.0",
+  "description": "Prototipo de notas de pedido para zinguería (sin dependencias, sin compilación)",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test",
+    "generar-codigos": "node herramientas/generar-codigos-ejemplo.js",
+    "servidor": "npx serve ."
+  }
+}

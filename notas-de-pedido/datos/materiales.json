@@ -1,0 +1,36 @@
+{
+  "_leeme": "Materiales, calibres y colores (sección 7.3). Lo marcado supuesto: true está en PENDIENTES.md.",
+
+  "materiales": [
+    { "id": "galvanizado", "nombre": "Chapa galvanizada", "codigo": "CG", "terminaciones": ["N", "P"], "abreviatura": "galv", "colorHex": "#aeb4ba", "supuesto": false, "notaSupuesto": "Código CG confirmado. Letra N de 'natural' y abreviatura 'galv' son SUPUESTO." },
+    { "id": "cincalum", "nombre": "Cincalum", "codigo": "CZ", "terminaciones": ["N"], "abreviatura": "cincalum", "colorHex": "#bfc3c2", "supuesto": true },
+    { "id": "inoxidable", "nombre": "Acero inoxidable", "codigo": "IN", "terminaciones": ["N"], "abreviatura": "inox", "colorHex": "#d3d6d9", "supuesto": true },
+    { "id": "aluminio", "nombre": "Aluminio", "codigo": "AL", "terminaciones": ["N"], "abreviatura": "alum", "colorHex": "#e2e4e6", "supuesto": true },
+    { "id": "cobre", "nombre": "Cobre", "codigo": "CU", "terminaciones": ["N"], "abreviatura": "cobre", "colorHex": "#b87333", "supuesto": true }
+  ],
+
+  "terminaciones": [
+    { "codigo": "N", "nombre": "Natural (sin pintar)", "supuesto": true },
+    { "codigo": "P", "nombre": "Prepintada", "supuesto": false }
+  ],
+
+  "calibres": [
+    { "id": "C30", "numero": 30, "espesorMm": 0.30, "codigoEspesor": "03", "supuesto": false, "fuente": "Informe del rubro; publicaciones de mercado" },
+    { "id": "C28", "numero": 28, "espesorMm": 0.36, "codigoEspesor": "036", "supuesto": true, "fuente": "Rapimetal (Mercado Libre). Código 036 elegido para no chocar con C27 = 04" },
+    { "id": "C27", "numero": 27, "espesorMm": 0.40, "codigoEspesor": "04", "supuesto": false, "fuente": "Informe del rubro" },
+    { "id": "C25", "numero": 25, "espesorMm": 0.50, "codigoEspesor": "05", "supuesto": false, "fuente": "Nota real e informe del rubro (confirmado)" },
+    { "id": "C24", "numero": 24, "espesorMm": 0.60, "codigoEspesor": "06", "supuesto": true, "fuente": "Tabla de chapas UNCuyo (≈0,55–0,60 mm)" },
+    { "id": "C22", "numero": 22, "espesorMm": 0.70, "codigoEspesor": "07", "supuesto": false, "fuente": "Informe del rubro" },
+    { "id": "C20", "numero": 20, "espesorMm": 0.90, "codigoEspesor": "09", "supuesto": true, "fuente": "Tabla de chapas UNCuyo (≈0,90 mm)" }
+  ],
+
+  "colores": [
+    { "id": "negro", "nombre": "negro", "hex": "#1f1f1f", "supuesto": true },
+    { "id": "rojo_teja", "nombre": "rojo teja", "hex": "#9c3b25", "supuesto": true },
+    { "id": "gris", "nombre": "gris", "hex": "#6e7378", "supuesto": true },
+    { "id": "blanco", "nombre": "blanco", "hex": "#f4f4f2", "supuesto": true },
+    { "id": "verde", "nombre": "verde", "hex": "#2e5e3e", "supuesto": true }
+  ],
+
+  "colorCaraSinPintarHex": "#d6d6d6"
+}

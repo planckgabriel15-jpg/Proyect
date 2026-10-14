@@ -1,0 +1,15 @@
+{
+  "_leeme": "Sucursales (sección 7.4). 'letra' es SUPUESTO (se usará para el nombre del archivo en Drive). 'ultimoNumeroNP' = último número del talonario de papel; se cambia desde Configuración.",
+  "sucursales": [
+    { "id": "colon", "nombre": "Colón", "letra": "C", "ultimoNumeroNP": 0 },
+    { "id": "juan_b_justo", "nombre": "Juan B. Justo", "letra": "J", "ultimoNumeroNP": 0 },
+    { "id": "donato_alvarez", "nombre": "Donato Álvarez", "letra": "D", "ultimoNumeroNP": 0 },
+    { "id": "ohiggins", "nombre": "O'Higgins", "letra": "O", "ultimoNumeroNP": 0 },
+    { "id": "monsenor_pablo_cabrera", "nombre": "Monseñor Pablo Cabrera", "letra": "M", "ultimoNumeroNP": 0 },
+    { "id": "parque_ferreyra", "nombre": "Parque Ferreyra", "letra": "P", "ultimoNumeroNP": 0 },
+    { "id": "francisco_de_arteaga", "nombre": "Francisco de Arteaga", "letra": "F", "ultimoNumeroNP": 0 },
+    { "id": "carlos_paz_carcano", "nombre": "Carlos Paz – Cárcano", "letra": "K", "ultimoNumeroNP": 0 },
+    { "id": "carlos_paz_san_martin", "nombre": "Carlos Paz – San Martín", "letra": "S", "ultimoNumeroNP": 0 },
+    { "id": "sucursal_10", "nombre": "Sucursal 10 (a definir)", "letra": "X", "ultimoNumeroNP": 0 }
+  ]
+}
