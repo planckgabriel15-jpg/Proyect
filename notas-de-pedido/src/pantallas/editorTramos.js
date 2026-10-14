@@ -65,11 +65,19 @@ export function crearEditorTramos(opciones) {
   }
 
   /** Cambio de un valor (medida, ángulo, texto): NO se redibuja la tabla para no perder el foco. */
+  let temporizadorHistorial = null;
   function cambioDeValor() {
     opciones.alCambiar(copiarPerfil(perfil));
+    // Se guarda en el historial cuando se deja de escribir un momento (así "Deshacer" se habilita enseguida).
+    clearTimeout(temporizadorHistorial);
+    temporizadorHistorial = setTimeout(guardarEnHistorial, 500);
+    botonDeshacer.disabled = false;
   }
 
   function guardarEnHistorial() {
+    clearTimeout(temporizadorHistorial);
+    // Si no cambió nada desde la última vez, no se guarda otra copia igual.
+    if (JSON.stringify(perfil) === JSON.stringify(historial[posicionHistorial])) return;
     historial.splice(posicionHistorial + 1);
     historial.push(copiarPerfil(perfil));
     if (historial.length > 100) historial.shift();
@@ -78,6 +86,7 @@ export function crearEditorTramos(opciones) {
   }
 
   function deshacer() {
+    guardarEnHistorial(); // por si quedó algo escrito sin guardar en el historial
     if (posicionHistorial === 0) return;
     posicionHistorial--;
     perfil = copiarPerfil(historial[posicionHistorial]);
