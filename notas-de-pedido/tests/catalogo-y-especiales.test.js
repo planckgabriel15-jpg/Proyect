@@ -166,3 +166,11 @@ test('prepintado sin color ni lado de pintura → errores', () => {
   assert.ok(r.errores.includes('Elegí el color de la chapa prepintada'));
   assert.ok(r.errores.includes('Indicá de qué lado va la pintura (afuera o adentro)'));
 });
+
+test('texto de tramos para la nota impresa', async () => {
+  const { textoDeTramos } = await import('../src/logica/descripcion.js');
+  const tramos = buscarPlantilla(catalogo, 'canaleta_nota_real').perfil.tramos;
+  assert.equal(textoDeTramos(tramos), '1 (dobl. aplast.) + 20 + 32 + 7 = 60');
+  const laser = buscarPlantilla(catalogo, 'babeta_sobre_chapa_sinusoidal').perfil.tramos;
+  assert.equal(textoDeTramos(laser), '1 (dobl.) + 12 + 12 (láser sinusoidal) = 25');
+});

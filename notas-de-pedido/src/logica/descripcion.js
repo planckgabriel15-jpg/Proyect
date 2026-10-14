@@ -75,3 +75,22 @@ export function armarDescripcion(renglon, materiales, resultado) {
 
   return partes.filter((parte) => parte !== '').join(' ');
 }
+
+/**
+ * Texto de los tramos para la nota impresa, como se anota en papel:
+ *   "1 (dobl. aplast.) + 20 + 32 + 7 = 60"
+ */
+export function textoDeTramos(tramos) {
+  const nombres = { dobladillo: 'dobl.', dobladillo_aplastado: 'dobl. aplast.', pestana_engrafe: 'engrafe' };
+  let suma = 0;
+  const partes = (tramos || []).map((tramo) => {
+    const medida = leerNumero(tramo.medidaCm);
+    if (Number.isFinite(medida)) suma += medida;
+    const marcas = [];
+    if (nombres[tramo.tipo]) marcas.push(nombres[tramo.tipo]);
+    if (tramo.corteLaser) marcas.push(`láser ${tramo.corteLaser.tipo}`);
+    const texto = Number.isFinite(medida) ? formatearCorto(medida) : '?';
+    return marcas.length ? `${texto} (${marcas.join(', ')})` : texto;
+  });
+  return partes.length ? `${partes.join(' + ')} = ${formatearCorto(Math.round(suma * 100) / 100)}` : '';
+}

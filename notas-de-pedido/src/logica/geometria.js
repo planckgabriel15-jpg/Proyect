@@ -255,3 +255,40 @@ export function diferenciaDeAngulos(desde, hasta) {
   }
   return redondear(diferencia, 6);
 }
+
+// -------------------------------------------------------------
+// Cara de afuera / cara de adentro (para la pintura)
+// -------------------------------------------------------------
+
+/**
+ * Dice de qué lado del recorrido queda la cara EXTERIOR de la pieza
+ * (el lado "convexo"), mirando en el sentido en que se cargan los tramos.
+ * Se suman los giros: si en total el perfil dobla a la izquierda (como una U
+ * dibujada en sentido antihorario), el interior queda a la izquierda y el
+ * exterior a la derecha. Los dobladillos no cuentan.
+ * @returns {'izquierda'|'derecha'}
+ */
+export function ladoExteriorDelPerfil(perfil, config) {
+  const tramos = perfil.tramos || [];
+  let sumaGiros = 0;
+  for (let i = 1; i < tramos.length; i++) {
+    const giro = giroEnTramo(tramos, i, config);
+    if (!giro.esVuelta) {
+      sumaGiros += (giro.sentido === 'derecha' ? -1 : 1) * giro.giroGrados;
+    }
+  }
+  return sumaGiros > 0 ? 'derecha' : 'izquierda';
+}
+
+/**
+ * Lado pintado según "pintura afuera" o "pintura adentro".
+ * @param {'afuera'|'adentro'} ladoPintura
+ * @returns {'izquierda'|'derecha'}
+ */
+export function ladoPintadoDelPerfil(perfil, ladoPintura, config) {
+  const exterior = ladoExteriorDelPerfil(perfil, config);
+  if (ladoPintura === 'adentro') {
+    return exterior === 'izquierda' ? 'derecha' : 'izquierda';
+  }
+  return exterior;
+}

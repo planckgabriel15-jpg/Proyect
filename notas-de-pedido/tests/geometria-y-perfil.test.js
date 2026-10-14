@@ -143,3 +143,19 @@ test('insertar antes y espejar', () => {
   assert.equal(espejado.tramos[1].sentido, 'izquierda');
   assert.deepEqual(calcularPuntos(espejado, config), [{ x: 0, y: 0 }, { x: 0, y: 10 }, { x: -10, y: 10 }]);
 });
+
+test('cara exterior: canaleta (gira a la izquierda) → exterior a la derecha; babeta L (gira a la derecha) → a la izquierda', async () => {
+  const { ladoExteriorDelPerfil, ladoPintadoDelPerfil } = await import('../src/logica/geometria.js');
+  const canaleta = { direccionInicial: 'abajo', tramos: [
+    { medidaCm: 10, tipo: 'normal' },
+    { medidaCm: 10, anguloPliegue: 90, sentido: 'izquierda', tipo: 'normal' },
+    { medidaCm: 10, anguloPliegue: 90, sentido: 'izquierda', tipo: 'normal' },
+  ] };
+  assert.equal(ladoExteriorDelPerfil(canaleta, config), 'derecha');
+  assert.equal(ladoPintadoDelPerfil(canaleta, 'adentro', config), 'izquierda');
+  const babeta = { direccionInicial: 'arriba', tramos: [
+    { medidaCm: 15, tipo: 'normal' },
+    { medidaCm: 15, anguloPliegue: 90, sentido: 'derecha', tipo: 'normal' },
+  ] };
+  assert.equal(ladoExteriorDelPerfil(babeta, config), 'izquierda');
+});
