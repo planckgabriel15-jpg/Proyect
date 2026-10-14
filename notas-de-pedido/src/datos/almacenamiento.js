@@ -250,3 +250,24 @@ export async function borrarBorrador(id) {
   }
   await guardar('notas', notas.filter((n) => n.id !== id));
 }
+
+// =============================================================
+// COPIA DE SEGURIDAD
+// =============================================================
+
+/** Todo lo guardado (notas, contadores, configuración) en un solo objeto, para bajarlo como archivo. */
+export async function exportarTodo() {
+  return {
+    exportado: new Date().toISOString(),
+    notas: await leer('notas', []),
+    contadores: await leer('contadores', {}),
+    sucursalesEditadas: await leer('sucursalesEditadas', null),
+    codigosImportados: await leer('codigosImportados', null),
+  };
+}
+
+/** Borra las notas y los contadores (para empezar de cero después de probar). La configuración queda. */
+export async function borrarNotasYContadores() {
+  motor.removeItem(PREFIJO + 'notas');
+  motor.removeItem(PREFIJO + 'contadores');
+}

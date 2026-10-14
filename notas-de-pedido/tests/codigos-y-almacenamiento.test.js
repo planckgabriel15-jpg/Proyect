@@ -108,3 +108,13 @@ test('sesión: vendedor y sucursal de hoy', async () => {
   await almacenamiento.guardarSesion({ vendedorId: 'v01', sucursalHoyId: 'ohiggins' });
   assert.equal((await almacenamiento.leerSesion()).sucursalHoyId, 'ohiggins');
 });
+
+test('exportar todo y borrar notas de prueba', async () => {
+  await almacenamiento.emitirNota(await almacenamiento.crearNotaVacia({ sucursalId: 'colon', vendedorId: 'v01' }), sucursales);
+  const copia = await almacenamiento.exportarTodo();
+  assert.equal(copia.notas.length, 1);
+  assert.equal(copia.contadores.colon, 1);
+  await almacenamiento.borrarNotasYContadores();
+  assert.equal((await almacenamiento.listarNotas()).length, 0);
+  assert.equal((await almacenamiento.leerContadores(sucursales)).colon, 0);
+});
