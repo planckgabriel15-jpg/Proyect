@@ -64,7 +64,23 @@ Todas las medidas son de **ejemplo**: sirven para que el vendedor arranque con a
 - **Boquetas y caños:** codo rectangular, ramal, reducción y embudo o tronera.
 - **Ventilación:** sombrero chino, venturi, **canadiense** y conducto. **La forma del sombrero canadiense hay que confirmarla con producción:** no encontré una definición publicada del término. En el 3D se va a dibujar como un doble cono.
 
-## E. Para cuando se pase a Google (Apps Script)
+## E. Decisiones de pantallas (Etapas B a F)
+
+| # | Supuesto o decisión | Dónde se cambia |
+|---|---|---|
+| 30 | **Tapa izquierda / derecha:** la izquierda va en la punta donde arranca la canaleta (Z = 0), mirándola de frente desde afuera; la derecha, en la otra punta. ¿Así lo entienden en el taller? | `src/vistas3d/modelo.js` → `montarAccesorio` |
+| 31 | **Posición de la boqueta:** se mide desde la punta izquierda de la canaleta hasta el **centro** de la boqueta. ¿Se mide así o hasta el borde? | `datos/catalogo.json` (ayuda del parámetro) y `modelo.js` |
+| 32 | **Sentido del pliegue:** "izquierda" = gira en sentido antihorario mirando el dibujo; "derecha" = horario | `src/logica/geometria.js` |
+| 33 | **Cara de afuera y de adentro** (para la pintura): afuera es el lado convexo del perfil (por fuera de la U). En perfiles en Z, donde no hay un lado claro, se toma el lado izquierdo del recorrido | `geometria.js` → `ladoExteriorDelPerfil` |
+| 34 | Se puede **agregar a la nota una pieza con errores**: el programa avisa y no deja **emitir** hasta corregirla | `src/pantallas/asistente.js` |
+| 35 | **Prototipo:** cada PC o celular guarda sus propias notas y su propia numeración (localStorage). Para probar la numeración por sucursal hay que usar siempre el mismo equipo. Se resuelve al pasar a Google | `src/datos/almacenamiento.js` |
+| 36 | **Ingreso sin contraseña:** se elige el nombre de una lista (prototipo) | `src/pantallas/inicio.js` |
+| 37 | Las **formas 3D** de las piezas especiales (codos, ramales, sombreros, embudos) son **aproximadas**: son una ayuda visual. La referencia para fabricar es el esquema 2D con sus medidas | `src/vistas3d/piezasEspeciales3d.js` |
+| 38 | Al **emitir**, cada renglón guarda una "foto" de su descripción y su código, para que la nota impresa no cambie si después cambia la tabla de códigos | `src/pantallas/nota.js` |
+| 39 | Los **borradores** se guardan solos cada **5 segundos**, también la pieza a medio cargar | `config.json` → `autoguardadoSegundos` |
+| 40 | Las **notas emitidas** no se pueden modificar ni borrar. Si hay un error, ¿se anula y se hace otra? (falta definir el procedimiento de anulación) | A definir |
+
+## F. Para cuando se pase a Google (Apps Script)
 
 - La numeración tiene que hacerse en el servidor con `LockService`, que es un candado para que dos vendedores no saquen el mismo número a la vez.
 - Las notas emitidas no se modifican: en Sheets conviene una hoja de solo lectura.
