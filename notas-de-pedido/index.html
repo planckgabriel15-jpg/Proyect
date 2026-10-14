@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Notas de pedido – Zinguería</title>
+  <style>
+    body { font-family: system-ui, sans-serif; margin: 0; padding: 16px; background: #fff; color: #111; }
+    h1 { font-size: 1.4rem; }
+    .resultado { font-size: 1.2rem; padding: 12px; border: 2px solid #111; border-radius: 8px; max-width: 640px; }
+    .error { color: #a00; }
+  </style>
+</head>
+<body>
+  <!-- ETAPA A: página provisoria. Solo comprueba que los datos y la lógica cargan en el navegador.
+       Las pantallas llegan en las etapas B a F. -->
+  <h1>Notas de pedido – prototipo (Etapa A)</h1>
+  <p>La lógica de cálculo ya está lista. Las pantallas se construyen en las próximas etapas.</p>
+  <div id="resultado" class="resultado">Cargando datos…</div>
+
+  <script type="module">
+    import { cargarDatosBase } from './src/datos/almacenamiento.js';
+    import { crearRenglonDesdePlantilla, buscarPlantilla } from './src/logica/renglones.js';
+    import { calcularRenglon } from './src/logica/calculoRenglon.js';
+
+    const caja = document.getElementById('resultado');
+    try {
+      const datos = await cargarDatosBase();
+      // Canaleta de la nota real: prepintada negra, C25, 2,44 m.
+      const plantilla = buscarPlantilla(datos.catalogo, 'canaleta_nota_real');
+      const renglon = { ...crearRenglonDesdePlantilla(plantilla, datos.config), terminacion: 'P', colorId: 'negro' };
+      const r = calcularRenglon(renglon, datos);
+      caja.textContent = `${r.descripcion} · Banda ${r.banda.nombre} (${r.banda.numero}) · Código ${r.codigo.codigo}`
+        + ` · ${datos.catalogo.plantillas.length} plantillas · ${datos.codigos.length} códigos`;
+    } catch (error) {
+      caja.innerHTML = `<span class="error">No se pudieron cargar los datos: ${error.message}.<br>
+        ¿Abriste la página con un servidor? (ver README.md)</span>`;
+    }
+  </script>
+</body>
+</html>
