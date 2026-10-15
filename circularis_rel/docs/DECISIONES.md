@@ -2,7 +2,7 @@
 
 Cada entrada tiene: **qué** se decide, **por qué** y **alternativa descartada**. Las entradas **D-xxx** son decisiones de diseño y las **B-xxx** son dudas o correcciones sobre la bibliografía de la cátedra (Mgter. Leandro D. Torres, UTN-FRC).
 
-**Estado:** todas están **propuestas** hasta tu OK al `PLAN_TECNICO.md`. Las que dependen de una pregunta abierta lo indican (P-xx).
+**Estado:** el 15/10/2026 se aprobaron todas las recomendaciones de las preguntas P-00 a P-14 (ver D-025), y se pidió avanzar por todas las fases resolviendo cada duda con la opción más recomendada. Cada decisión nueva se agrega acá.
 
 Verificación numérica previa: hecha el 15/10/2026 con Python 3.13, NumPy 2.5.4, SciPy 1.18.1, `reliability` 0.9.0, `surpyval` 0.24 y `lifelines` 0.30.3, en un entorno descartable fuera del repo.
 
@@ -122,6 +122,80 @@ Verificación numérica previa: hecha el 15/10/2026 con Python 3.13, NumPy 2.5.4
 
 - **Qué:** `docs/bibliografia/` queda en `.gitignore`. Se cita la fuente (unidad y número de diapositiva).
 - **Por qué:** el material es del Mgter. Torres y el repo tendrá licencia abierta (P-13).
+
+### D-017: Uso del TP N.º 1 como borrador de carga
+
+- **Qué:** el TP N.º 1 aporta la **estructura**: máquinas, función, componentes, modos de falla, criterios de criticidad y escala del AMFE. Con eso se arma `docs/plantillas/carga_inicial_borrador_TP1.xlsx`, que el jefe revisa antes de importar.
+  - Los **datos de mantenimiento** del TP (TBF en días y valores G/O/D) son **ilustrativos**: fueron inventados para el TP, como aclaró el usuario. El AMFE entra con origen `TP1_ILUSTRATIVO` y la ocurrencia O se recalcula con datos reales en la fase 4.
+  - Los TBF **no** se importan como histórico.
+  - Los códigos MOL-001, SEC-001 y MEZ-001 se proponen siguiendo el patrón del Plan; los demás códigos y las horas por día salen del Plan.
+  - La transcripción de los 7 AMFE (94 filas) está en `seeds/tp1/amfe_tp1.psv`. Se verificó que NPR = G×O×D en todas las filas.
+  - Se agregó `activo.revisado_en` / `id_usuario_revision` para el criterio de salida de la fase 0 ("cargados y revisados por el jefe").
+- **Descartado:** cargar los TBF del TP como histórico, porque son inventados.
+
+### D-018: Los triggers de reglas son solo de SQLite
+
+- **Qué:** las reglas "modo coherente con el tipo de componente", "referencia de catálogo del tipo correcto", "posición de la misma máquina" y "no borrar un validado" son triggers de SQLite. Los servicios aplican las mismas reglas.
+- **Por qué:** SQLite es la base del proyecto. Migrar a PostgreSQL exige portar esos 13 triggers a PL/pgSQL (`ddl_extra.py` los concentra en un solo lugar).
+- **Descartado:** escribir ya la versión PostgreSQL sin poder probarla.
+
+### D-019: A qué tipos de componente aplica cada entrada del catálogo
+
+- **Qué:** un MODO debe estar asignado a uno o más tipos de componente; es una lista cerrada por tipo. Una CAUSA o un SÍNTOMA sin tipos asignados aplica a todos.
+- **Por qué:** los modos dependen del componente (pérdida de filo solo en cuchillas). Las causas genéricas (desgaste, lubricación, sobrecarga) valen para todos.
+
+### D-020: Criticidad: método del TP N.º 1
+
+- **Qué:** se usan las escalas del TP N.º 1:
+  - uso 5/3/1; alternativa 5/4/2/1; influencia 5/4/2/1; calidad 5/4/2/1; ambiente 5/3/1; seguridad 5/3/1.
+  - El puntaje es la **suma**, con los cortes del TP: ≥25 Alta, 20–24 Media, 15–19 Baja, <15 Muy baja.
+  - La clase del sistema sale de una equivalencia configurable: Alta → A, Media → B, Baja y Muy baja → C.
+  - También se calcula el puntaje ponderado del Plan §8 (0,30; 0,20; 0,15; 0,15; 0,10; 0,10), que se guarda en el detalle.
+  - Se reproduce la tabla del TP (test `test_reproduce_tabla_del_tp1`).
+- **Duda:** el pedido cita para la "ponderación U1" otros puntajes (uso 4/2/1; ambiente y seguridad 5/2/1). El TP los adaptó. Sin la UNIDAD 1 no se puede verificar cuál es el original, así que el método U1 queda disponible pero exige indicar la clase a mano.
+- **Descartado:** usar los pesos del Plan como método principal, porque el TP, que es la fuente real de la criticidad, suma sin pesos.
+
+### D-021: El importador aplica todo o nada, y una celda vacía no borra
+
+- **Qué:** si hay un error en cualquier fila, no se graba nada. Simular corre exactamente lo mismo y siempre revierte. Una celda vacía no borra un dato existente. Re-importar sin cambios da "sin cambios" y no deja auditoría.
+- **Por qué:** una importación a medias deja referencias rotas y es difícil de corregir. Borrar con celdas vacías es peligroso.
+- **Descartado:** grabar las filas buenas y saltear las malas.
+
+### D-022: PDF con fpdf2 y la tipografía DejaVu de matplotlib
+
+- **Qué:** los PDF (ficha, QR, reportes) se generan con fpdf2, en Python puro, con la tipografía DejaVu que trae matplotlib.
+- **Por qué:** P-01 resolvió Windows nativo, donde WeasyPrint necesita GTK/Pango instalado aparte. Así funciona sin internet y escribe todos los caracteres.
+- **Descartado:** WeasyPrint.
+
+### D-023: El importador está en `servicios/`
+
+- **Qué:** el importador vive en `servicios/importador/`, no en `datos/`.
+- **Por qué:** usa reglas de negocio (criticidad, triage, parámetros), y la capa de datos no debe depender de servicios (test de arquitectura).
+
+### D-024: Usuarios DEMO con claves públicas
+
+- **Qué:** la demo crea `demo.jefe`, `demo.encargado`, `demo.gerencia` y `demo.operario`, con claves conocidas. Mientras haya datos DEMO, todas las pantallas muestran un cartel rojo. "Borrar datos DEMO" los elimina fila por fila, y cada baja queda auditada.
+- **Por qué:** sirven para capacitar y probar sin tocar datos reales. El cartel evita olvidarlos.
+
+### D-025: Respuestas a las preguntas abiertas (aprobadas el 15/10/2026)
+
+| Pregunta | Resolución |
+|---|---|
+| P-00 | Subcarpeta `circularis_rel/` en esta rama; se migra a un repo de Circularis a la entrega con `git subtree split` |
+| P-01 | Windows nativo con dos servicios (NSSM): app y tareas. Sin SMTP confirmado: las alertas funcionan en el panel y por mail solo si se carga SMTP en `.env`. HTTP en el piloto |
+| P-02 | `streamlit-authenticator` para el formulario y la cookie; usuarios en la base; WAL + BEGIN IMMEDIATE; proceso de tareas separado |
+| P-03 | RBA desde la fórmula de Abernethy (C4^3,5); r² crítico por Monte Carlo con semilla fija |
+| P-04 | "Aleatoria" si el IC de β contiene a 1 o β ∈ [0,9; 1,1]; las vidas en servicio entran como suspensión |
+| P-05 | Formato de `docs/plantillas/FORMATO.md` |
+| P-06 | Activos por defecto: 12.A, 12.B, 12.C, 12.D, tarjetas y ayudas; el resto se habilita en Configuración |
+| P-07 | Demo ficticia con prefijo DEMO- y cartel rojo; guion de usabilidad con 3 operarios |
+| P-08 | Confianza por la tabla del Plan: 5 fallas → BAJA |
+| P-09 | IC del MLE por razón de verosimilitud; Fisher solo para validación cruzada |
+| P-10 | Sin UNIDAD 1: los puntajes U1 quedan "a verificar" |
+| P-11 | Turnos sin definir: se cargan en la hoja `turnos`. La demo usa mañana 6–14 y tarde 14–22 (ficticios) |
+| P-12 | PIN de 4 a 6 dígitos para operarios; contraseña de 8 o más caracteres para el resto; cookie de 30 días |
+| P-13 | Licencia Apache-2.0 |
+| P-14 | Código, tablas y commits en español, sin tildes en los identificadores |
 
 ---
 

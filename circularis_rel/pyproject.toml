@@ -35,6 +35,7 @@ dev = [
     "pytest-cov>=6",
     "hypothesis>=6.115",
     "ruff>=0.7",
+    "pypdf>=5",
 ]
 
 [project.scripts]

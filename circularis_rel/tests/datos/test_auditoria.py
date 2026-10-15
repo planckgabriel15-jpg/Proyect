@@ -1,6 +1,5 @@
-from sqlalchemy import select
-
 import pytest
+from sqlalchemy import select
 
 from circularis_rel.datos.auditoria_listener import MotivoRequerido
 from circularis_rel.datos.enums import AccionAuditoria, EstadoEvento

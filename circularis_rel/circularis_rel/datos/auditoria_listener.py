@@ -92,9 +92,8 @@ def _antes_de_flush(session: Session, _ctx, _instancias) -> None:
     if motivo:
         return
     for obj in list(session.dirty) + list(session.deleted):
-        if _auditable(obj) and _estaba_validado(obj):
-            if obj in session.deleted or _cambios(obj):
-                raise MotivoRequerido(
+        if _auditable(obj) and _estaba_validado(obj) and (obj in session.deleted or _cambios(obj)):
+            raise MotivoRequerido(
                     f"Corregir un registro validado ({obj.__tablename__} id={obj.id}) exige un motivo"
                 )
 
