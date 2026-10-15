@@ -2,7 +2,7 @@
 
 Revision ID: 0001
 Revises: 
-Create Date: 2026-10-15 12:47:30.967361
+Create Date: 2026-10-15 13:29:15.180105
 
 """
 from typing import Sequence, Union
@@ -482,7 +482,7 @@ def upgrade() -> None:
     sa.Column('beta_sup', sa.Float(), nullable=True),
     sa.Column('eta_inf', sa.Float(), nullable=True),
     sa.Column('eta_sup', sa.Float(), nullable=True),
-    sa.Column('metodo_ic', sa.Enum('LR', 'BOOTSTRAP', 'NINGUNO', name='ck_metodo_ic', native_enum=False, create_constraint=True, length=40), nullable=False),
+    sa.Column('metodo_ic', sa.Enum('LR', 'BOOTSTRAP', 'CHI2', 'NINGUNO', name='ck_metodo_ic', native_enum=False, create_constraint=True, length=40), nullable=False),
     sa.Column('nivel_ic', sa.Float(), nullable=True),
     sa.Column('r2', sa.Float(), nullable=True),
     sa.Column('r2_critico', sa.Float(), nullable=True),

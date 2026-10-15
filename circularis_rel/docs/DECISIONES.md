@@ -236,6 +236,45 @@ Verificación numérica previa: hecha el 15/10/2026 con Python 3.13, NumPy 2.5.4
 
 - **Qué:** las fotos se reducen a 1.280 px (JPEG) y se guardan en `datos/fotos/AAAA/MM/`; la base guarda la ruta relativa. Entran en el backup como zip.
 
+### D-033: Banda de incertidumbre de P(falla en Δ)
+
+- **Qué:** la banda que se muestra junto a P(Δ) es el mínimo y el máximo de P(Δ) evaluada en las cuatro esquinas (β_inf/β_sup × η_inf/η_sup) del IC del modo dominante, combinada con los demás modos.
+- **Por qué:** es simple, rápido y conservador.
+- **Descartado:** el contorno de verosimilitud conjunto (χ²₂) propuesto en el PLAN_TECNICO §7.3. Es más exacto pero más lento; queda como mejora.
+
+### D-034: Cobertura del IC por razón de verosimilitud con muy pocas fallas
+
+- **Hallazgo (Monte Carlo, `pytest -m lento`):** con 10 o más fallas, el IC 90 % por razón de verosimilitud cubre el valor real en 86–94 % de los casos, como pide el §13.8. Con **5 fallas cubre ~83–86 %**: el método es asintótico.
+- **Decisión:** se mantiene la razón de verosimilitud, que es lo que pide el Plan. En ese rango de fallas el método vigente es RRX con bootstrap y la etiqueta ya es "confianza baja", sin colores "duros". El test exhaustivo exige 86–94 % desde 10 fallas y al menos 80 % por debajo.
+- **No se inventa una corrección:** el factor de corrección para muestras chicas de los límites LR de Abernethy no se pudo verificar sin el libro.
+
+### D-035: RBA también en la alternativa MLE
+
+- **Qué:** cuando el MLE es la alternativa de control (con RRX vigente), igual se le aplica la RBA si hay menos de 30 fallas, y se guarda el β del MLE sin corregir.
+- **Ejemplo §15:** el "MLE de control β ≈ 4,75" del Plan es ese valor sin corregir; con RBA da 3,82.
+
+### D-036: Weibull 3P solo en la tabla de comparación
+
+- **Qué:** Weibull 3P se ajusta y se muestra en la comparación de distribuciones (AICc, AD), pero nunca es el método vigente automático. Para que lo sea, el jefe tiene que forzarlo con una justificación física y tener al menos 20 fallas (Plan §5).
+
+### D-037: Intervalo para el semáforo
+
+- **Qué:** el intervalo se toma en este orden:
+  1. el **plan preventivo aprobado** (fase 3);
+  2. si no hay, el **calculado**: T* redondeado, o R* para clase A o seguridad, o P-F/2, siempre que haya Weibull de desgaste y costos completos;
+  3. si no, la **recomendación del fabricante**.
+
+  La pantalla indica de dónde sale. Así reproduce el §15: semáforo rojo con edad 520 h > 375 h recomendado.
+
+### D-038: La fecha base de los parámetros es 01/01/2000
+
+- **Qué:** los valores iniciales de `parametro` valen desde 01/01/2000.
+- **Por qué:** antes se sembraban "desde el 01/10/2026", y un valor cargado por el jefe con fecha anterior (por ejemplo, la tarifa de enero) quedaba tapado por el valor base vacío. Lo detectó un test de costos.
+
+### D-039: Edad desconocida en el semáforo
+
+- **Qué:** si la vida en servicio empezó antes del sistema (edad desconocida), el semáforo no calcula P(Δ) con una edad falsa. Queda gris, salvo que haya una OT abierta, y lo explica en los motivos.
+
 ---
 
 ## Dudas y correcciones sobre la bibliografía
@@ -334,3 +373,9 @@ Verificación numérica previa: hecha el 15/10/2026 con Python 3.13, NumPy 2.5.4
   - el diagrama de Ishikawa/5M.
 - **Probable fuente:** la UNIDAD 1, que no recibí. La UNIDAD 4 solo menciona "5W + 1H + 5 ¿Por qué?" dentro del ciclo PDCA (diap. 11).
 - **Decisión:** los puntajes del pedido se cargan editables y marcados "a verificar" hasta recibir la UNIDAD 1 (P-10).
+
+### B-015: UNIDAD 2, diapositiva 34 (rangos medianos)
+
+- **Duda:** la tabla de la diapositiva (10,91 / 26,44 / 42,14 / 57,86 / 73,56 / 89,10 %) son **rangos medianos exactos**: la mediana de la distribución beta(i, n − i + 1). No es la aproximación de Benard que dice usar. La propia diapositiva calcula con Benard 26,5 / 42,1 / 57,8 / 73,4 / 89 %.
+- **Decisión:** el motor usa Benard (Plan §5). Existe `rango_mediano_exacto()` para validar. El test 3 verifica la tabla publicada con los rangos exactos y que Benard no se aparte más de 0,25 puntos.
+

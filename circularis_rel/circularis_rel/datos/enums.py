@@ -191,6 +191,7 @@ class MetodoWeibull(StrEnum):
 class MetodoIC(StrEnum):
     LR = "LR"
     BOOTSTRAP = "BOOTSTRAP"
+    CHI2 = "CHI2"  # Weibayes: IC de η por χ²
     NINGUNO = "NINGUNO"
 
 

@@ -29,7 +29,8 @@ from circularis_rel.datos.modelos import (
     TipoCambio,
 )
 
-FECHA_BASE = date(2026, 10, 1)
+# Los valores base valen "desde siempre": cualquier valor que cargue el jefe, con cualquier fecha, les gana.
+FECHA_BASE = date(2000, 1, 1)
 
 # (clave, valor, tipo, unidad, grupo, descripción, fuente). valor None = "falta dato".
 PARAMETROS: list[tuple] = [

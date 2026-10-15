@@ -196,6 +196,35 @@ def cmd_iniciar_captura(_args) -> int:
     return 0
 
 
+def cmd_weibull(args) -> int:
+    """Motor desde la línea de comandos: CSV con columnas edad,estado[,edad_inf] (estado F, S o I)."""
+    import csv
+
+    from circularis_rel.motor import kpis
+    from circularis_rel.motor import weibull as W
+    from circularis_rel.motor.tipos import Observacion
+
+    with open(args.archivo, encoding="utf-8") as f:
+        obs = [Observacion(float(r["edad"]), r["estado"].strip().upper(),
+                           float(r["edad_inf"]) if r.get("edad_inf") else None) for r in csv.DictReader(f)]
+    res = W.ajustar(obs, beta_ref=args.beta_ref, metodo_forzado=args.metodo)
+    for nombre, a in (("Vigente", res.vigente), ("Alternativa", res.alternativa)):
+        if a is None:
+            continue
+        print(f"{nombre}: {a.metodo}  fallas {a.n_fallas}  suspensiones {a.n_suspensiones}  intervalos {a.n_intervalo}")
+        if a.valido:
+            print(f"  β = {a.beta:.3f}  η = {a.eta:.1f}  IC {a.nivel_ic:.0%} ({a.metodo_ic}): β {a.beta_ic}  η {a.eta_ic}")
+            print(f"  r² = {a.r2}  r² crítico = {a.r2_critico}  confianza {a.confianza}  lectura {a.interpretacion}")
+            print(f"  MTTF = {kpis.mttf(a.beta, a.eta):.1f}  B10 = {kpis.vida_b(0.1, a.beta, a.eta):.1f}")
+            if args.edad is not None and args.delta:
+                print(f"  P(falla en {args.delta:g} | edad {args.edad:g}) = "
+                      f"{kpis.prob_condicional(args.edad, args.delta, a.beta, a.eta):.1%}")
+        for adv in a.advertencias:
+            print("  ⚠", adv)
+    print(f"Motor {W.__version__} · hash de datos {res.hash_datos[:12]}")
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     p = argparse.ArgumentParser(prog="circularis", description="Sistema de confiabilidad de Circularis")
     sub = p.add_subparsers(dest="comando", required=True)
@@ -241,6 +270,13 @@ def main(argv: list[str] | None = None) -> int:
     c.add_argument("--salida", default="circularis_exportacion.xlsx")
     c.set_defaults(f=cmd_exportar)
     sub.add_parser("iniciar-captura", help="crea las vidas iniciales de cada componente").set_defaults(f=cmd_iniciar_captura)
+    c = sub.add_parser("weibull", help="ajusta Weibull a un CSV (edad,estado[,edad_inf])")
+    c.add_argument("archivo")
+    c.add_argument("--beta-ref", type=float)
+    c.add_argument("--metodo", choices=["RRX", "MLE", "WEIBAYES"])
+    c.add_argument("--edad", type=float)
+    c.add_argument("--delta", type=float)
+    c.set_defaults(f=cmd_weibull)
     args = p.parse_args(argv)
     return args.f(args)
 

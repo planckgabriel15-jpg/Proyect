@@ -14,7 +14,7 @@ Los operarios y el encargado registran eventos desde el navegador (parte de turn
 |---|---|---|
 | 0. Preparación | **Hecha** | Base de datos con reglas y auditoría, importador de planillas, borrador del TP N.º 1, catastro y ficha PDF, QR, puesta en marcha guiada (12.A), usuarios y parámetros, datos DEMO |
 | 1a. Captura | **Hecha** | Parte de turno (< 30 s), aviso de falla con QR y foto, tarjetas azul/roja/verde, bandeja del encargado, cierre de OT en 2 pasos (cierra y abre vidas), cambio preventivo, bandeja de validación con controles §11, corrección y anulación con motivo, partes faltantes y estimados, proceso de tareas (backup, prueba de restauración, nocturno), exportación total a Excel |
-| 1b. Motor y KPIs | Pendiente | |
+| 1b. Motor y KPIs | **Hecha** | Motor Weibull (Weibayes, RRX con bootstrap, MLE con censura por derecha e intervalo, RBA, IC por razón de verosimilitud), bondad de ajuste (r² crítico, AD, AICc), KPIs empíricos y Weibull, intervalo óptimo C(T), costos Cp/Cf desde parámetros, semáforo, Crow-AMSAA/Laplace, recálculo por evento y nocturno. Reproduce el Plan §15 y la UNIDAD 2; validado contra reliability, surpyval y lifelines; Monte Carlo |
 | 1c. Panel (MVP) | Pendiente | |
 | 2. Piloto y extensión | Pendiente | |
 | 3. Versión 2 | Pendiente | |
@@ -34,6 +34,17 @@ uv pip install --python .venv/bin/python --no-deps -e .
 ```
 
 Usuarios DEMO: `demo.jefe` / `demo-jefe-2026`, `demo.operario` / PIN `1234` (ver `circularis demo cargar`).
+
+## Cómo probar la fase 1b
+
+```bash
+printf "edad,estado\n300,S\n410,F\n560,F\n650,S\n690,F\n780,F\n920,F\n" > plan15.csv
+.venv/bin/circularis weibull plan15.csv --edad 520 --delta 160   # β 3,42; η 774; P = 32 %
+.venv/bin/python -m pytest tests/motor -v                          # casos de referencia de la sección 13
+MC_REPLICAS=2000 .venv/bin/python -m pytest -m lento               # Monte Carlo exhaustivo (lento)
+```
+
+Con el proceso de tareas andando, al validar un aviso el par se recalcula en segundos (cola) y cada noche se recalcula todo.
 
 ## Cómo probar la fase 1a
 
