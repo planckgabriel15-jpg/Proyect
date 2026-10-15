@@ -15,6 +15,7 @@ import streamlit as st
 from circularis_rel.app import contexto, sesion
 from circularis_rel.app.componentes import estilos
 from circularis_rel.datos.enums import Rol
+from circularis_rel.servicios import modulos
 from circularis_rel.servicios.demo import hay_demo
 
 PAGINAS = Path(__file__).parent / "paginas"
@@ -33,6 +34,7 @@ if usuario is None:
 with contexto.db().lectura() as s:
     if hay_demo(s):
         estilos.cartel_demo()
+    mod_12g, mod_12h = modulos.habilitado(s, "12G"), modulos.habilitado(s, "12H")
 
 rol = Rol(usuario["rol"])
 
@@ -52,17 +54,24 @@ ficha = pagina("ficha_maquina.py", "Ficha de máquina", "🏭")
 weibull = pagina("analisis_weibull.py", "Análisis Weibull", "📈")
 problemas = pagina("analisis_problemas.py", "Análisis de problemas", "🔍")
 tablero = pagina("tablero.py", "Tablero de comando", "🎯")
+plan = pagina("plan_preventivo.py", "Plan preventivo", "🗓️")
+repuestos = pagina("repuestos.py", "Repuestos", "📦")
+predictivo = [pagina("predictivo.py", "Predictivo", "📡")] if mod_12g else []
+herramientas = [pagina("herramientas.py", "Herramientas de fiabilidad", "🧮")] if mod_12h else []
+reportes = pagina("reportes.py", "Reportes", "🧾")
 
 if rol == Rol.OPERARIO:
     paginas = {"": [*planta, ficha, ayuda]}
 elif rol == Rol.ENCARGADO:
-    paginas = {"Mantenimiento": [*mantenimiento, problemas, ficha], "Planta": planta, "Otros": [exportar, ayuda]}
+    paginas = {"Mantenimiento": [*mantenimiento, plan, repuestos, *predictivo, problemas, ficha], "Planta": planta,
+               "Otros": [exportar, ayuda]}
 elif rol == Rol.GERENCIA:
-    paginas = {"": [panel_planta, tablero, ficha, exportar, ayuda]}
+    paginas = {"": [panel_planta, tablero, ficha, reportes, *herramientas, exportar, ayuda]}
 else:  # JEFE
     paginas = {
-        "Panel": [panel_planta, ficha, weibull, problemas, tablero],
-        "Gestión": [pagina("bandeja_validacion.py", "Bandeja de validación", "✅"), *mantenimiento],
+        "Panel": [panel_planta, ficha, weibull, problemas, tablero, reportes, *herramientas],
+        "Gestión": [pagina("bandeja_validacion.py", "Bandeja de validación", "✅"), *mantenimiento, plan, repuestos,
+                    *predictivo],
         "Planta": planta,
         "Puesta en marcha": [
             pagina("puesta_en_marcha.py", "Puesta en marcha", "🧭"),

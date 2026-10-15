@@ -51,8 +51,13 @@ def _valores(db) -> dict[str, T.ValorIndicador]:
 def test_variables_del_sistema(mes):
     with mes.lectura() as s:
         v, faltan = T.variables_sistema(s, MES, TZ)
-    assert v == pytest.approx({"CPREV": 100_000, "CCORR": 500_000, "CTMN": 600_000, "HHMP": 10, "HHMC": 40, "HHTM": 50,
-                               "HPM": 5, "HPR": 400})
+    basicas = {k: v[k] for k in ("CPREV", "CCORR", "CTMN", "HHMP", "HHMC", "HHTM", "HPM", "HPR")}
+    assert basicas == pytest.approx({"CPREV": 100_000, "CCORR": 500_000, "CTMN": 600_000, "HHMP": 10, "HHMC": 40,
+                                     "HHTM": 50, "HPM": 5, "HPR": 400})
+    # Tablero completo: MO contratada (externos) y propia (HH × tarifa), y CIT con fijos ≈ preventivo, variables ≈ correctivo.
+    assert v["CMOC"] == 100_000 and v["CMOP"] == pytest.approx(500_000)
+    assert v["CFJ"] == 100_000 and v["CV"] == 500_000
+    assert "CFA" not in v  # sin margen de la línea no se puede valorizar la producción perdida
     assert faltan == []
 
 
@@ -133,3 +138,37 @@ def test_objetivos(mes):
         with pytest.raises(ValueError):
             T.fijar_objetivo(s, "TBMC", 0.2, 0.5, 0.1)
     assert _valores(mes)["TBMC"].color == "AMARILLO"  # 25 %: dentro del límite pero peor que el objetivo
+
+
+def test_cit(mes):
+    with mes.escritura() as s:
+        P.fijar(s, "costos.margen_linea_ars_h", 600_000, date(2026, 1, 1))
+        c = T.cit(s, MES, TZ)
+        assert c.total is None and c.faltan == [T.VARIABLES["CFN"][0]]  # los financieros se cargan a mano
+        T.cargar_dato(s, MES, "CFN", 50_000)
+        c = T.cit(s, MES, TZ)
+    # CFJ = preventivo 100.000; CV = correctivo 500.000; CFA = 5 h de parada × $600.000 (sin pulmón).
+    assert c.cfj == (100_000, "sistema") and c.cv == (500_000, "sistema") and c.cfa == (3_000_000, "sistema")
+    assert c.total == pytest.approx(3_650_000)
+
+
+def test_tablero_completo(mes):
+    with mes.escritura() as s:
+        for clave, valor in (("CPROD", 12_000_000), ("VIB", 150_000_000), ("HHDP", 160), ("HHEI", 8), ("EMMM", 4),
+                             ("NOTR", 0), ("NODV", 1), ("HHEF", 640), ("HHAF", 64)):
+            T.cargar_dato(s, MES, clave, valor)
+        v = {x.codigo: x for x in T.tablero(s, MES, TZ, completo=True)}
+    assert v["CMOE"].valor == pytest.approx(100_000 / 600_000)
+    assert v["CMPP"].valor == pytest.approx(600_000 / 12_000_000)
+    assert v["CMPV"].valor == pytest.approx(600_000 / 150_000_000)
+    assert v["TBML"].valor == 0  # sin OT de mantenimiento autónomo
+    assert v["PETI"].valor == pytest.approx(8 / 160)
+    assert v["CSMP"].valor == pytest.approx(4 / 5)
+    assert v["EFMD"].valor == pytest.approx(0.9) and "Ausentismo" in v["EFMD"].notas[0]
+    assert "CMOE" not in {x.codigo for x in _valores(mes).values()}  # el básico no los muestra
+
+
+def test_disponibilidad_mensual(mes):
+    with mes.lectura() as s:
+        serie = T.serie(s, "DISP", ["2026-02", MES], TZ)
+    assert serie[0][1] is None and serie[1][1] == pytest.approx(1.0)  # todos los partes sin paradas

@@ -30,7 +30,27 @@ nssm start CircularisApp
 nssm start CircularisTareas
 ```
 
-El servicio de tareas existe desde la fase 1a: hace el backup nocturno, el recálculo y las alertas.
+El servicio de tareas hace, solo:
+
+| Cuándo | Qué |
+|---|---|
+| Cada 5 s | Recalcula lo que se acaba de validar |
+| 02:00 | Partes estimados, edades, recálculo completo y alertas de riesgo |
+| 02:30 | Reprograma el calendario preventivo y genera las OT que entran en la anticipación |
+| 03:00 | Backup (y el día 1, a las 04:00, prueba de restauración) |
+| 06:30 y 06:45 | Partes faltantes; edad sobre el intervalo, stock bajo y avisos sin validar |
+| Cada 10 min | Mails inmediatos (riesgo firme, predictivo sobre el límite de acción, backup) |
+| 07:00 | Mail con el resumen diario de las demás alertas |
+| Lunes 07:30 | Resumen semanal en PDF para el jefe y la gerencia |
+| Día 1, 07:15 | Reporte mensual en PDF (queda en `datos/reportes` y se manda por mail) |
+
+Cualquiera se puede correr a mano: `circularis tareas --una-vez plan` (o `alertas_diarias`, `mails`, `reporte_mensual`…).
+
+### Correo (opcional)
+
+Sin correo el sistema funciona igual: las alertas quedan en el panel. Para mandar mails, completar en `.env`
+`SMTP_SERVIDOR`, `SMTP_PUERTO` (587 con STARTTLS o 465 con SSL), `SMTP_USUARIO`, `SMTP_CLAVE` y `SMTP_REMITENTE`, y
+cargar el mail de cada usuario en **Usuarios**. Las alertas orientativas (confianza baja) nunca se mandan.
 
 ## 3. Red y acceso
 

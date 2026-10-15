@@ -48,7 +48,25 @@ VARIABLES: dict[str, tuple[str, str]] = {
     "HHTM": ("Horas-hombre totales trabajadas en mantenimiento", "HH"),
     "HHDP": ("Horas-hombre disponibles del personal de mantenimiento", "HH"),
 }
-SOLO_CARGA = {"FETP", "HHDP"}  # el sistema no puede saberlas
+VARIABLES_COMPLETO: dict[str, tuple[str, str]] = {
+    "CMOC": ("Costo de mano de obra contratada (servicios externos)", "ARS"),
+    "CMOP": ("Costo de mano de obra propia", "ARS"),
+    "CPROD": ("Costo de producción del mes", "ARS"),
+    "VIB": ("Valor inmovilizado bruto (máquinas y equipos)", "ARS"),
+    "HHML": ("Horas-hombre de mantenimiento en línea (autónomo)", "HH"),
+    "HHEI": ("Horas-hombre de entrenamiento interno", "HH"),
+    "EMMM": ("Efectivo medio del personal de mantenimiento en los últimos meses", "personas"),
+    "NOTR": ("Transferencias del personal en el período", "personas"),
+    "NODV": ("Renuncias voluntarias en el período", "personas"),
+    "HHEF": ("Horas-hombre efectivas (del plantel)", "HH"),
+    "HHAF": ("Horas-hombre apartadas (vacaciones, enfermedad, accidentes)", "HH"),
+    "CFJ": ("Costos fijos de mantenimiento (preventivo: mano de obra y materiales)", "ARS"),
+    "CV": ("Costos variables de mantenimiento (correctivo: mano de obra directa y materiales)", "ARS"),
+    "CFN": ("Costos financieros (repuestos inmovilizados, amortización de equipos de reserva)", "ARS"),
+    "CFA": ("Costo por falla (producción perdida)", "ARS"),
+}
+VARIABLES |= VARIABLES_COMPLETO
+SOLO_CARGA = {"FETP", "HHDP", "CPROD", "VIB", "HHEI", "EMMM", "NOTR", "NODV", "HHEF", "HHAF", "CFN"}
 
 
 @dataclass(frozen=True)
@@ -69,6 +87,20 @@ INDICADORES_BASICOS: dict[str, Definicion] = {
     "TBMC": Definicion("Trabajo en mantenimiento correctivo", "HHMC / HHDP", ("HHMC", "HHDP"), "UNIDAD 5, diap. 23"),
     "OCPM": Definicion("Ociosidad del personal de mantenimiento", "(HHDP − HHTM) / HHDP", ("HHDP", "HHTM"),
                        "UNIDAD 5, diap. 24"),
+}
+
+
+INDICADORES_COMPLETOS: dict[str, Definicion] = {
+    "CMOE": Definicion("Mano de obra externa", "CMOC / (CMOC + CMOP)", ("CMOC", "CMOP"), "UNIDAD 5, diap. 17"),
+    "CMPP": Definicion("Costo de mantenimiento por producción", "CTMN / costo de producción", ("CTMN", "CPROD"),
+                       "UNIDAD 5, diap. 18"),
+    "CMPV": Definicion("Costo de mantenimiento por valor inmovilizado", "CTMN / valor inmovilizado bruto", ("CTMN", "VIB"),
+                       "UNIDAD 5, diap. 19"),
+    "TBML": Definicion("Trabajo de mantenimiento en línea", "HHML / HHDP", ("HHML", "HHDP"), "UNIDAD 4 (TPM)"),
+    "PETI": Definicion("Entrenamiento interno", "HHEI / HHDP", ("HHEI", "HHDP"), "UNIDAD 5, diap. 25"),
+    "CSMP": Definicion("Clima social: movimiento de personal", "EMMM / (EMMM + NOTR + NODV)", ("EMMM", "NOTR", "NODV"),
+                       "UNIDAD 5, diap. 26"),
+    "EFMD": Definicion("Efectivo real", "(HHEF − HHAF) / HHEF", ("HHEF", "HHAF"), "UNIDAD 5, diap. 27–28 (B-009)"),
 }
 
 
@@ -102,9 +134,33 @@ def variables_sistema(s: Session, periodo: str, tz: ZoneInfo) -> tuple[dict[str,
         EventoFalla.estado == EstadoEvento.VALIDADO, EventoFalla.fecha_hora_falla >= ini, EventoFalla.fecha_hora_falla < fin))))
     v["HPR"] = sum(s.scalars(select(ParteTurno.horas_operadas).where(ParteTurno.fecha >= ini.date(),
                                                                    ParteTurno.fecha < fin.date())))
+    # Tablero completo: mano de obra propia y contratada, trabajo en línea y CIT (UNIDAD 5, diap. 33–43).
+    from circularis_rel.servicios import parametros as P
+
+    v["CMOC"] = v["CMOP"] = v["HHML"] = 0.0
+    for ot in s.scalars(select(OrdenTrabajo).where(OrdenTrabajo.estado.in_([EstadoOT.CERRADA, EstadoOT.VALIDADA]),
+                                                   OrdenTrabajo.fin_real >= ini, OrdenTrabajo.fin_real < fin)):
+        tarifa = P.obtener(s, "costos.tarifa_mo_ars_h", ot.fin_real.date())
+        v["CMOC"] += ot.costo_externo_ars or 0.0
+        if tarifa is not None:
+            v["CMOP"] += (ot.hh_propias or 0.0) * tarifa
+        if ot.tipo == TipoOT.AUTONOMO:
+            v["HHML"] += ot.hh_propias or 0.0
+    cfa = 0.0
+    for ev in s.scalars(select(EventoFalla).where(EventoFalla.estado == EstadoEvento.VALIDADO,
+                                                  EventoFalla.fecha_hora_falla >= ini, EventoFalla.fecha_hora_falla < fin)):
+        c = servicio_costos.costo_historico(s, ev)
+        if c.desglose is None:  # falta el margen de la línea: CFA queda "falta dato" (no afecta a los otros ratios)
+            cfa = None
+            break
+        cfa += c.desglose.co
+    if cfa is not None:
+        v["CFA"] = cfa
     if "tarifa de mano de obra" in faltan:
-        for clave in ("CPREV", "CCORR", "CTMN"):
-            v.pop(clave)
+        for clave in ("CPREV", "CCORR", "CTMN", "CMOP"):
+            v.pop(clave, None)
+    else:
+        v["CFJ"], v["CV"] = v["CPREV"], v["CCORR"]
     return v, sorted(faltan)
 
 
@@ -172,17 +228,35 @@ def _calcular(codigo: str, x: dict[str, float]) -> float | None:
             return x["HHMC"] / x["HHDP"]
         if codigo == "OCPM":
             return (x["HHDP"] - x["HHTM"]) / x["HHDP"]
+        if codigo == "CMOE":
+            return x["CMOC"] / (x["CMOC"] + x["CMOP"])
+        if codigo == "CMPP":
+            return x["CTMN"] / x["CPROD"]
+        if codigo == "CMPV":
+            return x["CTMN"] / x["VIB"]
+        if codigo == "TBML":
+            return x["HHML"] / x["HHDP"]
+        if codigo == "PETI":
+            return x["HHEI"] / x["HHDP"]
+        if codigo == "CSMP":
+            return x["EMMM"] / (x["EMMM"] + x["NOTR"] + x["NODV"])
+        if codigo == "EFMD":
+            return (x["HHEF"] - x["HHAF"]) / x["HHEF"]
     except ZeroDivisionError:
         return None
     raise ValueError(codigo)
 
 
-def tablero(s: Session, periodo: str, tz: ZoneInfo) -> list[ValorIndicador]:
+def definiciones(completo: bool = False) -> dict[str, Definicion]:
+    return INDICADORES_BASICOS | (INDICADORES_COMPLETOS if completo else {})
+
+
+def tablero(s: Session, periodo: str, tz: ZoneInfo, completo: bool = False) -> list[ValorIndicador]:
     sistema, faltan_sistema = variables_sistema(s, periodo, tz)
     cargados = datos_cargados(s, periodo)
     objetivos = {o.codigo: o for o in s.scalars(select(IndicadorObjetivo))}
     salida = []
-    for codigo, d in INDICADORES_BASICOS.items():
+    for codigo, d in definiciones(completo).items():
         variables: dict[str, tuple[float | None, str]] = {}
         faltan: list[str] = []
         for clave in d.variables:
@@ -202,6 +276,8 @@ def tablero(s: Session, periodo: str, tz: ZoneInfo) -> list[ValorIndicador]:
                          "no incluye gastos generales. Cargá el total contable si lo tenés.")
         if codigo in ("CMFT", "CPCT") and faltan_sistema:
             notas.append("Algunas OT no tienen costo completo: " + ", ".join(faltan_sistema))
+        if codigo == "EFMD" and valor is not None:
+            notas.append(f"Ausentismo = HHAF / HHEF = {1 - valor:.1%} (B-009)")
         if codigo == "OCPM" and valor is not None and valor < 0:
             notas.append("Negativo: se trabajaron más horas que las disponibles (horas extra; UNIDAD 5, diap. 28)")
         o = objetivos.get(codigo)
@@ -213,7 +289,52 @@ def tablero(s: Session, periodo: str, tz: ZoneInfo) -> list[ValorIndicador]:
 
 
 def serie(s: Session, codigo: str, periodos: list[str], tz: ZoneInfo) -> list[tuple[str, float | None]]:
-    return [(p, next(v.valor for v in tablero(s, p, tz) if v.codigo == codigo)) for p in periodos]
+    if codigo == "DISP":
+        return [(p, disponibilidad_mes(s, p, tz)) for p in periodos]
+    completo = codigo in INDICADORES_COMPLETOS
+    return [(p, next(v.valor for v in tablero(s, p, tz, completo) if v.codigo == codigo)) for p in periodos]
+
+
+def disponibilidad_mes(s: Session, periodo: str, tz: ZoneInfo) -> float | None:
+    """Disponibilidad operacional de la línea en el mes (Plan §6), para el gráfico con objetivo y límites."""
+    from datetime import timedelta
+
+    from circularis_rel.servicios import kpis_planta
+
+    ini, fin = _rango_mes(periodo, tz)
+    return kpis_planta.kpis_linea(s, ini.date(), fin.date() - timedelta(days=1), tz).ao
+
+
+@dataclass
+class CIT:
+    cfj: tuple[float | None, str]
+    cv: tuple[float | None, str]
+    cfn: tuple[float | None, str]
+    cfa: tuple[float | None, str]
+    faltan: list[str]
+
+    @property
+    def total(self) -> float | None:
+        valores = [self.cfj[0], self.cv[0], self.cfn[0], self.cfa[0]]
+        return None if any(x is None for x in valores) else sum(valores)
+
+
+def cit(s: Session, periodo: str, tz: ZoneInfo) -> CIT:
+    """CIT = CFJ + CV + CFN + CFA (UNIDAD 5, diap. 42). Fijos ≈ preventivo y variables ≈ correctivo (diap. 35 y 37),
+    calculados desde las OT; financieros, a mano; por falla = producción perdida de los avisos validados."""
+    sistema, _f = variables_sistema(s, periodo, tz)
+    cargados = datos_cargados(s, periodo)
+    partes = {}
+    faltan = []
+    for clave in ("CFJ", "CV", "CFN", "CFA"):
+        if clave in cargados:
+            partes[clave] = (cargados[clave], "cargado")
+        elif clave in sistema and clave not in SOLO_CARGA:
+            partes[clave] = (sistema[clave], "sistema")
+        else:
+            partes[clave] = (None, "falta")
+            faltan.append(VARIABLES[clave][0])
+    return CIT(partes["CFJ"], partes["CV"], partes["CFN"], partes["CFA"], faltan)
 
 
 def fijar_objetivo(s: Session, codigo: str, objetivo: float | None, limite_inf: float | None,

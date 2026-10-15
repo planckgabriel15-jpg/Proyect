@@ -16,8 +16,10 @@ def texto(clave: str) -> str:
 
 
 def boton(clave: str, contenedor=None) -> None:
-    """Botón "¿Qué es?" que abre la definición."""
-    a = AYUDAS[clave]
+    """Botón "¿Qué es?" que abre la definición (si la hay)."""
+    a = AYUDAS.get(clave)
+    if a is None:
+        return
     with (contenedor or st).popover("¿Qué es?", icon=":material/help:", help=a["titulo"]):
         st.markdown(f"**{a['titulo']}**")
         st.write(a["texto"])

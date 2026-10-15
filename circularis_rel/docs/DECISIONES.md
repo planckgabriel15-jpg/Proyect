@@ -372,6 +372,43 @@ Verificación numérica previa: hecha el 15/10/2026 con Python 3.13, NumPy 2.5.4
 
 - **Qué:** cada etapa muestra el control automático y un enlace a la pantalla donde se trabaja. El criterio de mano de obra usa la misma variable que el tablero (HHDP). La etapa 15 usa el criterio del piloto (D-050) y la 16, la confianza de los ajustes (D-048).
 
+### D-054: Plan preventivo y calendario
+
+- **Qué:** el jefe aprueba el intervalo de cada componente (calculado, del fabricante, otro valor o sin preventivo por tiempo). El sistema propone el calculado cuando el ajuste de desgaste llega a `plan.confianza_para_calculado` (media); antes sugiere el del fabricante. El plan aprobado manda (D-037) y queda con su regla, T* y el resultado Weibull que lo justificó.
+- **Fechas:** la próxima intervención = hoy + (intervalo − edad actual) / ritmo diario (horas por día de los últimos 30 días); las siguientes, cada intervalo / ritmo. Con edad desconocida, el primer cambio queda para ya y se avisa. Se reprograma cada noche: las intervenciones sin OT se rehacen; las que ya tienen OT no se tocan.
+- **OT:** se generan con `politicas.anticipacion_ot_dias` de anticipación, una abierta por plan, con sus tareas numeradas (MANT/MPV001). Registrar el cambio en "Cambio preventivo" cierra la OT planificada de ese componente en lugar de crear otra.
+- **Alternativa descartada:** fechar por días calendario fijos (una máquina que trabaja un turno y otra que trabaja tres gastan distinto la misma pieza).
+
+### D-055: Repuestos
+
+- **Qué:** demanda esperada en el lead time = Σ P(falla en el lead time | edad) + preventivos programados, por las unidades de cada cambio (`cantidad_instalada` del repuesto en la máquina; si falta, 1). Sin Weibull se usa la tasa empírica del último año. Stock mínimo por Poisson al nivel de servicio. Lote económico y stock de protección de la UNIDAD 5 con D = demanda anual (uso anual / vida media: intervalo del plan o MTTF) y riesgo de rotura = 1 − nivel de servicio. K y b arrancan vacíos ("falta dato"). Un mínimo manual manda sobre el calculado.
+- **Alternativa descartada:** pedir la demanda a mano (el sistema ya la conoce por las fallas y el plan).
+
+### D-056: Fallas ocultas y pruebas funcionales
+
+- **Qué:** un componente marcado como falla oculta no se pone verde por no tener avisos. Sin plan de prueba queda gris; con plan pero sin prueba registrada, rojo; vencida, rojo; pasado el 80 % del período, amarillo. El intervalo de la prueba es de tiempo calendario (el componente está en reserva). Si en la prueba no actúa, se crea el aviso de falla (origen PRUEBA_FUNCIONAL) para el circuito normal.
+- **Alternativa descartada:** medir el intervalo en horas de máquina (una válvula de seguridad envejece aunque la máquina no trabaje).
+
+### D-057: Sobre y sub-mantenimiento
+
+- **Qué:** sobre-mantenimiento si hay cambio por tiempo con β ≤ 1, o si la mayoría de los preventivos se hizo antes de `plan.sobre_fraccion` × T* (o η). Sub-mantenimiento si la fracción de cambios por falla antes del intervalo supera `plan.sub_fraccion_fallas`; se muestra al lado la fracción que esperaría el Weibull. Los umbrales son propuestas configurables: la UNIDAD 3 da la definición, no números.
+
+### D-058: Predictivo
+
+- **Qué:** hasta 3 parámetros por máquina y especialidad (las columnas de MANT/PMRED001), con línea base, límite de alerta y de acción; si el de acción está debajo de la base, el parámetro empeora al bajar. Fuera de límite: alerta; sobre el de acción: además una OT de inspección (una por parámetro mientras esté abierta). Tendencia por mínimos cuadrados con al menos 3 mediciones y extrapolación al límite de acción, rotulada como estimación. Plantilla de ultrasonido: con la línea base, los límites salen de la tabla de la UNIDAD 3 (+8 dB alerta, +16 dB acción), editable y mostrada como referencia, no como norma.
+
+### D-059: Tablero completo y CIT
+
+- **Qué:** con el módulo 12E se suman CMOE, CMPP, CMPV, TBML, PETI, CSMP y EFMD (con el ausentismo al lado). CMOE sale de las OT (servicios externos contra horas propias × tarifa); TBML, de las OT de mantenimiento autónomo; el resto, de datos mensuales. **CIT = CFJ + CV + CFN + CFA:** fijos ≈ preventivo y variables ≈ correctivo (UNIDAD 5, diap. 35 y 37), por falla = producción perdida de los avisos validados, financieros a mano. Gráfico mensual preventivo contra correctivo + falla para buscar el equilibrio, y la disponibilidad de la línea por mes con objetivo y límites.
+
+### D-060: Correo, alertas diarias y reportes
+
+- **Qué:** SMTP opcional en `.env` (587 con STARTTLS o 465 con SSL). Inmediatas: riesgo firme, predictivo sobre el límite de acción y backup. Resumen diario: el resto. Nunca: las orientativas. Destinatarios por rol, con el mail cargado en el usuario. Reporte PDF mensual (día 1, guardado en `datos/reportes`) y resumen semanal (lunes). El reporte toma el período para el resumen, el Pareto y el tablero, y "hoy" para el estado y el ranking (lo que hay que atender).
+
+### D-061: Módulos habilitables
+
+- **Qué:** el jefe habilita módulos en Parámetros. Predictivo (12G), tablero completo (12E) y herramientas de fiabilidad (12H) aparecen solo habilitados. El plan preventivo, el calendario, los repuestos y los reportes son parte del Plan (§8, §10) y están siempre.
+
 ---
 
 ## Dudas y correcciones sobre la bibliografía
@@ -480,4 +517,9 @@ Verificación numérica previa: hecha el 15/10/2026 con Python 3.13, NumPy 2.5.4
 
 - **Duda:** en la diapositiva, la "A" del ciclo es **Analizar** (analizar el fenómeno e identificar causas raíz con 5W+1H y 5 Porqués), no "Actuar" como en el PDCA clásico. Planificar incluye definir dónde, qué, quién, cómo y cuándo.
 - **Decisión:** se mantienen los cuatro pasos, con los textos de la diapositiva. El análisis inicial (5 Porqués) se hace al crear el análisis; el paso "A" del sistema se llama "Analizar / estandarizar": si quedó desvío, se vuelve a analizar; si funcionó, se estandariza.
+
+### B-017: UNIDAD 6, formatos MANT/1CMP001 y MANT/2CMP001
+
+- **Duda:** el pedido cita los dos códigos para el calendario anual de 52 semanas, pero el texto extraído de las diapositivas de la UNIDAD 6 no trae su grilla (son imágenes). Sí trae MANT/MPV001 (OT preventiva) y MANT/PMRED001 (predictivo), que se reproducen campo por campo.
+- **Decisión:** se interpreta 1CMP001 = semanas 1 a 26 y 2CMP001 = semanas 27 a 52, con las columnas que pide el pedido (máquina, tarea, lugar, tiempo previsto y una columna por semana). Se ajusta cuando se vea la diapositiva.
 

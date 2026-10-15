@@ -12,6 +12,7 @@ from circularis_rel.cli import migrar
 from circularis_rel.datos.db import BaseDatos
 from circularis_rel.datos.modelos import Usuario
 from circularis_rel.datos.semillas import sembrar
+from circularis_rel.servicios import modulos
 from circularis_rel.servicios.demo import cargar_demo
 
 APP = Path(__file__).resolve().parents[2] / "circularis_rel" / "app"
@@ -20,11 +21,13 @@ PAGINAS_JEFE = ["puesta_en_marcha.py", "carga_inicial.py", "maquinas.py", "histo
                 "parametros.py", "datos_demo.py", "ayuda.py", "bandeja_validacion.py", "bandeja_encargado.py",
                 "cerrar_ot.py", "cambio_preventivo.py", "planta.py", "reportar_falla.py", "parte_turno.py", "tarjeta.py",
                 "exportar.py", "panel_planta.py", "ficha_maquina.py", "analisis_weibull.py", "analisis_problemas.py",
-                "tablero.py", "catalogos.py", "criticidad.py", "piloto.py"]
+                "tablero.py", "catalogos.py", "criticidad.py", "piloto.py", "plan_preventivo.py", "repuestos.py",
+                "reportes.py", "predictivo.py", "herramientas.py"]
 PAGINAS_OPERARIO = ["planta.py", "reportar_falla.py", "parte_turno.py", "tarjeta.py", "ficha_maquina.py", "ayuda.py"]
-PAGINAS_GERENCIA = ["panel_planta.py", "tablero.py", "ficha_maquina.py", "exportar.py", "ayuda.py"]
+PAGINAS_GERENCIA = ["panel_planta.py", "tablero.py", "ficha_maquina.py", "reportes.py", "herramientas.py", "exportar.py",
+                    "ayuda.py"]
 PAGINAS_ENCARGADO = ["bandeja_encargado.py", "cerrar_ot.py", "cambio_preventivo.py", "analisis_problemas.py",
-                     "ficha_maquina.py", "planta.py", "exportar.py"]
+                     "ficha_maquina.py", "planta.py", "exportar.py", "plan_preventivo.py", "repuestos.py", "predictivo.py"]
 TZ = ZoneInfo("America/Argentina/Cordoba")
 
 
@@ -37,6 +40,9 @@ def base(tmp_path_factory):
     with db.escritura() as s:
         sembrar(s)
     assert cargar_demo(db, tz=TZ).aplicado  # con historia: el panel y el Weibull tienen datos
+    with db.escritura() as s:  # todos los módulos habilitados, para probar todas las pantallas
+        for m in modulos.todos(s):
+            modulos.fijar(s, m.codigo, True)
     with db.lectura() as s:
         usuarios = {u.rol.value: {"id": u.id, "usuario": u.usuario, "nombre": u.nombre, "rol": u.rol.value}
                     for u in s.scalars(select(Usuario))}

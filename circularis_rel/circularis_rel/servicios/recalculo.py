@@ -350,6 +350,12 @@ def actualizar_estado(s: Session, pos: PosicionComponente, tz: ZoneInfo, hoy: da
                                       umbrales(s), delta)
     if vida is not None and not vida.edad_conocida:
         color.motivos.append("Edad desconocida: el componente estaba instalado antes del sistema")
+    from circularis_rel.servicios import plan_preventivo  # import tardío: usa este módulo
+
+    prueba = plan_preventivo.estado_prueba(s, pos, hoy, tz)
+    if prueba is not None and not ot_abierta:  # falla oculta: manda la prueba funcional, no la falta de avisos
+        color.color = prueba[0] if semaforo.ORDEN[prueba[0]] >= semaforo.ORDEN[color.color] else color.color
+        color.motivos.append(prueba[1])
     est = s.scalar(select(EstadoComponente).where(EstadoComponente.id_posicion == pos.id, EstadoComponente.fecha == hoy))
     valores = dict(edad=edad, delta=delta, p_falla_delta=p, p_falla_delta_inf=p_inf, p_falla_delta_sup=p_sup,
                    vida_rem_mediana=rem50, vida_rem_90=rem90, intervalo_vigente=intervalo.valor,

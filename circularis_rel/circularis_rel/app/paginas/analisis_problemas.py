@@ -10,7 +10,7 @@ from circularis_rel.app.componentes import ayuda as A
 from circularis_rel.app.componentes import formularios as F
 from circularis_rel.app.componentes import graficos as G
 from circularis_rel.asistente import rca
-from circularis_rel.datos.enums import EstadoPDCA, TipoCatalogo
+from circularis_rel.datos.enums import EstadoPDCA, TipoAnalisis, TipoCatalogo
 from circularis_rel.datos.modelos import (
     Activo,
     AnalisisProblema,
@@ -33,6 +33,51 @@ tz = contexto.config().zona_horaria
 hoy = F.hoy()
 st.header("🔍 Análisis de problemas")
 F.mensaje_ok("rca")
+
+TIPOS = {TipoAnalisis.CINCO_PORQUES: "5 Porqués", TipoAnalisis.ISHIKAWA_5M: "Ishikawa (5M)",
+         TipoAnalisis.CINCO_W_1H: "5W + 1H", TipoAnalisis.HOJA_VERIFICACION: "Hoja de verificación"}
+
+
+def formulario_otro_tipo(a, cont: dict, cerrado: bool) -> None:
+    """Ishikawa, 5W+1H u hoja de verificación (el plan de acción va debajo, igual que en 5 Porqués)."""
+    with st.form(f"contenido_{a.id}"):
+        if a.tipo == TipoAnalisis.ISHIKAWA_5M:
+            st.caption("Una causa posible por renglón en cada una de las 5M.")
+            previas = cont.get("causas", {})
+            causas = {}
+            cols = st.columns(len(rca.CINCO_M))
+            for col, m in zip(cols, rca.CINCO_M, strict=True):
+                causas[m] = col.text_area(m, "\n".join(previas.get(m, [])), height=140, disabled=cerrado,
+                                          key=f"5m_{a.id}_{m}").splitlines()
+            principal = st.text_input("Causa más probable (se toma como causa raíz)", cont.get("principal") or "",
+                                      disabled=cerrado)
+            contenido = {"causas": causas, "principal": principal}
+        elif a.tipo == TipoAnalisis.CINCO_W_1H:
+            previas = cont.get("respuestas", {})
+            contenido = {k: st.text_input(p, previas.get(k, ""), disabled=cerrado, key=f"5w_{a.id}_{k}")
+                         for k, p in rca.CINCO_W_1H.items()}
+        else:
+            previos = cont.get("items") or []
+            if not previos and a.id_activo:
+                with db.lectura() as s:
+                    previos = rca.conteo_para_hoja(s, a.id_activo, hoy - timedelta(days=90), tz)
+                st.caption("Precargada con los síntomas y causas de los avisos de los últimos 90 días; corregí o agregá.")
+            editada = st.data_editor(previos or [{"categoria": "", "conteo": 0}], num_rows="dynamic", disabled=cerrado,
+                                     column_config={"categoria": "Categoría", "conteo": st.column_config.NumberColumn("Veces", min_value=0)},
+                                     key=f"hoja_{a.id}", width="stretch")
+            contenido = {"items": editada}
+        if st.form_submit_button("Guardar", width="stretch", disabled=cerrado):
+            try:
+                with db.escritura(usuario_id=u["id"]) as s:
+                    rca.guardar_contenido(s, u["id"], a.id, contenido)
+                st.session_state["rca_abierto"] = a.id
+                F.guardar_mensaje_ok("rca", "Análisis guardado.")
+                st.rerun()
+            except ErrorRegistro as e:
+                st.error(str(e))
+    if a.tipo == TipoAnalisis.ISHIKAWA_5M and cont.get("causas"):
+        st.html(rca.ishikawa_svg(cont.get("problema", ""), cont["causas"]))
+
 
 tab_pareto, tab_sug, tab_analisis, tab_nuevo = st.tabs(["Pareto", "Sugerencias", "Análisis en curso", "Nuevo análisis"])
 
@@ -85,7 +130,8 @@ with tab_analisis:
         nombres = {}
         for a in lista:
             maq = s.get(Activo, a.id_activo).codigo if a.id_activo else "sin máquina"
-            nombres[a.id] = f"n.º {a.id} · {maq} · {rca.NOMBRE_PDCA[a.estado_pdca]} · {(a.contenido or {}).get('problema', '')[:60]}"
+            nombres[a.id] = (f"n.º {a.id} · {TIPOS[a.tipo]} · {maq} · {rca.NOMBRE_PDCA[a.estado_pdca]} · "
+                             f"{(a.contenido or {}).get('problema', '')[:60]}")
     if not lista:
         st.info("Todavía no hay análisis. Arrancá desde una sugerencia o creá uno nuevo.")
     else:
@@ -103,24 +149,36 @@ with tab_analisis:
         st.progress((rca.ORDEN_PDCA.index(a.estado_pdca)) / (len(rca.ORDEN_PDCA) - 1),
                     text=f"PDCA: {rca.NOMBRE_PDCA[a.estado_pdca]}. {rca.QUE_ES_PDCA[a.estado_pdca]}")
         cerrado = a.estado_pdca == EstadoPDCA.CERRADO
-        with st.form(f"porques_{a.id}"):
+        if a.tipo != TipoAnalisis.CINCO_PORQUES:
+            formulario_otro_tipo(a, cont, cerrado)
+        with st.form(f"porques_{a.id}") if a.tipo == TipoAnalisis.CINCO_PORQUES else st.container():
             previos = cont.get("porques", [])
             porques = []
             anterior = cont.get("problema", "el problema")
-            for i in range(rca.MAX_PORQUES):
+            for i in range(rca.MAX_PORQUES if a.tipo == TipoAnalisis.CINCO_PORQUES else 0):
                 valor = previos[i] if i < len(previos) else ""
                 porques.append(st.text_input(f"{i + 1}. ¿Por qué? ({anterior[:60]})" if i == 0 else f"{i + 1}. ¿Por qué?",
                                              valor, disabled=cerrado, key=f"pq_{a.id}_{i}"))
-            causa = st.text_input("Causa raíz (si la dejás vacía se toma el último porqué)", a.causa_raiz or "", disabled=cerrado)
-            accion = st.text_area("Acción correctiva o preventiva (qué, dónde, cómo)", a.accion_correctiva or "", disabled=cerrado)
+            causa = st.text_input("Causa raíz" + (" (si la dejás vacía se toma el último porqué)"
+                                                  if a.tipo == TipoAnalisis.CINCO_PORQUES else ""),
+                                  a.causa_raiz or "", disabled=cerrado, key=f"causa_{a.id}")
+            accion = st.text_area("Acción correctiva o preventiva (qué, dónde, cómo)", a.accion_correctiva or "", disabled=cerrado,
+                                  key=f"acc_{a.id}")
             c1, c2 = st.columns(2)
-            responsable = c1.text_input("Responsable (quién)", a.responsable or "", disabled=cerrado)
-            fecha = c2.date_input("Fecha de compromiso (cuándo)", a.fecha_compromiso, format="DD/MM/YYYY", disabled=cerrado)
-            if st.form_submit_button("Guardar", width="stretch", disabled=cerrado):
+            responsable = c1.text_input("Responsable (quién)", a.responsable or "", disabled=cerrado, key=f"resp_{a.id}")
+            fecha = c2.date_input("Fecha de compromiso (cuándo)", a.fecha_compromiso, format="DD/MM/YYYY", disabled=cerrado,
+                                  key=f"fecha_{a.id}")
+            enviar = (st.form_submit_button("Guardar", width="stretch", disabled=cerrado) if a.tipo == TipoAnalisis.CINCO_PORQUES
+                      else st.button("Guardar plan de acción", width="stretch", disabled=cerrado, key=f"accion_{a.id}"))
+            if enviar:
                 try:
                     with db.escritura(usuario_id=u["id"]) as s:
-                        rca.guardar_porques(s, u["id"], a.id, porques, causa_raiz=causa, accion=accion,
-                                            responsable=responsable, fecha_compromiso=fecha)
+                        if a.tipo == TipoAnalisis.CINCO_PORQUES:
+                            rca.guardar_porques(s, u["id"], a.id, porques, causa_raiz=causa, accion=accion,
+                                                responsable=responsable, fecha_compromiso=fecha)
+                        else:
+                            rca.guardar_accion(s, u["id"], a.id, causa_raiz=causa, accion=accion, responsable=responsable,
+                                               fecha_compromiso=fecha)
                     st.session_state["rca_abierto"] = a.id
                     F.guardar_mensaje_ok("rca", "Análisis guardado.")
                     st.rerun()
@@ -175,13 +233,15 @@ with tab_nuevo:
                     select(Catalogo).join(CatalogoAplica, CatalogoAplica.id_catalogo == Catalogo.id)
                     .where(CatalogoAplica.id_tipo_componente == tipos[tipo], Catalogo.tipo == TipoCatalogo.MODO))}
         modo = st.selectbox("Modo de falla (opcional)", ["—", *modos], key="rca_nuevo_modo")
+        tipo_nuevo = st.segmented_control("Herramienta", list(TIPOS), default=TipoAnalisis.CINCO_PORQUES,
+                                          format_func=TIPOS.get, key="rca_nuevo_herramienta") or TipoAnalisis.CINCO_PORQUES
         problema = st.text_area("¿Cuál es el problema?", key="rca_nuevo_problema",
                                 placeholder="Ej.: la cuba de lavado pierde agua por el sello cada dos semanas")
         if st.button("Crear análisis", type="primary", width="stretch"):
             try:
                 with db.escritura(usuario_id=u["id"]) as s:
                     a = rca.crear(s, u["id"], problema, id_activo=activos[codigo],
-                                  id_tipo=tipos.get(tipo), id_modo=modos.get(modo))
+                                  id_tipo=tipos.get(tipo), id_modo=modos.get(modo), tipo=tipo_nuevo)
                 st.session_state["rca_abierto"] = a.id
                 F.guardar_mensaje_ok("rca", f"Análisis n.º {a.id} creado: completalo en la pestaña \"Análisis en curso\".")
                 st.rerun()

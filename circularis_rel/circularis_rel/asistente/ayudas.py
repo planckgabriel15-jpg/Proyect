@@ -181,4 +181,31 @@ AYUDAS: dict[str, dict[str, str]] = {
              "texto": "Horas-hombre disponibles menos las trabajadas, sobre las disponibles: cuánto tiempo del personal "
                       "no se ocupó. Negativo indica horas extra.",
              "fuente": "UNIDAD 5, diap. 24 y 28"},
+    "CMOE": {"titulo": "CMOE: mano de obra externa",
+             "texto": "Gasto en mano de obra externa (contratada) sobre la mano de obra total de los servicios (propia y "
+                      "contratada) en el período.",
+             "fuente": "UNIDAD 5, diap. 17"},
+    "CMPP": {"titulo": "CMPP: costo de mantenimiento por producción",
+             "texto": "Influencia del costo de mantenimiento en el costo final del producto. Normalmente oscila entre el 5 % "
+                      "y el 6 % (referencia, no meta).",
+             "fuente": "UNIDAD 5, diap. 18"},
+    "CMPV": {"titulo": "CMPV: costo de mantenimiento por valor inmovilizado",
+             "texto": "Costo de mantenimiento sobre el valor inmovilizado bruto de máquinas y equipos: muestra el envejecimiento "
+                      "de la instalación. Puede rondar entre el 4 % y el 5 % (referencia, no meta).",
+             "fuente": "UNIDAD 5, diap. 19"},
+    "TBML": {"titulo": "TBML: trabajo de mantenimiento en línea",
+             "texto": "Horas-hombre de mantenimiento hechas en la línea (mantenimiento autónomo) sobre las horas-hombre "
+                      "disponibles.",
+             "fuente": "UNIDAD 4 (TPM); PLAN_TECNICO §8.3"},
+    "PETI": {"titulo": "PETI: entrenamiento interno",
+             "texto": "Horas-hombre usadas en entrenamiento interno sobre las horas-hombre disponibles.",
+             "fuente": "UNIDAD 5, diap. 25"},
+    "CSMP": {"titulo": "CSMP: clima social, movimiento de personal",
+             "texto": "Efectivo medio de los meses anteriores sobre ese efectivo más las transferencias y las renuncias "
+                      "voluntarias. Cuanto más cerca de 1, menos rotación.",
+             "fuente": "UNIDAD 5, diap. 26"},
+    "EFMD": {"titulo": "EFMD: efectivo real",
+             "texto": "Horas-hombre efectivas menos las apartadas (vacaciones, accidentes, enfermedad) sobre las efectivas. "
+                      "Al lado se muestra el ausentismo (apartadas sobre efectivas).",
+             "fuente": "UNIDAD 5, diap. 27–28 (B-009)"},
 }

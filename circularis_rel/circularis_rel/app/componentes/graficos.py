@@ -123,9 +123,25 @@ def curva_costo(curva: list[tuple[float, float, float]], t_opt: float | None, in
     return fig
 
 
-def serie_indicador(periodos: list[str], valores: list[float | None], objetivo: float | None, nombre: str) -> go.Figure:
+def serie_indicador(periodos: list[str], valores: list[float | None], objetivo: float | None, nombre: str,
+                    limite_inf: float | None = None, limite_sup: float | None = None) -> go.Figure:
     fig = go.Figure(go.Scatter(x=periodos, y=valores, mode="lines+markers", name=nombre, line=dict(color="#1a73e8")))
     if objetivo is not None:
         fig.add_hline(y=objetivo, line_dash="dot", line_color="#1e8e3e", annotation_text="Objetivo")
+    for limite, texto in ((limite_inf, "Límite inferior"), (limite_sup, "Límite superior")):
+        if limite is not None:
+            fig.add_hline(y=limite, line_dash="dash", line_color="#d93025", annotation_text=texto)
     fig.update_layout(title=f"{nombre}: últimos meses", yaxis_tickformat=".1%", **_BASE)
+    return fig
+
+
+def equilibrio(periodos: list[str], preventivo: list[float | None], correctivo_y_falla: list[float | None]) -> go.Figure:
+    """Preventivo contra correctivo + falla por mes (UNIDAD 5: costo óptimo o de equilibrio)."""
+    total = [None if a is None or b is None else a + b for a, b in zip(preventivo, correctivo_y_falla, strict=True)]
+    fig = go.Figure()
+    fig.add_trace(go.Bar(x=periodos, y=preventivo, name="Preventivo (CFJ)", marker_color="#1e8e3e"))
+    fig.add_trace(go.Bar(x=periodos, y=correctivo_y_falla, name="Correctivo + falla (CV + CFA)", marker_color="#d93025"))
+    fig.add_trace(go.Scatter(x=periodos, y=total, name="Total", mode="lines+markers", line=dict(color="#202124")))
+    fig.update_layout(title="Preventivo contra correctivo por mes (buscar el menor total)", barmode="group",
+                      yaxis_title="ARS", **_BASE)
     return fig

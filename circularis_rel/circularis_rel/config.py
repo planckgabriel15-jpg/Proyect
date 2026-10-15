@@ -36,6 +36,15 @@ class Config:
     nombre_cookie: str
     dias_cookie: int
     url_base: str  # dirección fija de la mini PC, para los QR
+    smtp_servidor: str = ""
+    smtp_puerto: int = 587
+    smtp_usuario: str = ""
+    smtp_clave: str = ""
+    smtp_remitente: str = ""
+
+    @property
+    def smtp_configurado(self) -> bool:
+        return bool(self.smtp_servidor and self.smtp_remitente)
 
     @property
     def dir_fotos(self) -> Path:
@@ -48,6 +57,10 @@ class Config:
     @property
     def dir_exportaciones(self) -> Path:
         return self.dir_datos / "exportaciones"
+
+    @property
+    def dir_reportes(self) -> Path:
+        return self.dir_datos / "reportes"
 
 
 def cargar_config() -> Config:
@@ -62,4 +75,9 @@ def cargar_config() -> Config:
         nombre_cookie=env.get("CIRCULARIS_NOMBRE_COOKIE", "circularis_sesion"),
         dias_cookie=int(env.get("CIRCULARIS_DIAS_COOKIE", "30")),
         url_base=env.get("CIRCULARIS_URL_BASE", "http://192.168.0.10:8501"),
+        smtp_servidor=env.get("SMTP_SERVIDOR", ""),
+        smtp_puerto=int(env.get("SMTP_PUERTO") or 587),
+        smtp_usuario=env.get("SMTP_USUARIO", ""),
+        smtp_clave=env.get("SMTP_CLAVE", ""),
+        smtp_remitente=env.get("SMTP_REMITENTE", ""),
     )

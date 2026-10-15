@@ -9,6 +9,7 @@ from sqlalchemy import select
 from circularis_rel.app import contexto
 from circularis_rel.datos.enums import TipoParametro
 from circularis_rel.datos.modelos import Parametro
+from circularis_rel.servicios import modulos
 from circularis_rel.servicios import parametros as P
 from circularis_rel.servicios.permisos import Accion, requerir
 
@@ -56,3 +57,16 @@ with st.form("param"):
             st.rerun()
         except (ValueError, json.JSONDecodeError) as e:
             st.error(f"Valor no válido: {e}")
+
+st.subheader("Módulos")
+st.caption("Se habilitan a medida que la planta los necesita (UNIDAD 6: informatizar de a poco). Deshabilitar un módulo "
+           "oculta sus pantallas; no borra datos.")
+with db.lectura() as s:
+    lista_modulos = modulos.todos(s)
+with st.form("modulos"):
+    nuevos = {m.codigo: st.checkbox(f"{m.codigo} · {m.nombre}", value=m.habilitado) for m in lista_modulos}
+    if st.form_submit_button("Guardar módulos", width="stretch"):
+        with db.escritura(usuario_id=contexto.id_usuario(), motivo="Módulos habilitados") as s:
+            for codigo, valor in nuevos.items():
+                modulos.fijar(s, codigo, valor)
+        st.rerun()

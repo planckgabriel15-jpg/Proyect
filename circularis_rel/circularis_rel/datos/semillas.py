@@ -63,7 +63,19 @@ PARAMETROS: list[tuple] = [
     ("politicas.r_objetivo", 0.90, "REAL", "", "politicas", "Confiabilidad objetivo R* para seguridad o criticidad A", "Plan §8"),
     ("politicas.paso_redondeo_h", 25, "REAL", "h", "politicas", "Paso para redondear el intervalo óptimo", "Propuesta (Plan §15: 369 h → 375 h)"),
     ("politicas.anticipacion_ot_dias", 7, "ENTERO", "días", "politicas", "Anticipación con que se generan las OT preventivas", "Propuesta, configurable"),
+    ("plan.confianza_para_calculado", "MEDIA", "TEXTO", "", "politicas",
+     "Confianza desde la que se propone pasar del intervalo del fabricante al calculado", "Pedido §12.G; UNIDAD 6, etapa 16"),
+    ("plan.sobre_fraccion", 0.5, "REAL", "fracción", "politicas",
+     "Sobre-mantenimiento si la mayoría de los cambios preventivos se hace antes de esta fracción de T* (o de η)",
+     "Propuesta, configurable (UNIDAD 3 no da un número)"),
+    ("plan.sub_fraccion_fallas", 0.25, "REAL", "fracción", "politicas",
+     "Sub-mantenimiento si la fracción de cambios por falla antes del intervalo supera este valor",
+     "Propuesta, configurable (UNIDAD 3 no da un número)"),
     ("politicas.nivel_servicio_stock", 0.95, "REAL", "", "politicas", "Nivel de servicio para el stock mínimo (Poisson)", "Plan §8"),
+    ("repuestos.costo_pedido_ars", None, "REAL", "ARS/pedido", "politicas",
+     "K: costo de gestionar cada pedido de compra (sueldos y gastos de compras / pedidos por mes)", "UNIDAD 5, diap. 45–51"),
+    ("repuestos.tasa_almacenamiento_anual", None, "REAL", "fracción/año", "politicas",
+     "b: costo anual de tener almacenado $1 de repuesto (financiero, depósito, seguro, obsolescencia)", "UNIDAD 5, diap. 52–59"),
     # Costos (Plan §12): sin valores inventados
     ("costos.tarifa_mo_ars_h", None, "REAL", "ARS/h", "costos", "Tarifa horaria de mano de obra (CCT 260/75 Rama 17)", "Cargar desde el TP N.º 2"),
     ("costos.margen_linea_ars_h", None, "REAL", "ARS/h", "costos", "Margen por hora de la línea (base del lucro cesante)", "Cargar desde el TP N.º 2"),
@@ -238,6 +250,7 @@ INDICADORES = [
     ("HPHP", False, "Generalmente entre 1 % y 3 % (UNIDAD 5)"),
     ("TBMP", True, None), ("TBMC", False, None), ("TBML", False, None),
     ("OCPM", False, None), ("PETI", True, None), ("CSMP", True, None), ("EFMD", True, None),
+    ("DISP", True, None),  # disponibilidad operacional de la línea (Plan §6), para el gráfico mensual con objetivo
 ]
 
 

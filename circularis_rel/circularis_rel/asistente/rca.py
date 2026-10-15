@@ -129,3 +129,111 @@ def convertir_en_ot(s: Session, id_usuario: int, id_analisis: int) -> OrdenTraba
     a.id_ot_generada = ot.id
     s.flush()
     return ot
+
+
+# ---------------------------------------------------------------------------
+# Ishikawa (5M), 5W+1H y hoja de verificación [12.D, P2]
+# ---------------------------------------------------------------------------
+
+CINCO_M = ("Máquina", "Mano de obra", "Métodos", "Materiales", "Medio ambiente")
+CINCO_W_1H = {"que": "¿Qué pasó?", "quien": "¿Quién lo detectó o lo hace?", "donde": "¿Dónde (máquina, componente)?",
+              "cuando": "¿Cuándo (turno, momento, cada cuánto)?", "cual_como": "¿Cuál / cómo ocurre?",
+              "por_que": "¿Por qué ocurre?"}
+
+
+def guardar_contenido(s: Session, id_usuario: int, id_analisis: int, contenido: dict) -> AnalisisProblema:
+    """Guarda el formulario del análisis según su tipo, validando la estructura."""
+    _usuario(s, id_usuario)
+    a = _analisis(s, id_analisis)
+    if a.estado_pdca == EstadoPDCA.CERRADO:
+        raise ErrorRegistro("El análisis está cerrado")
+    base = dict(a.contenido or {})
+    if a.tipo == TipoAnalisis.ISHIKAWA_5M:
+        causas = {m: [c.strip() for c in contenido.get("causas", {}).get(m, []) if c and c.strip()] for m in CINCO_M}
+        if not any(causas.values()):
+            raise ErrorRegistro("Cargá al menos una causa en alguna de las 5M")
+        base["causas"] = causas
+        base["principal"] = (contenido.get("principal") or "").strip() or None
+        if base["principal"]:
+            a.causa_raiz = base["principal"]
+    elif a.tipo == TipoAnalisis.CINCO_W_1H:
+        respuestas = {k: (contenido.get(k) or "").strip() for k in CINCO_W_1H}
+        if not any(respuestas.values()):
+            raise ErrorRegistro("Respondé al menos una pregunta")
+        base["respuestas"] = respuestas
+        if respuestas["por_que"]:
+            a.causa_raiz = respuestas["por_que"]
+    elif a.tipo == TipoAnalisis.HOJA_VERIFICACION:
+        items = [{"categoria": (i.get("categoria") or "").strip(), "conteo": int(i.get("conteo") or 0)}
+                 for i in contenido.get("items", [])]
+        items = [i for i in items if i["categoria"]]
+        if not items or any(i["conteo"] < 0 for i in items):
+            raise ErrorRegistro("Cargá las categorías y sus conteos (no negativos)")
+        base["items"] = sorted(items, key=lambda i: -i["conteo"])
+    else:
+        raise ErrorRegistro("Para 5 Porqués usá guardar_porques")
+    a.contenido = base
+    s.flush()
+    return a
+
+
+def ishikawa_svg(efecto: str, causas: dict[str, list[str]], ancho: int = 900, alto: int = 420) -> str:
+    """Espina de pescado simple en SVG: el efecto a la derecha y las 5M como espinas (3 arriba, 2 abajo)."""
+    from html import escape
+
+    medio = alto / 2
+    cabeza = ancho - 170
+    partes = [f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {ancho} {alto}" width="100%" '
+              'font-family="sans-serif" font-size="12">',
+              f'<line x1="30" y1="{medio}" x2="{cabeza}" y2="{medio}" stroke="#202124" stroke-width="3"/>',
+              f'<rect x="{cabeza}" y="{medio - 30}" width="160" height="60" rx="6" fill="#fce8e6" stroke="#d93025"/>',
+              f'<foreignObject x="{cabeza + 5}" y="{medio - 27}" width="150" height="54"><div xmlns="http://www.w3.org/1999/xhtml" '
+              f'style="font:bold 12px sans-serif;text-align:center">{escape(efecto[:90])}</div></foreignObject>']
+    posiciones = [(0.15, -1), (0.42, -1), (0.69, -1), (0.28, 1), (0.56, 1)]
+    for (frac, lado), m in zip(posiciones, CINCO_M, strict=True):
+        x = 30 + frac * (cabeza - 30)
+        y = medio + lado * (medio - 40)
+        partes.append(f'<line x1="{x}" y1="{y}" x2="{x + 90}" y2="{medio}" stroke="#5f6368" stroke-width="2"/>')
+        ty = y - 10 if lado < 0 else y + 18
+        partes.append(f'<text x="{x - 20}" y="{ty}" font-weight="bold">{escape(m)}</text>')
+        for i, c in enumerate(causas.get(m, [])[:5]):
+            cy = y + lado * -1 * (22 + i * 18) if lado < 0 else y - (22 + i * 18)
+            cx = x + (cy - y) / (medio - y) * 90 if medio != y else x
+            partes.append(f'<text x="{cx + 6}" y="{cy}" fill="#3c4043">• {escape(c[:40])}</text>')
+    partes.append("</svg>")
+    return "".join(partes)
+
+
+def guardar_accion(s: Session, id_usuario: int, id_analisis: int, *, causa_raiz: str | None, accion: str | None,
+                   responsable: str | None, fecha_compromiso: date | None) -> AnalisisProblema:
+    """Causa raíz y plan de acción (qué, quién, cuándo) de cualquier tipo de análisis."""
+    _usuario(s, id_usuario)
+    a = _analisis(s, id_analisis)
+    if a.estado_pdca == EstadoPDCA.CERRADO:
+        raise ErrorRegistro("El análisis está cerrado")
+    a.causa_raiz = (causa_raiz or "").strip() or a.causa_raiz
+    a.accion_correctiva = (accion or "").strip() or None
+    a.responsable = (responsable or "").strip() or None
+    a.fecha_compromiso = fecha_compromiso
+    s.flush()
+    return a
+
+
+def conteo_para_hoja(s: Session, id_activo: int, desde, tz) -> list[dict]:
+    """Hoja de verificación precargada: cuántas veces apareció cada síntoma y cada causa en los avisos de la máquina."""
+    from datetime import datetime, time
+
+    from sqlalchemy import select
+
+    from circularis_rel.datos.enums import EstadoEvento
+    from circularis_rel.datos.modelos import Catalogo, EventoFalla
+
+    cuenta: dict[str, int] = {}
+    for ev in s.scalars(select(EventoFalla).where(EventoFalla.id_activo == id_activo, EventoFalla.estado != EstadoEvento.ANULADO,
+                                                  EventoFalla.fecha_hora_falla >= datetime.combine(desde, time.min, tzinfo=tz))):
+        for campo, prefijo in (("id_sintoma", "Síntoma"), ("id_causa", "Causa")):
+            i = getattr(ev, campo)
+            if i is not None:
+                clave = f"{prefijo}: {s.get(Catalogo, i).descripcion}"
+                cuenta[clave] = cuenta.get(clave, 0) + 1
+    return [{"categoria": k, "conteo": v} for k, v in sorted(cuenta.items(), key=lambda kv: -kv[1])]

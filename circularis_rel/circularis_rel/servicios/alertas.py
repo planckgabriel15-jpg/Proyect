@@ -79,3 +79,40 @@ def actualizar_riesgo(s: Session, hoy: date) -> dict[str, int]:
             conteo["orientativas"] += 1
     s.flush()
     return conteo
+
+
+def edad_sobre_intervalo(s: Session, hoy: date) -> int:
+    """Resumen diario: componentes cuya edad ya pasó el intervalo vigente (Plan §7)."""
+    n = 0
+    for pos, codigo in s.execute(select(PosicionComponente, Activo.codigo).join(Activo, Activo.id == PosicionComponente.id_activo)
+                                 .where(PosicionComponente.activa.is_(True))):
+        e = s.scalar(select(EstadoComponente).where(EstadoComponente.id_posicion == pos.id, EstadoComponente.fecha <= hoy)
+                     .order_by(EstadoComponente.fecha.desc()).limit(1))
+        clave = f"edad_intervalo:{pos.id}"
+        if e is not None and e.edad is not None and e.intervalo_vigente and e.edad > e.intervalo_vigente:
+            emitir(s, "EDAD_INTERVALO", "media", f"{codigo} · {pos.codigo}: edad {e.edad:.0f}, intervalo {e.intervalo_vigente:.0f}",
+                   clave, id_activo=pos.id_activo, id_posicion=pos.id, destinatarios="JEFE,ENCARGADO")
+            n += 1
+        else:
+            resolver(s, clave)
+    return n
+
+
+def eventos_sin_validar(s: Session) -> int:
+    """Resumen diario: avisos cerrados que esperan validación más de `validacion.eventos_sin_validar_h` horas."""
+    from datetime import timedelta
+
+    from circularis_rel.datos.enums import EstadoEvento
+    from circularis_rel.datos.modelos import EventoFalla
+    from circularis_rel.servicios import parametros as P
+
+    limite = ahora() - timedelta(hours=P.obtener(s, "validacion.eventos_sin_validar_h"))
+    viejos = list(s.scalars(select(EventoFalla).where(EventoFalla.estado == EstadoEvento.CERRADO,
+                                                      EventoFalla.actualizado_en < limite)))
+    clave = "sin_validar"
+    if viejos:
+        emitir(s, "SIN_VALIDAR", "media", f"{len(viejos)} aviso(s) cerrado(s) esperan validación hace más de "
+               f"{P.obtener(s, 'validacion.eventos_sin_validar_h')} h", clave, destinatarios="JEFE")
+    else:
+        resolver(s, clave)
+    return len(viejos)

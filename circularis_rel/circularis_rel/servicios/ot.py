@@ -193,11 +193,19 @@ def registrar_cambio(s: Session, id_usuario: int, id_posicion: int, momento: dat
         raise ErrorRegistro("Componente no válido")
     if momento > ahora():
         raise ErrorRegistro("La fecha del cambio no puede ser futura")
-    ot = OrdenTrabajo(numero=nuevo_numero(s, momento), tipo=TipoOT.PREVENTIVA if preventivo else TipoOT.INSPECCION,
-                      id_activo=pos.id_activo, id_posicion=id_posicion, estado=EstadoOT.CERRADA,
-                      responsable=u.nombre, inicio_real=momento, fin_real=momento, hh_propias=hh,
-                      accion=AccionOT.REEMPLAZO, observaciones=observaciones, fecha_programada=momento.date())
-    s.add(ot)
+    # Si hay una OT preventiva planificada para este componente (plan preventivo), el cambio la cierra.
+    ot = None
+    if preventivo:
+        ot = s.scalar(select(OrdenTrabajo).where(
+            OrdenTrabajo.id_posicion == id_posicion, OrdenTrabajo.tipo == TipoOT.PREVENTIVA,
+            OrdenTrabajo.estado.in_([EstadoOT.SOLICITADA, EstadoOT.PLANIFICADA, EstadoOT.EN_EJECUCION]))
+            .order_by(OrdenTrabajo.fecha_programada).limit(1))
+    if ot is None:
+        ot = OrdenTrabajo(numero=nuevo_numero(s, momento), tipo=TipoOT.PREVENTIVA if preventivo else TipoOT.INSPECCION,
+                          id_activo=pos.id_activo, id_posicion=id_posicion, fecha_programada=momento.date())
+        s.add(ot)
+    ot.estado, ot.responsable, ot.inicio_real, ot.fin_real = EstadoOT.CERRADA, u.nombre, momento, momento
+    ot.hh_propias, ot.accion, ot.observaciones = hh, AccionOT.REEMPLAZO, observaciones
     s.flush()
     vidas.cerrar_y_abrir(s, id_posicion, momento,
                          TipoFin.SUSPENSION_PREVENTIVA if preventivo else TipoFin.SUSPENSION_OTRA, None,

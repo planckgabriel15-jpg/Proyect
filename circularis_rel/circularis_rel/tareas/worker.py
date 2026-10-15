@@ -13,13 +13,14 @@ from apscheduler.triggers.cron import CronTrigger
 
 from circularis_rel.config import cargar_config
 from circularis_rel.datos.db import BaseDatos
-from circularis_rel.tareas import trabajos
+from circularis_rel.tareas import programacion_v2, trabajos
 
 TRABAJOS = {
     "nocturno": trabajos.nocturno,
     "faltantes": trabajos.partes_faltantes,
     "backup": trabajos.hacer_backup,
     "prueba_restauracion": trabajos.prueba_restauracion,
+    **programacion_v2.TRABAJOS,
 }
 
 
@@ -49,12 +50,7 @@ def correr(una_vez: str | None = None) -> int:
     sch.add_job(trabajos.prueba_restauracion, CronTrigger(day=1, hour=4, minute=0, timezone=tz), args=[db, cfg],
                 id="prueba_restauracion")
     sch.add_job(trabajos.partes_faltantes, CronTrigger(hour=6, minute=30, timezone=tz), args=[db, cfg], id="faltantes")
-    try:
-        from circularis_rel.tareas import programacion_v2  # fase 3: mails, alertas, OT preventivas
-
-        programacion_v2.agregar(sch, db, cfg)
-    except ImportError:
-        pass
+    programacion_v2.agregar(sch, db, cfg)  # fase 3: plan preventivo, alertas diarias, mails y reportes
     logging.info("Proceso de tareas iniciado")
     sch.start()
     return 0

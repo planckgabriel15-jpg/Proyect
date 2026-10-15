@@ -17,7 +17,7 @@ Los operarios y el encargado registran eventos desde el navegador (parte de turn
 | 1b. Motor y KPIs | **Hecha** | Motor Weibull (Weibayes, RRX con bootstrap, MLE con censura por derecha e intervalo, RBA, IC por razón de verosimilitud), bondad de ajuste (r² crítico, AD, AICc), KPIs empíricos y Weibull, intervalo óptimo C(T), costos Cp/Cf desde parámetros, semáforo, Crow-AMSAA/Laplace, recálculo por evento y nocturno. Reproduce el Plan §15 y la UNIDAD 2; validado contra reliability, surpyval y lifelines; Monte Carlo |
 | 1c. Panel (MVP) | **Hecha** | Panel de planta (tarjetas, línea en orden de proceso con semáforo, ranking de riesgo P×Cf, Pareto por horas/costo/frecuencia, tendencia mensual, calidad de datos), ficha de máquina (componentes con edad, β, η, P(Δ) con banda y vida remanente; gráfico de probabilidad; R(t) y h(t) con la edad; línea de tiempo; horas perdidas por motivo), análisis Weibull (vigente y alternativa, comparación de distribuciones, forzar método con justificación, curva C(T)), análisis de problemas (Pareto, sugerencias automáticas, 5 Porqués con PDCA y OT modificativa), tablero de comando (CMFT, CPCT, HPHP, TBMP, TBMC, OCPM), ayuda "?" en cada indicador, historia DEMO |
 | 2. Piloto y extensión | **Hecha** | Pantalla del piloto (partes por semana, criterio de dos semanas con más del 90 %, uso de catálogos) y guion (`docs/guion_piloto.md`); catálogos editables; comparación "nuevos" contra "nuevos + histórico A/B"; flota (prueba de razón de verosimilitud y ajuste agrupado, por tipo o por equivalencia); alertas firmes solo con confianza media o alta (orientativas antes); criticidad guiada (TP y U1) y diagrama de cuadrantes de las fallas; puesta en marcha con criterios automáticos y enlaces |
-| 3. Versión 2 | Pendiente | |
+| 3. Versión 2 | **Hecha** | Plan preventivo (aprobación del intervalo, del fabricante al calculado), calendario de 52 semanas en PDF y Excel (MANT/1CMP001-2CMP001), OT preventivas con anticipación e imprimibles (MANT/MPV001), pruebas funcionales de fallas ocultas, diagnóstico de sobre y sub-mantenimiento, repuestos (demanda en el lead time, Poisson, lote económico, stock de protección), predictivo (MANT/PMRED001, límites, tendencia, ultrasonido), tablero completo con CIT, Ishikawa/5M, 5W+1H y hoja de verificación, tabla de mortalidad y exponencial, alertas por mail (opcional), reporte PDF mensual y semanal, manuales por rol |
 | 4. Mejoras | Pendiente | |
 
 ## Uso rápido (desarrollo)
@@ -34,6 +34,22 @@ uv pip install --python .venv/bin/python --no-deps -e .
 ```
 
 Usuarios DEMO: `demo.jefe` / `demo-jefe-2026`, `demo.operario` / PIN `1234` (ver `circularis demo cargar`).
+
+## Cómo probar la fase 3
+
+```bash
+.venv/bin/circularis demo cargar
+.venv/bin/circularis app                          # demo.jefe / demo-jefe-2026
+.venv/bin/circularis tareas --una-vez plan        # reprograma el calendario y genera las OT
+.venv/bin/python -m pytest tests/servicios/test_fase3.py tests/asistente tests/motor/test_tendencia.py -v
+```
+
+- En **Parámetros › Módulos**, habilitar 12E, 12G y 12H para ver el tablero completo, el predictivo y las herramientas.
+- **Plan preventivo:** aprobar el intervalo calculado de las cuchillas (≈ 425 h, óptimo por costo); en *Calendario* aparece la grilla y se descargan el PDF y el Excel; en *Órdenes de trabajo*, la OT imprimible (MANT/MPV001). Para la válvula de seguridad, aprobar una prueba funcional cada 30 días.
+- **Repuestos:** demanda esperada en el lead time y stock mínimo de cada repuesto. Cargar K y b en Parámetros (grupo políticas) para ver el lote económico.
+- **Predictivo:** agregar un parámetro de ultrasonido con línea base 30 dB y cargar mediciones (38, 41, 47): alerta, vigilar y OT de inspección.
+- **Análisis de problemas › Nuevo análisis:** Ishikawa (con su espina de pescado), 5W+1H u hoja de verificación (precargada con los avisos).
+- **Reportes:** PDF del mes. Manuales por rol en `docs/manuales/`.
 
 ## Cómo probar la fase 2
 
