@@ -44,11 +44,11 @@ def correr(simular: bool):
 
 c1, c2 = st.columns(2)
 reporte = None
-if c1.button("Simular", use_container_width=True, type="primary"):
+if c1.button("Simular", width="stretch", type="primary"):
     reporte = correr(True)
     st.session_state["simulacion_ok"] = huella if reporte.ok else None
 puede_importar = st.session_state.get("simulacion_ok") == huella
-if c2.button("Importar", use_container_width=True, disabled=not puede_importar,
+if c2.button("Importar", width="stretch", disabled=not puede_importar,
              help=None if puede_importar else "Primero simulá este archivo sin errores"):
     reporte = correr(False)
     st.session_state["simulacion_ok"] = None
@@ -61,7 +61,7 @@ if reporte is not None:
     else:
         st.error(f"Hay {len(reporte.errores)} errores: no se grabó nada.")
     st.dataframe([{"Hoja": h, "Nuevos": r.creados, "Actualizados": r.actualizados, "Sin cambios": r.sin_cambios}
-                  for h, r in reporte.hojas.items()], hide_index=True, use_container_width=True)
+                  for h, r in reporte.hojas.items()], hide_index=True, width="stretch")
     if reporte.errores:
         st.subheader("Errores")
         for e in reporte.errores[:300]:

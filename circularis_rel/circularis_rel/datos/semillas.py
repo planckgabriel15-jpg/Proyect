@@ -147,6 +147,8 @@ MOTIVOS = [
     ("SIN_DEMANDA", "Sin demanda", False, False, False, None, 9),
     ("HUELGA", "Huelga o paro", False, False, False, None, 10),
     ("OTRO", "Otro", True, False, False, None, 11),
+    # Parte faltante completado por el sistema (Plan §4): sin dato no se cuenta como parada (D-029).
+    ("SIN_DATO", "Sin dato (parte estimado por el sistema)", False, False, False, None, 99),
 ]
 
 # 12.A: etapas de la UNIDAD 6 (diap. "Etapas" e "Implementación del control de mantenimiento").

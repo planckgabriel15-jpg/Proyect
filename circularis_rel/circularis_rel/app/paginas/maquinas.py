@@ -31,12 +31,12 @@ st.dataframe([{
     "Revisada": "✔" if e.revisado else "", "Código": e.codigo, "Máquina": e.nombre, "Componentes": e.posiciones,
     "Críticos": e.posiciones_criticas, "Clase": e.criticidad or "—", "Catastro": f"{e.catastro_completo:.0%}",
     "Pendiente": "; ".join(e.faltantes),
-} for e in estados], hide_index=True, use_container_width=True)
+} for e in estados], hide_index=True, width="stretch")
 
 with db.lectura() as s:
     todas = [tuple(r) for r in s.execute(select(Activo.codigo, Activo.nombre).where(Activo.activo.is_(True)).order_by(Activo.codigo))]
 st.download_button("Etiquetas QR de todas las máquinas (PDF)", etiquetas_pdf(todas, cfg.url_base),
-                   file_name="etiquetas_qr.pdf", use_container_width=True)
+                   file_name="etiquetas_qr.pdf", width="stretch")
 st.caption(f"Los QR apuntan a {cfg.url_base}. Si la dirección de la mini PC es otra, cambiar CIRCULARIS_URL_BASE en el archivo .env.")
 
 st.divider()
@@ -68,11 +68,11 @@ with t_rev:
         st.success("No hay pendientes detectados por el sistema.")
     if estado.revisado:
         st.info(f"Revisada por {estado.revisado_por}.")
-        if st.button("Quitar la marca de revisada", use_container_width=True):
+        if st.button("Quitar la marca de revisada", width="stretch"):
             with db.escritura(usuario_id=contexto.id_usuario()) as s:
                 catastro.marcar_revisado(s, codigo, contexto.id_usuario(), revisado=False)
             st.rerun()
-    elif st.button("Marcar como revisada", type="primary", use_container_width=True):
+    elif st.button("Marcar como revisada", type="primary", width="stretch"):
         with db.escritura(usuario_id=contexto.id_usuario()) as s:
             catastro.marcar_revisado(s, codigo, contexto.id_usuario())
         st.rerun()
@@ -83,7 +83,7 @@ with t_ident, st.form("ident"):
          "fabricante": st.text_input("Fabricante", a.fabricante or ""),
          "modelo": st.text_input("Modelo", a.modelo or ""),
          "proveedor": st.text_input("Proveedor", a.proveedor or "")}
-    if st.form_submit_button("Guardar", use_container_width=True):
+    if st.form_submit_button("Guardar", width="stretch"):
         guardar(c)
 
 with t_inst, st.form("inst"):
@@ -93,7 +93,7 @@ with t_inst, st.form("inst"):
          "ruta_documentos": st.text_input("Planos, manuales y catálogos (carpeta)", a.ruta_documentos or ""),
          "funcion": st.text_area("Función", a.funcion or ""),
          "caracteristicas_tecnicas": st.text_area("Características técnicas", a.caracteristicas_tecnicas or "")}
-    if st.form_submit_button("Guardar", use_container_width=True):
+    if st.form_submit_button("Guardar", width="stretch"):
         guardar(c)
 
 with t_dim, st.form("dim"):
@@ -101,7 +101,7 @@ with t_dim, st.form("dim"):
          for k, et in (("ancho_mm", "Ancho (mm)"), ("alto_mm", "Alto (mm)"), ("largo_mm", "Largo (mm)"),
                        ("peso_kg", "Peso (kg)"))}
     c["condiciones_almacenamiento"] = st.text_input("Condiciones de almacenamiento", a.condiciones_almacenamiento or "")
-    if st.form_submit_button("Guardar", use_container_width=True):
+    if st.form_submit_button("Guardar", width="stretch"):
         guardar(c)
 
 with t_oper, st.form("oper"):
@@ -114,7 +114,7 @@ with t_oper, st.form("oper"):
                                                             index=unidades.index(a.unidad_produccion.value))),
          "factor_toneladas": st.number_input("Toneladas por unidad", value=a.factor_toneladas, min_value=0.0, format="%.4f"),
          "ciclo_teorico_s": st.number_input("Ciclo teórico (s)", value=a.ciclo_teorico_s, min_value=0.0)}
-    if st.form_submit_button("Guardar", use_container_width=True):
+    if st.form_submit_button("Guardar", width="stretch"):
         guardar(c)
     st.caption(f"Criticidad: {a.criticidad_clase.value if a.criticidad_clase else '—'} "
                f"({a.criticidad_nivel or '—'}, {numero(a.criticidad_puntaje, 0)} puntos). Se carga en la planilla, hoja 'criticidad'.")
@@ -127,8 +127,8 @@ with t_comp:
                                        .where(PosicionComponente.id_activo == a.id).order_by(PosicionComponente.codigo))]
     st.caption("Marcá como **crítica** cada posición cuyo estado debe definir el color de la máquina.")
     editado = st.data_editor(filas, disabled=["Posición", "Componente", "Cantidad"], hide_index=True,
-                             use_container_width=True, key=f"comp_{codigo}")
-    if st.button("Guardar posiciones críticas", use_container_width=True):
+                             width="stretch", key=f"comp_{codigo}")
+    if st.button("Guardar posiciones críticas", width="stretch"):
         with db.escritura(usuario_id=contexto.id_usuario()) as s:
             n = catastro.marcar_criticas(s, codigo, {f["Posición"]: f["Crítica"] for f in editado})
         st.success(f"{n} posiciones actualizadas.")
@@ -138,6 +138,17 @@ with t_ficha:
     with db.lectura() as s:
         pdf = catastro.ficha_pdf(s, codigo)
     st.download_button("Ficha de registro e histórico (PDF, MANT/RHM001)", pdf, file_name=f"ficha_{codigo}.pdf",
-                       use_container_width=True)
+                       width="stretch")
     st.download_button("Etiqueta QR de esta máquina (PDF)", etiquetas_pdf([(a.codigo, a.nombre)], cfg.url_base),
-                       file_name=f"qr_{codigo}.pdf", use_container_width=True)
+                       file_name=f"qr_{codigo}.pdf", width="stretch")
+
+st.divider()
+st.subheader("Empezar la captura")
+st.caption("Crea una vida en servicio (de edad desconocida) para cada componente que todavía no tenga. Hacerlo el día "
+           "que arrancan los partes y avisos: desde ahí el sistema mide la edad de cada componente.")
+if st.button("Iniciar captura", width="stretch"):
+    from circularis_rel.servicios.vidas import iniciar_vidas
+
+    with db.escritura(usuario_id=contexto.id_usuario()) as s:
+        n = iniciar_vidas(s)
+    st.success(f"{n} componentes quedaron en servicio desde ahora.")

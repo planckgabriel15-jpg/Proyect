@@ -29,7 +29,8 @@ from circularis_rel.datos.modelos import (
     VidaComponente,
 )
 
-CAMPOS_IGNORADOS = {"creado_en", "actualizado_en", "version"}
+# Campos derivados que se recalculan solos (la edad sale de los partes, que sí se auditan).
+CAMPOS_IGNORADOS = {"creado_en", "actualizado_en", "version", "edad_horas", "edad_toneladas", "nivel_hora"}
 
 
 class MotivoRequerido(Exception):

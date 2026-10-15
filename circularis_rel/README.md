@@ -13,7 +13,7 @@ Los operarios y el encargado registran eventos desde el navegador (parte de turn
 | Fase | Estado | Qué funciona |
 |---|---|---|
 | 0. Preparación | **Hecha** | Base de datos con reglas y auditoría, importador de planillas, borrador del TP N.º 1, catastro y ficha PDF, QR, puesta en marcha guiada (12.A), usuarios y parámetros, datos DEMO |
-| 1a. Captura | Pendiente | |
+| 1a. Captura | **Hecha** | Parte de turno (< 30 s), aviso de falla con QR y foto, tarjetas azul/roja/verde, bandeja del encargado, cierre de OT en 2 pasos (cierra y abre vidas), cambio preventivo, bandeja de validación con controles §11, corrección y anulación con motivo, partes faltantes y estimados, proceso de tareas (backup, prueba de restauración, nocturno), exportación total a Excel |
 | 1b. Motor y KPIs | Pendiente | |
 | 1c. Panel (MVP) | Pendiente | |
 | 2. Piloto y extensión | Pendiente | |
@@ -34,6 +34,15 @@ uv pip install --python .venv/bin/python --no-deps -e .
 ```
 
 Usuarios DEMO: `demo.jefe` / `demo-jefe-2026`, `demo.operario` / PIN `1234` (ver `circularis demo cargar`).
+
+## Cómo probar la fase 1a
+
+1. `circularis demo cargar` y `circularis iniciar-captura`. Levantar `circularis app` y, en otra consola, `circularis tareas`.
+2. Desde el celular, entrar como `demo.operario` (PIN 1234): *Reportar falla* y después *Parte de turno*.
+3. Como `demo.encargado`: *Bandeja del encargado* → *Cerrar OT* (2 pasos).
+4. Como `demo.jefe`: *Bandeja de validación* → *Aprobar*. Probar *Corregir un aviso ya validado* (pide motivo).
+5. `circularis tareas --una-vez backup` y `--una-vez prueba_restauracion` (ver `docs/BACKUP.md`).
+6. Prueba con operarios reales: `docs/guion_usabilidad.md`.
 
 ## Cómo probar la fase 0
 

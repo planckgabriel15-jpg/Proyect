@@ -21,7 +21,7 @@ with db.lectura() as s:
 
 st.dataframe([{"Usuario": u.usuario, "Nombre": u.nombre, "Rol": u.rol.value.capitalize(),
                "Máquinas": ", ".join(maquinas_por_usuario[u.id]), "Activo": "Sí" if u.activo else "No"}
-              for u in usuarios], hide_index=True, use_container_width=True)
+              for u in usuarios], hide_index=True, width="stretch")
 
 t_alta, t_editar = st.tabs(["Nuevo usuario", "Modificar"])
 with t_alta, st.form("alta", clear_on_submit=True):
@@ -31,7 +31,7 @@ with t_alta, st.form("alta", clear_on_submit=True):
     clave = st.text_input("Contraseña o PIN", type="password")
     email = st.text_input("Email (para alertas, opcional)")
     maquinas = st.multiselect("Máquinas a cargo (operarios)", codigos)
-    if st.form_submit_button("Crear usuario", use_container_width=True):
+    if st.form_submit_button("Crear usuario", width="stretch"):
         try:
             with db.escritura(usuario_id=contexto.id_usuario()) as s:
                 auth.crear_usuario(s, usuario, nombre, rol, clave, email or None, maquinas)
@@ -49,7 +49,7 @@ with t_editar:
         maquinas = st.multiselect("Máquinas a cargo", codigos, default=maquinas_por_usuario[elegido.id])
         nueva = st.text_input("Nueva contraseña o PIN (vacío = no cambiar)", type="password")
         activo = st.checkbox("Usuario activo", value=elegido.activo)
-        if st.form_submit_button("Guardar cambios", use_container_width=True):
+        if st.form_submit_button("Guardar cambios", width="stretch"):
             try:
                 with db.escritura(usuario_id=contexto.id_usuario()) as s:
                     u = s.get(Usuario, elegido.id)

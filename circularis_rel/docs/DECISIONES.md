@@ -197,6 +197,45 @@ Verificación numérica previa: hecha el 15/10/2026 con Python 3.13, NumPy 2.5.4
 | P-13 | Licencia Apache-2.0 |
 | P-14 | Código, tablas y commits en español, sin tildes en los identificadores |
 
+### D-026: Las vidas se cierran al cerrar la OT, no al validar
+
+- **Qué:** cuando el encargado cierra la OT, el sistema cierra la vida (FALLA o suspensión) y abre la siguiente desde el fin de la reparación. La vida cerrada queda con `validado = False`. El jefe valida → `validado = True`, y recién ahí entra al ajuste y se encola el recálculo.
+  - Devolver y volver a cerrar rehace la vida, sin duplicar.
+  - Anular reabre la vida anterior, salvo que ya haya otro cambio posterior del mismo componente.
+- **Por qué:** físicamente el componente nuevo ya está instalado. Si se esperara la validación, mientras tanto no habría "una vida en servicio" coherente. El filtro de calidad del Plan se respeta igual: solo lo validado entra al cálculo.
+- **Descartado:** abrir y cerrar vidas recién al validar.
+
+### D-027: Reparación mínima
+
+- **Qué:** si la acción es "Reparación" (no reemplazo), la falla igual cierra la vida con la edad a la falla, y la vida siguiente queda marcada `tipo_reparacion = REPARACION_MINIMA`.
+- **Por qué:** Weibull supone "como nuevo" (renovación). Con la marca, el motor puede excluir o separar esas vidas, y a nivel máquina se usa Crow-AMSAA (sistema reparable, Plan §5).
+
+### D-028: Componentes instalados antes del sistema
+
+- **Qué:** al "Iniciar captura", o en la primera falla, cada posición sin vida recibe una vida en servicio con `edad_conocida = False`. Su primera falla no entra al ajuste por defecto (Plan §5: edad desconocida → excluida, o por intervalo). Desde la segunda vida, la edad es real.
+
+### D-029: Partes estimados y el motivo "Sin dato"
+
+- **Qué:** un parte que sigue faltando pasados `partes.dias_para_estimar` días (2 por defecto) se completa con horas promedio por día ÷ turnos de ese día, con nivel E y origen ESTIMADO_SISTEMA.
+  - Las horas no operadas de ese parte llevan el motivo SIN_DATO, que **no cuenta como tiempo requerido**: la falta de información no castiga la disponibilidad.
+  - Si después el operario carga el parte, reemplaza al estimado.
+  - Sin horas promedio cargadas, no se inventa nada: el parte queda faltante.
+- **Descartado:** contar las horas estimadas no operadas como parada.
+
+### D-030: Edad: campos derivados fuera de la auditoría
+
+- **Qué:** `edad_horas`, `edad_toneladas` y `nivel_hora` de la vida se recalculan solos desde los partes y no se auditan, así que recalcularlos no exige motivo.
+- **Por qué:** lo que se audita es su fuente: los partes y los eventos.
+
+### D-031: Login y recarga de la página
+
+- **Qué:** con la cookie, recargar la página mantiene la sesión. Se entra al Inicio del rol y no a la subpágina que estaba abierta. Esto no afecta el flujo del QR, que abre la raíz con `?maq=`.
+- **Por qué:** el componente que escribe la cookie tiene que dibujarse en la corrida del login. Vaciarlo o forzar otra corrida (`st.rerun`) impide guardar la cookie.
+
+### D-032: Fotos
+
+- **Qué:** las fotos se reducen a 1.280 px (JPEG) y se guardan en `datos/fotos/AAAA/MM/`; la base guarda la ruta relativa. Entran en el backup como zip.
+
 ---
 
 ## Dudas y correcciones sobre la bibliografía

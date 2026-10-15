@@ -160,6 +160,42 @@ def cmd_app(args) -> int:
                             "--browser.gatherUsageStats", "false"], cwd=RAIZ_PROYECTO)
 
 
+def cmd_tareas(args) -> int:
+    from circularis_rel.tareas.worker import correr
+
+    return correr(args.una_vez)
+
+
+def cmd_restaurar(args) -> int:
+    from circularis_rel.tareas import backup
+
+    cfg = cargar_config()
+    if cfg.url_db.startswith("sqlite:///") and Path(cfg.url_db.removeprefix("sqlite:///")).exists():
+        previo = backup.hacer_backup(cfg.url_db, cfg.dir_backups / "antes_de_restaurar")
+        print("Backup de la base actual en", previo)
+    backup.restaurar(Path(args.archivo), cfg.url_db, cfg.dir_fotos)
+    print("Restaurado. Reiniciar los servicios CircularisApp y CircularisTareas.")
+    return 0
+
+
+def cmd_exportar(args) -> int:
+    from circularis_rel.servicios.exportacion import exportar_todo
+
+    with _db().lectura() as s:
+        Path(args.salida).write_bytes(exportar_todo(s))
+    print("Exportado en", args.salida)
+    return 0
+
+
+def cmd_iniciar_captura(_args) -> int:
+    from circularis_rel.servicios.vidas import iniciar_vidas
+
+    with _db().escritura() as s:
+        n = iniciar_vidas(s)
+    print(f"{n} vidas en servicio creadas (edad desconocida) para empezar la captura.")
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     p = argparse.ArgumentParser(prog="circularis", description="Sistema de confiabilidad de Circularis")
     sub = p.add_subparsers(dest="comando", required=True)
@@ -195,6 +231,16 @@ def main(argv: list[str] | None = None) -> int:
     c.add_argument("--puerto", type=int, default=8501)
     c.add_argument("--direccion", default="0.0.0.0")
     c.set_defaults(f=cmd_app)
+    c = sub.add_parser("tareas", help="proceso de tareas programadas (servicio)")
+    c.add_argument("--una-vez", choices=["nocturno", "faltantes", "backup", "prueba_restauracion", "cola"])
+    c.set_defaults(f=cmd_tareas)
+    c = sub.add_parser("restaurar", help="restaura un backup (hace antes un backup de la base actual)")
+    c.add_argument("archivo")
+    c.set_defaults(f=cmd_restaurar)
+    c = sub.add_parser("exportar", help="exportación total a Excel")
+    c.add_argument("--salida", default="circularis_exportacion.xlsx")
+    c.set_defaults(f=cmd_exportar)
+    sub.add_parser("iniciar-captura", help="crea las vidas iniciales de cada componente").set_defaults(f=cmd_iniciar_captura)
     args = p.parse_args(argv)
     return args.f(args)
 

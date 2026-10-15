@@ -11,6 +11,9 @@ div.stButton > button, div.stDownloadButton > button, div.stFormSubmitButton > b
     min-height: 48px; font-size: 1.05rem; font-weight: 600;
 }
 div[role="radiogroup"] label { min-height: 44px; padding: 6px 10px; }
+div[data-testid="stButtonGroup"] button { min-height: 48px; font-size: 1.05rem; padding: 0 16px; }
+div[data-baseweb="select"] > div { min-height: 48px; }
+input { min-height: 44px; font-size: 1.05rem !important; }
 .demo-banner {
     background: #b00020; color: #fff; padding: 10px 16px; border-radius: 6px;
     font-weight: 700; text-align: center; margin-bottom: 12px; font-size: 1.05rem;

@@ -16,7 +16,10 @@ from circularis_rel.servicios.demo import cargar_demo
 APP = Path(__file__).resolve().parents[2] / "circularis_rel" / "app"
 INICIO = str(APP / "inicio.py")
 PAGINAS_JEFE = ["puesta_en_marcha.py", "carga_inicial.py", "maquinas.py", "historico.py", "usuarios.py",
-                "parametros.py", "datos_demo.py", "ayuda.py"]
+                "parametros.py", "datos_demo.py", "ayuda.py", "bandeja_validacion.py", "bandeja_encargado.py",
+                "cerrar_ot.py", "cambio_preventivo.py", "planta.py", "reportar_falla.py", "parte_turno.py", "tarjeta.py",
+                "exportar.py"]
+PAGINAS_OPERARIO = ["planta.py", "reportar_falla.py", "parte_turno.py", "tarjeta.py", "ayuda.py"]
 
 
 @pytest.fixture(scope="module")
@@ -61,11 +64,18 @@ def test_paginas_del_jefe(base, archivo):
     assert any("DATOS FICTICIOS" in m.value for m in at.markdown)
 
 
+@pytest.mark.parametrize("archivo", PAGINAS_OPERARIO)
+def test_paginas_del_operario(base, archivo):
+    at = _app(base["OPERARIO"]).run()
+    at.switch_page(str(APP / "paginas" / archivo)).run()
+    assert not at.exception, [e.value for e in at.exception]
+
+
 @pytest.mark.parametrize("rol", ["OPERARIO", "ENCARGADO", "GERENCIA"])
 def test_otros_roles_solo_ven_su_inicio(base, rol):
     at = _app(base[rol]).run()
     assert not at.exception
-    assert any("fase 1a" in i.value for i in at.info)
+    assert not at.exception
     # Una página del jefe no está en su navegación.
     with pytest.raises(Exception):  # noqa: B017
         at.switch_page(str(APP / "paginas" / "usuarios.py")).run()

@@ -41,9 +41,23 @@ def pagina(archivo: str, titulo: str, icono: str) -> st.Page:
     return st.Page(str(PAGINAS / archivo), title=titulo, icon=icono)
 
 
-comunes = [pagina("ayuda.py", "Ayuda", "❓")]
-if rol == Rol.JEFE:
+ayuda = pagina("ayuda.py", "Ayuda", "❓")
+planta = [pagina("planta.py", "Inicio", "🏠"), pagina("reportar_falla.py", "Reportar falla", "🛠️"),
+          pagina("parte_turno.py", "Parte de turno", "📝"), pagina("tarjeta.py", "Tarjeta", "🏷️")]
+mantenimiento = [pagina("bandeja_encargado.py", "Bandeja del encargado", "📋"), pagina("cerrar_ot.py", "Cerrar OT", "🔧"),
+                 pagina("cambio_preventivo.py", "Cambio preventivo", "🔁")]
+exportar = pagina("exportar.py", "Exportar", "📤")
+
+if rol == Rol.OPERARIO:
+    paginas = {"": [*planta, ayuda]}
+elif rol == Rol.ENCARGADO:
+    paginas = {"Mantenimiento": mantenimiento, "Planta": planta, "Otros": [exportar, ayuda]}
+elif rol == Rol.GERENCIA:
+    paginas = {"": [pagina("inicio_rol.py", "Inicio", "🏠"), exportar, ayuda]}
+else:  # JEFE
     paginas = {
+        "Gestión": [pagina("bandeja_validacion.py", "Bandeja de validación", "✅"), *mantenimiento],
+        "Planta": planta,
         "Puesta en marcha": [
             pagina("puesta_en_marcha.py", "Puesta en marcha", "🧭"),
             pagina("carga_inicial.py", "Carga de planillas", "📥"),
@@ -54,15 +68,14 @@ if rol == Rol.JEFE:
             pagina("usuarios.py", "Usuarios", "👥"),
             pagina("parametros.py", "Parámetros", "⚙️"),
             pagina("datos_demo.py", "Datos DEMO", "🧪"),
+            exportar,
         ],
-        "Ayuda": comunes,
+        "Ayuda": [ayuda],
     }
-else:
-    paginas = {"Inicio": [pagina("inicio_rol.py", "Inicio", "🏠"), *comunes]}
 
 with st.sidebar:
     st.markdown(f"**{usuario['nombre']}**  \n{rol.value.capitalize()}")
-    if st.button("Salir", use_container_width=True):
+    if st.button("Salir", width="stretch"):
         sesion.salir()
         st.rerun()
 

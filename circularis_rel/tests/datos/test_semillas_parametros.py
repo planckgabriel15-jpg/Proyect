@@ -20,7 +20,7 @@ def test_sembrar_es_idempotente(db):
 def test_sin_demanda_y_huelga_no_cuentan_como_requeridas(db):
     with db.lectura() as s:
         no_req = set(s.scalars(select(MotivoParada.codigo).where(MotivoParada.cuenta_como_requerida.is_(False))))
-    assert no_req == {"SIN_DEMANDA", "HUELGA"}
+    assert no_req == {"SIN_DEMANDA", "HUELGA", "SIN_DATO"}
 
 
 def test_tipos_de_parametro(db):

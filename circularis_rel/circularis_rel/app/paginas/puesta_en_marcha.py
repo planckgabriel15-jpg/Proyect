@@ -31,7 +31,7 @@ for col, archivo, etiqueta in ((c1, "carga_inicial.xlsx", "Plantilla de carga in
                                (c3, "carga_inicial_borrador_TP1.xlsx", "Borrador con datos del TP N.º 1")):
     ruta = plantillas / archivo
     if ruta.exists():
-        col.download_button(etiqueta, ruta.read_bytes(), file_name=archivo, use_container_width=True)
+        col.download_button(etiqueta, ruta.read_bytes(), file_name=archivo, width="stretch")
 
 NOMBRES_FASE = {1: "Fase 1 · Sistema semiautomático con los equipos prioritarios",
                 2: "Fase 2 · Correctivos e histórico (con la fase 1 estable)",

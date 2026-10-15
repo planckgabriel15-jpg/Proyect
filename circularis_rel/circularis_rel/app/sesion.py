@@ -33,8 +33,11 @@ def asegurar_login() -> dict | None:
         st.warning("Todavía no hay usuarios. Crear el primero desde la PC del servidor con:\n\n"
                    "`circularis crear-usuario jefe \"Nombre del jefe\" JEFE`")
         return None
-    st.title("Circularis · Sistema de confiabilidad")
+    # Nota: no envolver el login en un contenedor que se vacíe ni hacer st.rerun() al entrar: el componente
+    # que escribe la cookie se dibuja en esta corrida y, si se borra, la sesión no sobrevive a una recarga.
     autenticador = _autenticador()
+    if st.session_state.get("authentication_status") is None:
+        st.title("Circularis · Sistema de confiabilidad")
     try:
         autenticador.login(location="main", fields={
             "Form name": "Ingresar", "Username": "Usuario", "Password": "Contraseña o PIN", "Login": "Entrar"})

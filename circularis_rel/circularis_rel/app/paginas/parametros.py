@@ -26,7 +26,7 @@ grupo = st.radio("Grupo", grupos, horizontal=True)
 del_grupo = [p for p in vigentes if p.grupo == grupo]
 st.dataframe([{"Parámetro": p.clave, "Valor": p.valor if p.valor is not None else "falta dato", "Unidad": p.unidad or "",
                "Descripción": p.descripcion, "Fuente": p.fuente or "", "Desde": p.vigente_desde.strftime("%d/%m/%Y")}
-              for p in del_grupo], hide_index=True, use_container_width=True)
+              for p in del_grupo], hide_index=True, width="stretch")
 
 elegido = st.selectbox("Modificar", del_grupo, format_func=lambda p: p.clave)
 with st.form("param"):
@@ -46,7 +46,7 @@ with st.form("param"):
     else:
         valor = st.text_input("Valor", elegido.valor or "")
     desde = st.date_input("Vale desde", date.today(), format="DD/MM/YYYY")
-    if st.form_submit_button("Guardar", use_container_width=True):
+    if st.form_submit_button("Guardar", width="stretch"):
         try:
             if elegido.tipo == TipoParametro.JSON:
                 valor = json.loads(valor) if valor.strip() else None

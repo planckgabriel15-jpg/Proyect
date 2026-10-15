@@ -38,4 +38,4 @@ st.dataframe([{
     "Edad (h)": numero(v.edad_horas, 0) if v.edad_horas is not None else (
         f"{numero(v.edad_inf_h, 0)} a {numero(v.edad_sup_h, 0)}" if v.edad_inf_h is not None else "—"),
     "Clase": v.clase_triage.value, "Motivo": v.motivo_clase, "Fuente": v.fuente, "Respaldo": v.respaldo or "",
-} for v, m, p, modo in filas if v.clase_triage in clases and m in elegidas], hide_index=True, use_container_width=True)
+} for v, m, p, modo in filas if v.clase_triage in clases and m in elegidas], hide_index=True, width="stretch")

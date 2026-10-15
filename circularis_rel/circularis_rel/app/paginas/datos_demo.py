@@ -15,13 +15,13 @@ with db.lectura() as s:
 if cargados:
     st.warning("Hay datos DEMO cargados.")
     st.table([{"Usuario": u, "Rol": r.capitalize(), "Clave": c} for u, _n, r, c, _m in USUARIOS_DEMO])
-    if st.button("Borrar todos los datos DEMO", type="primary", use_container_width=True):
+    if st.button("Borrar todos los datos DEMO", type="primary", width="stretch"):
         borrar_demo(db, contexto.id_usuario())
         sesion.refrescar_credenciales()
         st.rerun()
 else:
     st.info("No hay datos DEMO.")
-    if st.button("Cargar datos DEMO", use_container_width=True):
+    if st.button("Cargar datos DEMO", width="stretch"):
         reporte = cargar_demo(db, contexto.id_usuario())
         sesion.refrescar_credenciales()
         if reporte.aplicado:
