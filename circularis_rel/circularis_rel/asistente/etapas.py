@@ -10,6 +10,7 @@ from __future__ import annotations
 from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import timedelta
+from zoneinfo import ZoneInfo
 
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
@@ -114,7 +115,7 @@ def _plan_preventivo(s):
 
 
 def _hh_disponibles(s):
-    n = s.scalar(select(func.count()).select_from(DatoMensual).where(DatoMensual.clave == "HH_DISPONIBLES"))
+    n = s.scalar(select(func.count()).select_from(DatoMensual).where(DatoMensual.clave == "HHDP"))
     return Verificacion(n > 0, f"{n} meses con horas-hombre disponibles cargadas")
 
 
@@ -146,6 +147,22 @@ def _confianza_media(s):
     return Verificacion(True, f"{n} componentes con confianza media o alta")
 
 
+def _fase1_estable(s):
+    """Criterio de la fase 2 del Plan (§10): dos semanas seguidas con más del 90 % de partes completos en las
+    máquinas del piloto, y fallas que ya se validan."""
+    from circularis_rel.servicios import piloto  # import tardío: evita ciclo
+
+    hoy = ahora().date()
+    e = piloto.estado(s, hoy, ZoneInfo("UTC"), semanas_a_mostrar=0)
+    validadas = _eventos_validados(s)
+    if not e.maquinas:
+        return Verificacion(False, "No hay máquinas")
+    flojas = [m.codigo for m in e.maquinas if not m.cumple]
+    texto = (f"Partes: {e.semanas_requeridas} semanas seguidas con más del {e.minimo:.0%} en "
+             + ("todas las máquinas del piloto" if not flojas else f"falta en {', '.join(flojas[:6])}"))
+    return Verificacion(not flojas and bool(validadas.cumple), f"{texto}. {validadas.detalle}.")
+
+
 def _provisto(_s):
     return Verificacion(True, "Lo provee el sistema")
 
@@ -164,6 +181,7 @@ CRITERIOS: dict[str, Callable[[Session], Verificacion]] = {
     "motivos_y_sintomas": _motivos_y_sintomas,
     "eventos_validados": _eventos_validados,
     "confianza_media": _confianza_media,
+    "fase1_estable": _fase1_estable,
 }
 
 

@@ -181,13 +181,20 @@ def cargar_historia_demo(db: BaseDatos, tz: ZoneInfo, hoy: date | None = None) -
                              ("costos.horas_parada_defecto_h", 6)):
             if P.obtener(s, clave, hoy) is None:
                 P.fijar(s, clave, valor, desde).fuente = FUENTE_DEMO
+        # Las máquinas DEMO son el piloto de la demo (se vuelve al valor anterior al borrar la demo).
+        P.fijar(s, "piloto.maquinas", sorted(activos), desde).fuente = FUENTE_DEMO
     return resumen
 
 
 def historia_demo_y_recalculo(db: BaseDatos, tz: ZoneInfo) -> dict:
-    from circularis_rel.servicios import recalculo
+    from circularis_rel.servicios import alertas, flota, recalculo
 
     r = cargar_historia_demo(db, tz)
     with db.escritura(motivo="Recálculo de la historia DEMO") as s:
+        # Los rulemanes de la agrumadora y del lavado como flota (mismo tipo en dos máquinas).
+        for g in flota.grupos(s):
+            for m in flota.modos(s, g):
+                flota.ajustar(s, g, m.id, tz)
         r |= recalculo.recalcular_todo(s, tz)
+        r["alertas"] = alertas.actualizar_riesgo(s, datetime.now(tz).date())
     return r

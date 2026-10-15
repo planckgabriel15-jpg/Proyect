@@ -82,12 +82,17 @@ def _dias_laborables(s: Session, id_activo: int, desde: date, hasta: date) -> in
 
 
 def vidas_de_poblacion(s: Session, id_tipo: int, id_activo: int | None, tz: ZoneInfo,
-                       conjunto: ConjuntoDatos = ConjuntoDatos.NUEVOS) -> list[VidaDatos]:
+                       conjunto: ConjuntoDatos = ConjuntoDatos.NUEVOS, ids_posiciones: list[int] | None = None) -> list[VidaDatos]:
+    """Vidas de un tipo de componente (en una máquina, o en todas con `id_activo` None), o de una lista de
+    posiciones (flota por equivalencia)."""
     tipo = s.get(TipoComponente, id_tipo)
     toneladas = tipo.variable_edad == VariableEdad.TONELADAS
-    posiciones = select(PosicionComponente.id).where(PosicionComponente.id_tipo_componente == id_tipo)
-    if id_activo is not None:
-        posiciones = posiciones.where(PosicionComponente.id_activo == id_activo)
+    if ids_posiciones is not None:
+        posiciones = select(PosicionComponente.id).where(PosicionComponente.id.in_(ids_posiciones))
+    else:
+        posiciones = select(PosicionComponente.id).where(PosicionComponente.id_tipo_componente == id_tipo)
+        if id_activo is not None:
+            posiciones = posiciones.where(PosicionComponente.id_activo == id_activo)
     salida: list[VidaDatos] = []
     for v in s.scalars(select(VidaComponente).where(VidaComponente.id_posicion.in_(posiciones))):
         servicio_vidas.actualizar_edad(s, v, tz)
@@ -281,6 +286,29 @@ def umbrales(s: Session) -> semaforo.Umbrales:
                              P.obtener(s, "semaforo.fraccion_intervalo_amarillo"))
 
 
+def ajustes_para_semaforo(s: Session, id_tipo: int, id_activo: int, id_posicion: int) -> list[ResultadoWeibull]:
+    """Ajustes vigentes de cada modo para el semáforo: los de la máquina con datos nuevos; con el parámetro
+    `motor.semaforo_con_historico`, el de "nuevos + histórico" cuando existe (D-048); y, para un modo sin
+    ajuste en la máquina, el de la flota a la que pertenece la posición si la prueba permitió agruparla (D-049)."""
+    vigentes = [r for r in s.scalars(select(ResultadoWeibull).where(
+        ResultadoWeibull.id_tipo_componente == id_tipo, ResultadoWeibull.id_activo == id_activo,
+        ResultadoWeibull.vigente.is_(True))) if r.beta is not None and r.eta is not None]
+    por_modo: dict[int, ResultadoWeibull] = {}
+    con_historico = P.obtener(s, "motor.semaforo_con_historico")
+    for r in sorted(vigentes, key=lambda x: x.conjunto_datos != ConjuntoDatos.NUEVOS):
+        if r.conjunto_datos == ConjuntoDatos.NUEVOS:
+            por_modo.setdefault(r.id_modo, r)
+        elif con_historico:
+            por_modo[r.id_modo] = r
+    for r in s.scalars(select(ResultadoWeibull).where(ResultadoWeibull.alcance == Alcance.FLOTA, ResultadoWeibull.vigente.is_(True),
+                                                      ResultadoWeibull.conjunto_datos == ConjuntoDatos.NUEVOS)):
+        datos = r.comparacion or {}
+        if (r.beta is not None and r.eta is not None and r.id_modo not in por_modo and datos.get("agrupable")
+                and id_posicion in (datos.get("posiciones") or [])):
+            por_modo[r.id_modo] = r
+    return list(por_modo.values())
+
+
 def actualizar_estado(s: Session, pos: PosicionComponente, tz: ZoneInfo, hoy: date | None = None) -> EstadoComponente:
     hoy = hoy or ahora().astimezone(tz).date()
     tipo = s.get(TipoComponente, pos.id_tipo_componente)
@@ -293,10 +321,7 @@ def actualizar_estado(s: Session, pos: PosicionComponente, tz: ZoneInfo, hoy: da
         edad = vida.edad_toneladas if toneladas else vida.edad_horas
         if not vida.edad_conocida:
             edad = None  # instalado antes del sistema: la edad real es mayor y desconocida
-    ajustes = [r for r in s.scalars(select(ResultadoWeibull).where(
-        ResultadoWeibull.id_tipo_componente == tipo.id, ResultadoWeibull.id_activo == activo.id,
-        ResultadoWeibull.vigente.is_(True), ResultadoWeibull.conjunto_datos == ConjuntoDatos.NUEVOS))
-        if r.beta is not None and r.eta is not None]
+    ajustes = ajustes_para_semaforo(s, tipo.id, activo.id, pos.id)
     delta = horizonte(s, activo.id, toneladas, hoy)
     p = p_inf = p_sup = rem50 = rem90 = None
     confianza = "GRIS"
@@ -342,23 +367,46 @@ def actualizar_estado(s: Session, pos: PosicionComponente, tz: ZoneInfo, hoy: da
 
 
 def pares_con_fallas(s: Session) -> set[tuple[int, int, int]]:
-    """(tipo, modo, activo) de cada modo con al menos una vida cerrada por falla."""
+    """(tipo, modo, activo) de cada modo con al menos una falla: en vidas nuevas o en el histórico A/B."""
     filas = s.execute(select(PosicionComponente.id_tipo_componente, VidaComponente.id_modo_falla, PosicionComponente.id_activo)
                       .join(PosicionComponente, PosicionComponente.id == VidaComponente.id_posicion)
                       .where(VidaComponente.tipo_fin == TipoFin.FALLA, VidaComponente.id_modo_falla.is_not(None)).distinct())
-    return {(t, m, a) for t, m, a in filas}
+    historicas = s.execute(select(PosicionComponente.id_tipo_componente, VidaHistorica.id_modo_falla, PosicionComponente.id_activo)
+                           .join(PosicionComponente, PosicionComponente.id == VidaHistorica.id_posicion)
+                           .where(VidaHistorica.tipo_fin == TipoFin.FALLA, VidaHistorica.id_modo_falla.is_not(None),
+                                  VidaHistorica.clase_triage.in_(["A", "B"])).distinct())
+    return {(t, m, a) for t, m, a in [*filas, *historicas]}
+
+
+def hay_historico(s: Session, id_tipo: int, id_activo: int | None) -> bool:
+    """¿Hay vidas históricas A o B para ese tipo de componente (en esa máquina)?"""
+    posiciones = select(PosicionComponente.id).where(PosicionComponente.id_tipo_componente == id_tipo)
+    if id_activo is not None:
+        posiciones = posiciones.where(PosicionComponente.id_activo == id_activo)
+    return s.scalar(select(VidaHistorica.id).where(VidaHistorica.id_posicion.in_(posiciones),
+                                                   VidaHistorica.clase_triage.in_(["A", "B"])).limit(1)) is not None
+
+
+def recalcular_par_con_historico(s: Session, id_tipo: int, id_modo: int, id_activo: int | None, tz: ZoneInfo) -> None:
+    """Datos nuevos siempre; y, si hay histórico A/B, también "nuevos + histórico" para compararlos (fase 2)."""
+    recalcular_par(s, id_tipo, id_modo, id_activo, tz)
+    if hay_historico(s, id_tipo, id_activo):
+        recalcular_par(s, id_tipo, id_modo, id_activo, tz, ConjuntoDatos.NUEVOS_MAS_HIST_AB)
 
 
 def recalcular_todo(s: Session, tz: ZoneInfo, hoy: date | None = None) -> dict:
+    from circularis_rel.servicios import flota  # import tardío: flota usa este módulo
+
     n_pares = 0
     for t, m, a in pares_con_fallas(s):
-        recalcular_par(s, t, m, a, tz)
+        recalcular_par_con_historico(s, t, m, a, tz)
         n_pares += 1
+    n_flotas = flota.recalcular_flotas(s, tz)
     n_pos = 0
     for pos in s.scalars(select(PosicionComponente).where(PosicionComponente.activa.is_(True))):
         actualizar_estado(s, pos, tz, hoy)
         n_pos += 1
-    return {"pares": n_pares, "componentes": n_pos}
+    return {"pares": n_pares, "flotas": n_flotas, "componentes": n_pos}
 
 
 def procesar_cola(s: Session, tz: ZoneInfo, limite: int = 20) -> int:
@@ -367,7 +415,7 @@ def procesar_cola(s: Session, tz: ZoneInfo, limite: int = 20) -> int:
                           .order_by(RecalculoPendiente.creado_en).limit(limite)):
         item.tomado_en = ahora()
         try:
-            recalcular_par(s, item.id_tipo_componente, item.id_modo, item.id_activo, tz)
+            recalcular_par_con_historico(s, item.id_tipo_componente, item.id_modo, item.id_activo, tz)
             for pos in s.scalars(select(PosicionComponente).where(
                     PosicionComponente.id_tipo_componente == item.id_tipo_componente,
                     PosicionComponente.id_activo == item.id_activo if item.id_activo else true())):

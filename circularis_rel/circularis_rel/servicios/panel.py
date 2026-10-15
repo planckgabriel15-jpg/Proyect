@@ -490,3 +490,17 @@ def analisis_costo(s: Session, r: ResultadoWeibull, hoy: date) -> AnalisisCosto:
             salida.ahorro = 1 - politicas.costo_por_hora(salida.intervalo_redondeado, c.cp, c.cf, r.beta, r.eta, gamma) \
                 / salida.costo_falla_por_hora
     return salida
+
+
+def cuadrantes(s: Session, desde: date, hasta: date, tz: ZoneInfo, id_activo: int | None = None) -> dict:
+    """Fallas validadas por forma de aparición (repentina / progresiva) y capacidad (total / parcial) [12.C].
+    Las progresivas se pueden anticipar con inspección o predictivo; las repentinas y totales son las que
+    más duelen. Devuelve {(aparicion, capacidad): n} y cuántas quedaron sin clasificar."""
+    conteo: dict[tuple[str, str], int] = {(a, c): 0 for a in ("REPENTINA", "PROGRESIVA") for c in ("TOTAL", "PARCIAL")}
+    sin = 0
+    for ev in eventos_validados(s, desde, hasta, tz, id_activo):
+        if ev.aparicion is None or ev.capacidad is None:
+            sin += 1
+        else:
+            conteo[(ev.aparicion.value, ev.capacidad.value)] += 1
+    return {"conteo": conteo, "sin_clasificar": sin}

@@ -66,8 +66,11 @@ else:  # JEFE
         "Planta": planta,
         "Puesta en marcha": [
             pagina("puesta_en_marcha.py", "Puesta en marcha", "🧭"),
+            pagina("piloto.py", "Piloto", "🧪"),
             pagina("carga_inicial.py", "Carga de planillas", "📥"),
-            pagina("maquinas.py", "Máquinas y revisión", "🏭"),
+            pagina("maquinas.py", "Máquinas y revisión", "🏗️"),
+            pagina("criticidad.py", "Criticidad", "⚖️"),
+            pagina("catalogos.py", "Catálogos", "📚"),
             pagina("historico.py", "Histórico (triage)", "🗂️"),
         ],
         "Configuración": [

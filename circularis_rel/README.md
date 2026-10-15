@@ -16,7 +16,7 @@ Los operarios y el encargado registran eventos desde el navegador (parte de turn
 | 1a. Captura | **Hecha** | Parte de turno (< 30 s), aviso de falla con QR y foto, tarjetas azul/roja/verde, bandeja del encargado, cierre de OT en 2 pasos (cierra y abre vidas), cambio preventivo, bandeja de validación con controles §11, corrección y anulación con motivo, partes faltantes y estimados, proceso de tareas (backup, prueba de restauración, nocturno), exportación total a Excel |
 | 1b. Motor y KPIs | **Hecha** | Motor Weibull (Weibayes, RRX con bootstrap, MLE con censura por derecha e intervalo, RBA, IC por razón de verosimilitud), bondad de ajuste (r² crítico, AD, AICc), KPIs empíricos y Weibull, intervalo óptimo C(T), costos Cp/Cf desde parámetros, semáforo, Crow-AMSAA/Laplace, recálculo por evento y nocturno. Reproduce el Plan §15 y la UNIDAD 2; validado contra reliability, surpyval y lifelines; Monte Carlo |
 | 1c. Panel (MVP) | **Hecha** | Panel de planta (tarjetas, línea en orden de proceso con semáforo, ranking de riesgo P×Cf, Pareto por horas/costo/frecuencia, tendencia mensual, calidad de datos), ficha de máquina (componentes con edad, β, η, P(Δ) con banda y vida remanente; gráfico de probabilidad; R(t) y h(t) con la edad; línea de tiempo; horas perdidas por motivo), análisis Weibull (vigente y alternativa, comparación de distribuciones, forzar método con justificación, curva C(T)), análisis de problemas (Pareto, sugerencias automáticas, 5 Porqués con PDCA y OT modificativa), tablero de comando (CMFT, CPCT, HPHP, TBMP, TBMC, OCPM), ayuda "?" en cada indicador, historia DEMO |
-| 2. Piloto y extensión | Pendiente | |
+| 2. Piloto y extensión | **Hecha** | Pantalla del piloto (partes por semana, criterio de dos semanas con más del 90 %, uso de catálogos) y guion (`docs/guion_piloto.md`); catálogos editables; comparación "nuevos" contra "nuevos + histórico A/B"; flota (prueba de razón de verosimilitud y ajuste agrupado, por tipo o por equivalencia); alertas firmes solo con confianza media o alta (orientativas antes); criticidad guiada (TP y U1) y diagrama de cuadrantes de las fallas; puesta en marcha con criterios automáticos y enlaces |
 | 3. Versión 2 | Pendiente | |
 | 4. Mejoras | Pendiente | |
 
@@ -34,6 +34,21 @@ uv pip install --python .venv/bin/python --no-deps -e .
 ```
 
 Usuarios DEMO: `demo.jefe` / `demo-jefe-2026`, `demo.operario` / PIN `1234` (ver `circularis demo cargar`).
+
+## Cómo probar la fase 2
+
+```bash
+.venv/bin/circularis demo cargar
+.venv/bin/circularis app                 # demo.jefe / demo-jefe-2026
+.venv/bin/python -m pytest tests/servicios/test_fase2.py -v
+```
+
+- **Piloto:** con la demo, las tres máquinas cumplen el criterio (100 % de partes). En una base real, cargar `piloto.maquinas` en Parámetros.
+- **Panel de planta › Alertas de riesgo:** las dos alertas de la demo son orientativas (confianza baja o gris). Bajando `alertas.confianza_firme` a BAJA pasan a firmes en el próximo recálculo.
+- **Análisis Weibull:** elegir "DEMO-AGR-001 · Rulemanes"; abajo, la sección **Flota** con la prueba (p ≈ 0,96: se pueden agrupar) y el ajuste de los rulemanes de las dos máquinas.
+- **Criticidad:** responder las seis preguntas de una máquina; con "Ponderación UNIDAD 1" la clase se elige a mano hasta cargar `criticidad.u1_cortes`.
+- **Catálogos:** agregar un síntoma o desactivar uno; nada se borra.
+- **Puesta en marcha:** cada etapa con su control y un enlace a la pantalla.
 
 ## Cómo probar la fase 1c
 

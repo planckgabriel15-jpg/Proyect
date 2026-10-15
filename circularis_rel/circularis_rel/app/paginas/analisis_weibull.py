@@ -16,7 +16,8 @@ from circularis_rel.datos.modelos import (
     ResultadoWeibull,
     TipoComponente,
 )
-from circularis_rel.servicios import panel, recalculo
+from circularis_rel.servicios import flota, panel, recalculo
+from circularis_rel.servicios import parametros as P
 from circularis_rel.servicios.permisos import Accion, requerir
 
 u = contexto.usuario()
@@ -101,6 +102,54 @@ with st.expander("Comparación de distribuciones (AICc y Anderson-Darling: menor
                    "2 parámetros salvo que se fuerce otra cosa con justificación.")
     else:
         st.caption("Se calcula con 3 o más fallas y sin censura por intervalo.")
+
+# Histórico A/B
+with db.lectura() as s:
+    con_hist = s.scalar(select(ResultadoWeibull).where(
+        ResultadoWeibull.id_tipo_componente == id_tipo, ResultadoWeibull.id_modo == id_modo,
+        ResultadoWeibull.id_activo == id_activo, ResultadoWeibull.vigente.is_(True),
+        ResultadoWeibull.conjunto_datos == ConjuntoDatos.NUEVOS_MAS_HIST_AB))
+    usa_hist = P.obtener(s, "motor.semaforo_con_historico")
+st.subheader("Datos nuevos contra nuevos + histórico")
+if con_hist is None:
+    st.caption("Sin histórico A/B para este componente (se carga y clasifica en Histórico (triage)).")
+else:
+    st.dataframe([fila(r, "Solo datos nuevos"), fila(con_hist, "Nuevos + histórico A/B")], hide_index=True, width="stretch")
+    st.caption("El histórico tiene horas estimadas (nivel E) y, el de clase B, fechas aproximadas (censura por intervalo). "
+               "Si los dos ajustes se parecen, el histórico suma información; si no, puede tener errores o la máquina "
+               "cambió. El semáforo usa " + ("**nuevos + histórico**" if usa_hist else "**solo datos nuevos**")
+               + " (parámetro motor.semaforo_con_historico).")
+
+# Flota
+with db.lectura() as s:
+    grupos = [g for g in flota.grupos(s) if any(s.get(PosicionComponente, i).id_activo == id_activo
+                                                 and s.get(PosicionComponente, i).id_tipo_componente == id_tipo
+                                                 for i in g.posiciones)]
+st.subheader("Flota: el mismo componente en otras máquinas")
+if not grupos:
+    st.caption("Este componente no está en otras máquinas ni en un grupo de equivalencia.")
+for g in grupos:
+    with db.lectura() as s:
+        prueba = flota.probar(s, g, id_modo, tz)
+        actual = flota.vigente(s, g, id_modo)
+        codigos_grupo = sorted({s.get(Activo, s.get(PosicionComponente, i).id_activo).codigo for i in g.posiciones})
+    with st.container(border=True):
+        st.markdown(f"**{g.nombre}**: {', '.join(codigos_grupo)}")
+        st.dataframe([{"Máquina": c, "Fallas": f, "Suspensiones": n} for c, (f, n) in prueba.por_maquina.items()],
+                     hide_index=True)
+        (st.success if prueba.agrupable else st.info)(prueba.nota)
+        if actual is not None:
+            st.dataframe([fila(actual, "Flota")], hide_index=True, width="stretch")
+            st.caption("Se recalcula cada noche. " + ("Se usa en el semáforo de las posiciones de la flota que no "
+                                                      "tienen ajuste propio." if (actual.comparacion or {}).get("agrupable")
+                                                      else "No se usa en el semáforo: la prueba no permite agrupar."))
+        if st.button("Ajustar como flota" if actual is None else "Recalcular la flota", key=f"flota_{g.clave}"):
+            with db.escritura(usuario_id=u["id"], motivo=f"Ajuste de flota {g.nombre}") as s:
+                flota.ajustar(s, g, id_modo, tz)
+                for i in g.posiciones:
+                    recalculo.actualizar_estado(s, s.get(PosicionComponente, i), tz)
+            F.guardar_mensaje_ok("weibull", "Flota ajustada.")
+            st.rerun()
 
 # Costo
 if costo is not None:

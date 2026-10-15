@@ -340,6 +340,38 @@ Verificación numérica previa: hecha el 15/10/2026 con Python 3.13, NumPy 2.5.4
 - **Qué:** cada métrica lleva su definición en el "?" del encabezado (tooltip de Streamlit) y cada sección, un botón "¿Qué es?" que abre la definición con su fuente. El texto está en `asistente/ayudas.py`, con la fuente de cada definición.
 - **Alternativa descartada:** solo una página de ayuda aparte (el Plan pide la ayuda junto a cada indicador, 12.H).
 
+### D-048: Alertas firmes por confianza y uso del histórico en el semáforo
+
+- **Alertas:** cada noche, un componente en rojo genera una alerta. Es **firme** (tipo RIESGO, para el jefe y, en la fase 3, por mail) solo si el ajuste que manda tiene confianza media o alta (`alertas.confianza_firme`); si no, es **orientativa** (queda en el panel, no se manda). Es la regla de la UNIDAD 6, etapa 16: "las alertas firmes se habilitan por componente recién con datos suficientes y confiables". Un rojo solo por una OT abierta no genera alerta de riesgo: la falla ya está en curso. La alerta se resuelve sola cuando el componente sale del rojo.
+- **Histórico A/B:** cuando hay histórico clasificado A o B, cada par se ajusta dos veces: solo datos nuevos y nuevos + histórico. La pantalla los compara lado a lado. El semáforo usa los nuevos salvo que el jefe active `motor.semaforo_con_historico`, después de ver que los dos ajustes se parecen en el piloto.
+- **Alternativa descartada:** mezclar el histórico automáticamente (horas estimadas y fechas aproximadas pueden sesgar el ajuste sin que nadie lo note) o mandar por mail alertas con confianza baja (se pierde la credibilidad del sistema en el primer mes).
+
+### D-049: Flota
+
+- **Qué:** dos tipos de grupo: el mismo tipo de componente en dos o más máquinas, y los grupos de equivalencia que declara el jefe. La prueba de razón de verosimilitud (p > `motor.flota_p_valor`) dice si se pueden agrupar; las máquinas con menos de 2 fallas no entran en la prueba (no hay MLE), pero sí en el ajuste.
+- El ajuste de flota se guarda con alcance FLOTA, sus posiciones y el resultado de la prueba. El semáforo lo usa **solo** para un modo que no tiene ajuste propio en la máquina y solo si la prueba permitió agrupar. Se recalcula cada noche una vez que el jefe lo pidió.
+- La edad de las vidas en servicio avanza con cada parte, así que un recálculo con datos "iguales" puede generar una fila nueva; siempre queda una sola vigente.
+- **Alternativa descartada:** agrupar siempre por tipo (dos máquinas con trabajo muy distinto se mezclarían sin aviso).
+
+### D-050: Criterio del piloto
+
+- **Qué:** "parte completo" = cargado por el operario (los estimados por el sistema no cuentan), contra los turnos laborables de la máquina sin feriados. Semanas de lunes a domingo ya cerradas. Cumple con más del `piloto.partes_minimo` (90 %) en las últimas `piloto.semanas` (2) semanas, en cada máquina del piloto (`piloto.maquinas`; si ninguna existe, se muestran todas y se avisa). La etapa 15 de la puesta en marcha usa este criterio, más tener fallas validadas.
+- **Alternativa descartada:** promediar todas las máquinas juntas (una máquina floja quedaría tapada por las demás).
+
+### D-051: Criticidad guiada desde la pantalla
+
+- **Qué:** seis preguntas con las opciones del pedido (§12.C). Método del TP por defecto (suma y cortes del TP). La ponderación U1 usa las escalas del pedido, guardadas en `criticidad.u1_escalas` y marcadas **a verificar** (P-10); sus cortes (`criticidad.u1_cortes`) arrancan vacíos y, mientras tanto, el jefe elige la clase. Siempre se puede corregir la clase a mano: queda guardada la calculada y la elegida.
+- **Alternativa descartada:** inventar cortes para U1 (no hay fuente hasta recibir la UNIDAD 1).
+
+### D-052: Catálogos editables
+
+- **Qué:** el jefe edita síntomas, modos, causas y motivos de parada. El código no cambia; la descripción sí. Nada se borra: se desactiva, porque los registros viejos apuntan al código. Un modo activo tiene que aplicar al menos a un tipo de componente (D-019). La pantalla *Piloto* muestra cuántas veces se usó cada opción para decidir qué sobra y qué falta.
+- **Alternativa descartada:** editar los catálogos solo por planilla (para ajustes chicos durante el piloto es lento).
+
+### D-053: Puesta en marcha completa
+
+- **Qué:** cada etapa muestra el control automático y un enlace a la pantalla donde se trabaja. El criterio de mano de obra usa la misma variable que el tablero (HHDP). La etapa 15 usa el criterio del piloto (D-050) y la 16, la confianza de los ajustes (D-048).
+
 ---
 
 ## Dudas y correcciones sobre la bibliografía

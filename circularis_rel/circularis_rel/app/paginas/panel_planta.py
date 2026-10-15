@@ -9,7 +9,7 @@ from circularis_rel.app.componentes import ayuda as A
 from circularis_rel.app.componentes import formularios as F
 from circularis_rel.app.componentes import graficos as G
 from circularis_rel.datos.enums import EtapaProceso
-from circularis_rel.servicios import costos, kpis_planta, panel
+from circularis_rel.servicios import alertas, costos, kpis_planta, panel
 from circularis_rel.servicios import parametros as P
 from circularis_rel.servicios.permisos import Accion, puede, requerir
 
@@ -75,10 +75,23 @@ for fila in range(0, len(etapas), 3):
                 st.markdown(f"{G.EMOJI[m.color]} **{m.codigo}**{clase}  \n{m.nombre}")
                 if m.motivos:
                     st.caption(m.motivos[0] + (f" (+{len(m.motivos) - 1})" if len(m.motivos) > 1 else ""))
-                st.caption(f"Confianza {m.confianza.lower()}" if m.confianza != "GRIS" else "Sin ajuste de Weibull todavía")
+                st.caption(f"Confianza {m.confianza.lower()}" if m.confianza != "GRIS" else "Confianza gris: datos insuficientes")
                 if st.button("Ver ficha", key=f"ficha_{m.codigo}", width="stretch"):
                     st.session_state["ficha_maquina"] = m.codigo
                     st.switch_page("paginas/ficha_maquina.py")
+
+# Alertas de riesgo
+with db.lectura() as s:
+    abiertas = [a for a in alertas.abiertas(s) if a.tipo in ("RIESGO", "RIESGO_ORIENTATIVO")]
+if abiertas:
+    st.subheader("Alertas de riesgo")
+    for a in abiertas:
+        if a.tipo == "RIESGO":
+            st.error(f"🔔 {a.mensaje}")
+        else:
+            st.warning(f"Orientativa: {a.mensaje}")
+    st.caption("Las alertas firmes se habilitan por componente recién con confianza media o alta (UNIDAD 6, etapa 16); "
+               "antes son orientativas y no se mandan por mail.")
 
 # Ranking de riesgo
 st.subheader("Ranking de riesgo")

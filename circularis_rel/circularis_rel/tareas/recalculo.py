@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 from circularis_rel.config import Config
-from circularis_rel.datos.db import BaseDatos
-from circularis_rel.servicios import recalculo
+from circularis_rel.datos.db import BaseDatos, ahora
+from circularis_rel.servicios import alertas, recalculo
 
 MOTIVO = "Recálculo automático"
 
@@ -16,4 +16,7 @@ def procesar_cola(db: BaseDatos, cfg: Config) -> int:
 
 def recalcular_todo(db: BaseDatos, cfg: Config) -> dict:
     with db.escritura(motivo=MOTIVO) as s:
-        return recalculo.recalcular_todo(s, cfg.zona_horaria)
+        resultado = recalculo.recalcular_todo(s, cfg.zona_horaria)
+        hoy = ahora().astimezone(cfg.zona_horaria).date()
+        resultado["alertas_riesgo"] = alertas.actualizar_riesgo(s, hoy)
+    return resultado
