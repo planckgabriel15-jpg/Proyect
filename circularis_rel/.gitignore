@@ -1,0 +1,9 @@
+# Material de la cátedra (derechos del autor): solo uso local
+docs/bibliografia/
+# Datos de ejecución
+datos/
+logs/
+.env
+__pycache__/
+*.pyc
+.venv/
