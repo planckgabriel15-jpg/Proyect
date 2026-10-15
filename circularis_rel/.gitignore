@@ -1,9 +1,13 @@
 # Material de la cátedra (derechos del autor): solo uso local
 docs/bibliografia/
 # Datos de ejecución
-datos/
-logs/
+/datos/
+/logs/
 .env
 __pycache__/
 *.pyc
 .venv/
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.hypothesis/
