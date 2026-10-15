@@ -15,7 +15,7 @@ Los operarios y el encargado registran eventos desde el navegador (parte de turn
 | 0. Preparación | **Hecha** | Base de datos con reglas y auditoría, importador de planillas, borrador del TP N.º 1, catastro y ficha PDF, QR, puesta en marcha guiada (12.A), usuarios y parámetros, datos DEMO |
 | 1a. Captura | **Hecha** | Parte de turno (< 30 s), aviso de falla con QR y foto, tarjetas azul/roja/verde, bandeja del encargado, cierre de OT en 2 pasos (cierra y abre vidas), cambio preventivo, bandeja de validación con controles §11, corrección y anulación con motivo, partes faltantes y estimados, proceso de tareas (backup, prueba de restauración, nocturno), exportación total a Excel |
 | 1b. Motor y KPIs | **Hecha** | Motor Weibull (Weibayes, RRX con bootstrap, MLE con censura por derecha e intervalo, RBA, IC por razón de verosimilitud), bondad de ajuste (r² crítico, AD, AICc), KPIs empíricos y Weibull, intervalo óptimo C(T), costos Cp/Cf desde parámetros, semáforo, Crow-AMSAA/Laplace, recálculo por evento y nocturno. Reproduce el Plan §15 y la UNIDAD 2; validado contra reliability, surpyval y lifelines; Monte Carlo |
-| 1c. Panel (MVP) | Pendiente | |
+| 1c. Panel (MVP) | **Hecha** | Panel de planta (tarjetas, línea en orden de proceso con semáforo, ranking de riesgo P×Cf, Pareto por horas/costo/frecuencia, tendencia mensual, calidad de datos), ficha de máquina (componentes con edad, β, η, P(Δ) con banda y vida remanente; gráfico de probabilidad; R(t) y h(t) con la edad; línea de tiempo; horas perdidas por motivo), análisis Weibull (vigente y alternativa, comparación de distribuciones, forzar método con justificación, curva C(T)), análisis de problemas (Pareto, sugerencias automáticas, 5 Porqués con PDCA y OT modificativa), tablero de comando (CMFT, CPCT, HPHP, TBMP, TBMC, OCPM), ayuda "?" en cada indicador, historia DEMO |
 | 2. Piloto y extensión | Pendiente | |
 | 3. Versión 2 | Pendiente | |
 | 4. Mejoras | Pendiente | |
@@ -28,12 +28,28 @@ uv pip install --python .venv/bin/python -r requirements.lock
 uv pip install --python .venv/bin/python --no-deps -e .
 
 .venv/bin/circularis inicializar                 # crea la base y los datos iniciales
-.venv/bin/circularis demo cargar                 # datos ficticios para probar (cartel rojo)
+.venv/bin/circularis demo cargar                 # datos ficticios con historia, para probar (cartel rojo)
 .venv/bin/circularis importar docs/plantillas/carga_inicial_borrador_TP1.xlsx --simular
 .venv/bin/circularis app                         # http://localhost:8501
 ```
 
 Usuarios DEMO: `demo.jefe` / `demo-jefe-2026`, `demo.operario` / PIN `1234` (ver `circularis demo cargar`).
+
+## Cómo probar la fase 1c
+
+```bash
+.venv/bin/circularis demo cargar        # catálogo + unos dos años y medio de historia ficticia + recálculo (~5 s)
+.venv/bin/circularis app                # entrar como demo.jefe / demo-jefe-2026
+.venv/bin/python -m pytest tests/servicios/test_panel.py tests/asistente tests/app -v
+```
+
+Qué mirar con la demo:
+
+- **Panel de planta:** DEMO-AGR-001 en rojo (cuchillas con 15 % de probabilidad de falla en el horizonte y edad mayor al intervalo), DEMO-LAV-001 en verde y DEMO-EXT-001 en rojo (husillo con Weibayes; la válvula queda gris por edad desconocida). Ranking de riesgo en pesos y Pareto de horas de parada.
+- **Ficha de máquina:** el gráfico de probabilidad de las cuchillas (β ≈ 3,6, desgaste) y las curvas R(t) y h(t) con la edad actual.
+- **Análisis de problemas:** la sugerencia de los rulemanes de la agrumadora (β ≈ 0,8, fallas al azar): "Iniciar 5 Porqués", completar los porqués y la acción, generar la OT modificativa y avanzar el PDCA.
+- **Tablero:** los ratios que el sistema puede calcular solo (CPCT, HPHP) y "falta dato" en los que necesitan la facturación o las horas-hombre disponibles hasta que el jefe las carga.
+- **Gerencia** (`demo.gerencia` / `demo-gerencia-2026`) entra directo al panel; el **operario** ve la ficha sin costos.
 
 ## Cómo probar la fase 1b
 

@@ -183,6 +183,18 @@ def recalcular_par(s: Session, id_tipo: int, id_modo: int, id_activo: int | None
     return vigente
 
 
+def quitar_forzado(s: Session, id_tipo: int, id_modo: int, id_activo: int | None, tz: ZoneInfo) -> ResultadoWeibull:
+    """Vuelve a la selección automática del método (Plan §5): los resultados forzados quedan en el historial,
+    marcados como no forzados para que el próximo cálculo no los tome (la auditoría guarda el cambio)."""
+    for r in s.scalars(select(ResultadoWeibull).where(
+            ResultadoWeibull.id_tipo_componente == id_tipo, ResultadoWeibull.id_modo == id_modo,
+            ResultadoWeibull.id_activo == id_activo, ResultadoWeibull.forzado.is_(True))):
+        r.forzado = False
+        r.vigente = False
+    s.flush()
+    return recalcular_par(s, id_tipo, id_modo, id_activo, tz)
+
+
 # ---------------------------------------------------------------------------
 # Estado de cada componente (semáforo)
 # ---------------------------------------------------------------------------

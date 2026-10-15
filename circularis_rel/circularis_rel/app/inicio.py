@@ -47,15 +47,21 @@ planta = [pagina("planta.py", "Inicio", "🏠"), pagina("reportar_falla.py", "Re
 mantenimiento = [pagina("bandeja_encargado.py", "Bandeja del encargado", "📋"), pagina("cerrar_ot.py", "Cerrar OT", "🔧"),
                  pagina("cambio_preventivo.py", "Cambio preventivo", "🔁")]
 exportar = pagina("exportar.py", "Exportar", "📤")
+panel_planta = pagina("panel_planta.py", "Panel de planta", "📊")
+ficha = pagina("ficha_maquina.py", "Ficha de máquina", "🏭")
+weibull = pagina("analisis_weibull.py", "Análisis Weibull", "📈")
+problemas = pagina("analisis_problemas.py", "Análisis de problemas", "🔍")
+tablero = pagina("tablero.py", "Tablero de comando", "🎯")
 
 if rol == Rol.OPERARIO:
-    paginas = {"": [*planta, ayuda]}
+    paginas = {"": [*planta, ficha, ayuda]}
 elif rol == Rol.ENCARGADO:
-    paginas = {"Mantenimiento": mantenimiento, "Planta": planta, "Otros": [exportar, ayuda]}
+    paginas = {"Mantenimiento": [*mantenimiento, problemas, ficha], "Planta": planta, "Otros": [exportar, ayuda]}
 elif rol == Rol.GERENCIA:
-    paginas = {"": [pagina("inicio_rol.py", "Inicio", "🏠"), exportar, ayuda]}
+    paginas = {"": [panel_planta, tablero, ficha, exportar, ayuda]}
 else:  # JEFE
     paginas = {
+        "Panel": [panel_planta, ficha, weibull, problemas, tablero],
         "Gestión": [pagina("bandeja_validacion.py", "Bandeja de validación", "✅"), *mantenimiento],
         "Planta": planta,
         "Puesta en marcha": [
@@ -79,4 +85,4 @@ with st.sidebar:
         sesion.salir()
         st.rerun()
 
-st.navigation(paginas).run()
+st.navigation(paginas, expanded=True).run()

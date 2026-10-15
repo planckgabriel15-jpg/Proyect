@@ -275,6 +275,71 @@ Verificación numérica previa: hecha el 15/10/2026 con Python 3.13, NumPy 2.5.4
 
 - **Qué:** si la vida en servicio empezó antes del sistema (edad desconocida), el semáforo no calcula P(Δ) con una edad falsa. Queda gris, salvo que haya una OT abierta, y lo explica en los motivos.
 
+### D-040: Variables y color del tablero de comando [12.E]
+
+- **Qué:** cada variable de los ratios de la UNIDAD 5 sale del sistema cuando se puede y, si el jefe carga un valor en `dato_mensual`, manda lo cargado:
+  - del sistema: costo preventivo y correctivo (mano de obra propia × tarifa + servicios externos + repuestos de las OT cerradas o validadas del mes, sin lucro cesante), horas-hombre por tipo de OT, horas de paro de los avisos validados y horas operadas de los partes;
+  - solo a mano: facturación (FETP) y horas-hombre disponibles del personal de mantenimiento (HHDP), porque el sistema no puede saberlas.
+- Sin dato, el indicador queda "falta dato" (nunca un 0 %). Con denominador cero también.
+- CTMN calculado desde las OT no incluye gastos generales: la pantalla lo avisa y pide el total contable.
+- **Color:** fuera de los límites de `indicador_objetivo`, rojo; dentro pero peor que el objetivo, amarillo; si no, verde. Sin objetivo ni límites, gris. La UNIDAD 5 solo da referencias orientativas (CPCT ≈ 20 %, HPHP 1–3 %): se muestran, pero no se cargan como objetivo; cada planta fija los suyos.
+- **Alternativa descartada:** pedir todas las variables a mano (doble carga de lo que ya está en las OT) o tomar las referencias de la UNIDAD 5 como objetivo (son orientativas, no metas de esta planta).
+
+
+### D-041: Líneas de IC en el gráfico de probabilidad
+
+- **Qué:** el gráfico muestra la recta ajustada y dos rectas punteadas con los extremos del IC de β y η (β inferior con η inferior, β superior con η superior), rotuladas "orientativo".
+- **Por qué:** las bandas de confianza exactas sobre la recta (por matriz de Fisher o contornos de verosimilitud) son otro cálculo y con pocos datos engañan. El número que cuenta es el IC de β y η que muestra la tabla; las rectas solo dan idea de la incertidumbre.
+- **Alternativa descartada:** bandas de Fisher sobre la recta (otro cálculo, poco confiable con 3 a 5 fallas) o no mostrar la incertidumbre en el gráfico.
+
+
+### D-042: Sugerencias de análisis de causa raíz [12.D]
+
+- **Qué:** se sugiere un 5 Porqués para un par máquina · componente · modo cuando:
+  1. está entre los `rca.top_pareto` primeros del Pareto de **horas de parada** del último año (las horas siempre están; el costo puede faltar);
+  2. su Weibull vigente dice fallas al azar (β ≈ 1) con confianza media o alta;
+  3. tuvo `rca.repeticiones_n` o más fallas validadas en los últimos `rca.repeticiones_dias` días.
+- Un par con un análisis abierto (PDCA sin cerrar) no se vuelve a sugerir. Los umbrales están en `parametro` (grupo asistente).
+- **Pareto:** la barra "a atacar" es cada una que empieza antes del corte (80 %), incluida la que lo cruza.
+- **Alternativa descartada:** Pareto por costo como disparador (con costos incompletos dejaría de sugerir) o sugerir aunque ya haya un análisis abierto (ruido).
+
+
+### D-043: Estado de la máquina y ranking de riesgo
+
+- **Qué:** la máquina toma el peor color de sus componentes críticos (último `estado_componente`) y pasa a rojo si tiene un aviso abierto (Plan §7). Sin componentes críticos queda gris, con el motivo.
+- **Ranking:** P(Δ) × Cf del modo dominante. Si faltan costos, el componente igual aparece (ordenado por P, después de los que tienen riesgo en pesos) y dice qué falta.
+- **Alternativa descartada:** ocultar los componentes sin costo del ranking (se perdería el aviso de que falta cargar costos).
+
+
+### D-044: Historia DEMO para el panel
+
+- **Qué:** `circularis demo cargar` (y la página de datos DEMO) carga, además del catálogo, unos dos años y medio de historia ficticia: partes de turno, fallas validadas, OT y cambios preventivos, más tarifa y margen ficticios (con `fuente = "DEMO (ficticio)"`). Se puede cargar sin historia con `--sin-historia`.
+- Las cuchillas de DEMO-AGR-001 siguen las vidas del Plan §15 (múltiplos de 8 h). Los rulemanes fallan al azar (exponencial, semilla fija) para que aparezca la sugerencia por β ≈ 1. La extrusora trabaja dos turnos y su válvula tiene edad desconocida. La agrumadora tiene un pulmón de 1 h para que la curva C(T) dé un óptimo.
+- `borrar_demo` borra toda esa historia: primero anula los avisos validados (un validado no se borra) y después borra fila por fila, con auditoría.
+- **Alternativa descartada:** importar los TBF del TP N.º 1 como demo (el usuario aclaró que son inventados y no deben usarse; ver D-017) o una demo sin historia (el panel se vería vacío).
+
+
+### D-045: Navegación del panel por rol
+
+- **Jefe:** un grupo "Panel" primero (panel de planta, ficha, análisis Weibull, análisis de problemas y tablero).
+- **Gerencia:** entra directo al panel de planta; además, tablero, ficha y exportar. La página provisoria "inicio_rol" se eliminó.
+- **Encargado:** suma análisis de problemas y ficha.
+- **Operario:** suma la ficha de máquina, sin costos.
+- La navegación lateral queda siempre expandida (con muchas páginas, Streamlit la colapsaba en inglés: "View more").
+- **Alternativa descartada:** una página de inicio distinta por rol con enlaces (un clic más para la gerencia).
+
+
+### D-046: Forzar el método y volver al automático
+
+- **Qué:** en la pantalla se elige entre RRX, MLE y Weibayes. MLE con 30 fallas o menos lleva siempre la corrección RBA (Plan §5): por eso no hay una opción "MLE sin RBA".
+- Forzar exige justificación y queda auditado como FORZADO_METODO. "Volver a la selección automática" marca los resultados forzados como no forzados (siguen en el historial) y recalcula.
+- **Alternativa descartada:** borrar los resultados forzados al volver al automático (se perdería la trazabilidad).
+
+### D-047: Ayuda contextual
+
+- **Qué:** cada métrica lleva su definición en el "?" del encabezado (tooltip de Streamlit) y cada sección, un botón "¿Qué es?" que abre la definición con su fuente. El texto está en `asistente/ayudas.py`, con la fuente de cada definición.
+- **Alternativa descartada:** solo una página de ayuda aparte (el Plan pide la ayuda junto a cada indicador, 12.H).
+
 ---
 
 ## Dudas y correcciones sobre la bibliografía
@@ -378,4 +443,9 @@ Verificación numérica previa: hecha el 15/10/2026 con Python 3.13, NumPy 2.5.4
 
 - **Duda:** la tabla de la diapositiva (10,91 / 26,44 / 42,14 / 57,86 / 73,56 / 89,10 %) son **rangos medianos exactos**: la mediana de la distribución beta(i, n − i + 1). No es la aproximación de Benard que dice usar. La propia diapositiva calcula con Benard 26,5 / 42,1 / 57,8 / 73,4 / 89 %.
 - **Decisión:** el motor usa Benard (Plan §5). Existe `rango_mediano_exacto()` para validar. El test 3 verifica la tabla publicada con los rangos exactos y que Benard no se aparte más de 0,25 puntos.
+
+### B-016: UNIDAD 4, diapositiva 11 (PDCA de mejoras enfocadas)
+
+- **Duda:** en la diapositiva, la "A" del ciclo es **Analizar** (analizar el fenómeno e identificar causas raíz con 5W+1H y 5 Porqués), no "Actuar" como en el PDCA clásico. Planificar incluye definir dónde, qué, quién, cómo y cuándo.
+- **Decisión:** se mantienen los cuatro pasos, con los textos de la diapositiva. El análisis inicial (5 Porqués) se hace al crear el análisis; el paso "A" del sistema se llama "Analizar / estandarizar": si quedó desvío, se vuelve a analizar; si funcionó, se estandariza.
 

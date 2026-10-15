@@ -68,4 +68,117 @@ AYUDAS: dict[str, dict[str, str]] = {
                  "llegar a η, al menos un control del equipo y revisar la planificación del preventivo.",
         "fuente": "UNIDAD 2, diap. 36–37",
     },
+    "p_delta": {
+        "titulo": "Probabilidad de falla en el horizonte P(Δ)",
+        "texto": "Probabilidad de que el componente falle antes de la próxima parada programada (o en las próximas "
+                 "dos semanas), sabiendo que llegó sano a su edad actual: P = 1 − R(edad + Δ) / R(edad). "
+                 "La banda entre paréntesis sale de los extremos del intervalo de confianza de β y η.",
+        "fuente": "Plan §6 y §7",
+    },
+    "semaforo": {
+        "titulo": "Semáforo",
+        "texto": "Rojo: probabilidad de falla en el horizonte alta, edad mayor al intervalo recomendado o un aviso "
+                 "abierto. Amarillo: probabilidad intermedia o edad mayor al 80 % del intervalo. Verde: lo demás. "
+                 "Gris: todavía no hay datos suficientes. La máquina toma el peor color de sus componentes críticos. "
+                 "Los umbrales se cambian en Parámetros.",
+        "fuente": "Plan §7; D-012",
+    },
+    "confianza": {
+        "titulo": "Confianza del cálculo",
+        "texto": "Cuántas fallas hay detrás del número. Gris: menos de 3 (no hay ajuste). Baja: de 3 a 5. "
+                 "Media: de 6 a 19. Alta: 20 o más. Con confianza baja el color es orientativo: no tomes una "
+                 "decisión cara solo con eso.",
+        "fuente": "Plan §5; P-08",
+    },
+    "vida_remanente": {
+        "titulo": "Vida remanente",
+        "texto": "Horas que le quedan al componente, desde su edad actual, con 50 % de probabilidad (mediana) o "
+                 "con 90 % de probabilidad de llegar sin fallar.",
+        "fuente": "Plan §6",
+    },
+    "intervalo": {
+        "titulo": "Intervalo recomendado",
+        "texto": "Cada cuántas horas conviene cambiar el componente de manera preventiva. Sale del plan aprobado, "
+                 "del cálculo (mínimo costo por hora o confiabilidad objetivo, solo si hay desgaste, β > 1) o, si "
+                 "no hay datos, del fabricante.",
+        "fuente": "Plan §8",
+    },
+    "riesgo": {
+        "titulo": "Ranking de riesgo",
+        "texto": "Probabilidad de falla en el horizonte multiplicada por lo que cuesta una falla (repuesto, mano de "
+                 "obra y producción perdida). Ordena dónde conviene actuar primero.",
+        "fuente": "Plan §7",
+    },
+    "costo_falla": {
+        "titulo": "Costo de una falla (Cf) y de un preventivo (Cp)",
+        "texto": "Cp = repuesto + horas-hombre del cambio planificado × tarifa. Cf = repuesto + horas-hombre de la "
+                 "reparación × tarifa + horas de parada que exceden el pulmón × margen por hora de la línea.",
+        "fuente": "Plan §8; UNIDAD 5 (CTMC)",
+    },
+    "costo_t": {
+        "titulo": "Curva de costo C(T)",
+        "texto": "Costo por hora de cambiar el componente cada T horas: C(T) = [Cp·R(T) + Cf·F(T)] / ∫₀ᵀ R(t) dt. "
+                 "El mínimo es el intervalo óptimo T*. Solo existe si hay desgaste (β > 1) y la falla cuesta más "
+                 "que el preventivo. Cerca del mínimo la curva es plana: por eso se redondea.",
+        "fuente": "Plan §8",
+    },
+    "grafico_probabilidad": {
+        "titulo": "Gráfico de probabilidad Weibull",
+        "texto": "Cada punto es una falla (las suspensiones no se dibujan pero corren los rangos). Si los puntos "
+                 "siguen la recta, Weibull describe bien los datos. La pendiente de la recta es β.",
+        "fuente": "UNIDAD 2; Plan §5",
+    },
+    "pareto": {
+        "titulo": "Diagrama de Pareto",
+        "texto": "Ordena los problemas de mayor a menor y muestra el porcentaje acumulado. En general unos pocos "
+                 "explican la mayor parte (regla 80/20): esos son los que conviene atacar primero.",
+        "fuente": "Plan §6; UNIDAD 4 (mejoras enfocadas)",
+    },
+    "cinco_porques": {
+        "titulo": "5 Porqués",
+        "texto": "Partís del problema y preguntás \"¿por qué pasó?\". A la respuesta le volvés a preguntar \"¿por "
+                 "qué?\", hasta llegar a una causa sobre la que se pueda actuar (la causa raíz). No siempre hacen "
+                 "falta cinco.",
+        "fuente": "UNIDAD 4, diap. 11",
+    },
+    "pdca": {
+        "titulo": "Ciclo PDCA",
+        "texto": "Planificar (dónde, qué, quién, cómo, cuándo), Hacer (ejecutar y registrar), Chequear (comparar "
+                 "el resultado con la meta) y Analizar (buscar la causa raíz con 5W+1H y 5 Porqués). Se repite "
+                 "hasta que el problema deja de aparecer.",
+        "fuente": "UNIDAD 4, diap. 11",
+    },
+    "calidad_datos": {
+        "titulo": "Calidad de los datos",
+        "texto": "Porcentaje de partes de turno cargados por el operario (no estimados por el sistema) y porcentaje "
+                 "de avisos validados dentro de las 48 h. Si baja, los cálculos pierden valor.",
+        "fuente": "Plan §11",
+    },
+    "ao": {
+        "titulo": "Disponibilidad operacional Ao",
+        "texto": "(Horas requeridas − horas paradas) / horas requeridas, desde los partes de turno. Las horas sin "
+                 "demanda o de huelga no cuentan como requeridas.",
+        "fuente": "Plan §6; D-007",
+    },
+    "CMFT": {"titulo": "CMFT: costo de mantenimiento por facturación",
+             "texto": "Costo total de mantenimiento del período dividido por la facturación del período.",
+             "fuente": "UNIDAD 5, diap. 16"},
+    "CPCT": {"titulo": "CPCT: costo preventivo sobre costo total",
+             "texto": "Muestra cuánto se usan las técnicas preventivas frente a las correctivas. Puede rondar el 20 %.",
+             "fuente": "UNIDAD 5, diap. 20"},
+    "HPHP": {"titulo": "HPHP: horas de paro por horas de producción",
+             "texto": "Horas de paro de los equipos por averías sobre las horas empleadas en producir. "
+                      "Generalmente entre 1 % y 3 %.",
+             "fuente": "UNIDAD 5, diap. 21"},
+    "TBMP": {"titulo": "TBMP: trabajo en mantenimiento preventivo",
+             "texto": "Horas-hombre en trabajos programados de preventivo sobre las horas-hombre disponibles (personal "
+                      "presente y en condiciones de trabajar).",
+             "fuente": "UNIDAD 5, diap. 22"},
+    "TBMC": {"titulo": "TBMC: trabajo en mantenimiento correctivo",
+             "texto": "Horas-hombre en reparaciones correctivas sobre las horas-hombre disponibles.",
+             "fuente": "UNIDAD 5, diap. 23"},
+    "OCPM": {"titulo": "OCPM: ociosidad del personal de mantenimiento",
+             "texto": "Horas-hombre disponibles menos las trabajadas, sobre las disponibles: cuánto tiempo del personal "
+                      "no se ocupó. Negativo indica horas extra.",
+             "fuente": "UNIDAD 5, diap. 24 y 28"},
 }

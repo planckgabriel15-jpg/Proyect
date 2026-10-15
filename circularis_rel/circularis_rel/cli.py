@@ -141,7 +141,8 @@ def cmd_demo(args) -> int:
 
     db = _db()
     if args.accion == "cargar":
-        reporte = cargar_demo(db)
+        tz = None if args.sin_historia else cargar_config().zona_horaria
+        reporte = cargar_demo(db, tz=tz)
         print(reporte.texto())
         if reporte.aplicado:
             print("Usuarios DEMO (claves públicas, borrar antes de usar en serio):")
@@ -255,6 +256,7 @@ def main(argv: list[str] | None = None) -> int:
     sub.add_parser("revision").set_defaults(f=cmd_revision)
     c = sub.add_parser("demo")
     c.add_argument("accion", choices=["cargar", "borrar"])
+    c.add_argument("--sin-historia", action="store_true", help="solo el catálogo, sin partes ni fallas ficticias")
     c.set_defaults(f=cmd_demo)
     c = sub.add_parser("app")
     c.add_argument("--puerto", type=int, default=8501)

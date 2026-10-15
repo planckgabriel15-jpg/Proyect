@@ -141,3 +141,21 @@ def costo_historico(s: Session, ev: EventoFalla) -> CostoEvento:
     d = mc.DesgloseCTMC(modm=hh * tarifa + externo, cr=cr, co=co)
     tc = tipo_cambio(s, fecha)
     return CostoEvento(d.ctmc, mc.a_dolares(d.ctmc, tc) if tc else None, d, faltan)
+
+
+def costo_directo_ot(s: Session, ot: OrdenTrabajo) -> tuple[float | None, list[str]]:
+    """Costo directo de una OT en pesos: mano de obra propia + servicios externos + repuestos (sin lucro
+    cesante). Es lo que suma al costo de mantenimiento del tablero [12.E]."""
+    fecha = (ot.fin_real or ot.inicio_real or ot.creado_en).date()
+    faltan: list[str] = []
+    tarifa = P.obtener(s, "costos.tarifa_mo_ars_h", fecha)
+    if tarifa is None and ot.hh_propias:
+        return None, ["tarifa de mano de obra"]
+    total = (ot.hh_propias or 0.0) * (tarifa or 0.0) + (ot.costo_externo_ars or 0.0)
+    for c in s.scalars(select(ConsumoRepuesto).where(ConsumoRepuesto.id_ot == ot.id)):
+        monto = _a_ars(s, c.precio_unitario * c.cantidad, c.moneda, fecha) if c.precio_unitario is not None else None
+        if monto is None:
+            faltan.append("precio de un repuesto usado")
+        else:
+            total += monto
+    return total, faltan

@@ -95,7 +95,7 @@ def test_kpis_de_la_maquina():
     r = kpis.mttr([4.5] * 8)
     assert m == pytest.approx(538.75) and r == 4.5
     assert kpis.disponibilidad_inherente(m, r) == pytest.approx(0.992, abs=0.0005)
-    assert 0.32 * 2500 == pytest.approx(800)  # costo esperado en el horizonte (ranking)
+    assert pytest.approx(800) == 0.32 * 2500  # costo esperado en el horizonte (ranking)
 
 
 def test_caso2_vida_en_servicio_como_suspension():

@@ -21,8 +21,11 @@ if cargados:
         st.rerun()
 else:
     st.info("No hay datos DEMO.")
+    historia = st.toggle("Con historia ficticia (unos dos años y medio de partes, fallas y preventivos)", value=True,
+                         help="Para ver el panel, el Weibull y el Pareto con datos. Tarda unos segundos.")
     if st.button("Cargar datos DEMO", width="stretch"):
-        reporte = cargar_demo(db, contexto.id_usuario())
+        with st.spinner("Cargando..."):
+            reporte = cargar_demo(db, contexto.id_usuario(), contexto.config().zona_horaria if historia else None)
         sesion.refrescar_credenciales()
         if reporte.aplicado:
             st.rerun()
