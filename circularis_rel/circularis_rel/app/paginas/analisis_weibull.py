@@ -81,15 +81,17 @@ if r.r2 is not None and r.r2_critico is not None and r.r2 < r.r2_critico:
                "mezclados o un γ (vida mínima). Mirá la comparación de distribuciones.")
 
 if r.beta:
-    g1, g2 = st.columns(2)
     ic_b = (r.beta_inf, r.beta_sup) if r.beta_inf and r.beta_sup else None
     ic_e = (r.eta_inf, r.eta_sup) if r.eta_inf and r.eta_sup else None
-    g1.plotly_chart(G.probabilidad(rangos, r.beta, r.eta, ic_b, ic_e), width="stretch")
-    g2.plotly_chart(G.confiabilidad_y_tasa(r.beta, r.eta, edad, r.gamma or 0.0), width="stretch")
-    c1, c2, c3 = st.columns(3)
-    A.boton("grafico_probabilidad", c1)
-    A.boton("beta", c2)
-    A.boton("eta", c3)
+    mision = st.number_input("Leer en el papel a t (h)", min_value=0.0, value=float(round(edad)) if edad else 0.0,
+                             step=10.0, help="Tiempo de misión: se lee F(t) y R(t) sobre la recta (UNIDAD 2, diap. 38). "
+                                             "Por defecto, la edad actual del componente. 0 = no leer.")
+    st.plotly_chart(G.probabilidad(rangos, r.beta, r.eta, ic_b, ic_e, t_mision=mision or None), width="stretch")
+    claves = ("grafico_probabilidad", "rango_benard", "polo_beta", "beta", "eta", "lectura_mision")
+    for grupo in (claves[:3], claves[3:]):
+        for col, clave in zip(st.columns(3), grupo, strict=True):
+            A.boton(clave, col)
+    st.plotly_chart(G.confiabilidad_y_tasa(r.beta, r.eta, edad, r.gamma or 0.0), width="stretch")
 
 # Comparación de distribuciones
 tabla = {k: v for k, v in (r.comparacion or {}).items() if k in ("Weibull_2P", "Weibull_3P", "Lognormal_2P", "Exponential_1P")}
@@ -184,7 +186,7 @@ for g in grupos:
 # Costo
 if costo is not None:
     st.subheader("Política de cambio y costo")
-    c1, c2 = st.columns([9, 1])
+    c1, c2 = st.columns([3, 1])
     c1.info(f"**Recomendación:** {costo.recomendacion.texto}" +
             (f" → intervalo **{costo.recomendacion.intervalo:.0f} h**" if costo.recomendacion.intervalo else ""))
     A.boton("intervalo", c2)

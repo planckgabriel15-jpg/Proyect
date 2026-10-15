@@ -19,6 +19,7 @@ Los operarios y el encargado registran eventos desde el navegador (parte de turn
 | 2. Piloto y extensión | **Hecha** | Pantalla del piloto (partes por semana, criterio de dos semanas con más del 90 %, uso de catálogos) y guion (`docs/guion_piloto.md`); catálogos editables; comparación "nuevos" contra "nuevos + histórico A/B"; flota (prueba de razón de verosimilitud y ajuste agrupado, por tipo o por equivalencia); alertas firmes solo con confianza media o alta (orientativas antes); criticidad guiada (TP y U1) y diagrama de cuadrantes de las fallas; puesta en marcha con criterios automáticos y enlaces |
 | 3. Versión 2 | **Hecha** | Plan preventivo (aprobación del intervalo, del fabricante al calculado), calendario de 52 semanas en PDF y Excel (MANT/1CMP001-2CMP001), OT preventivas con anticipación e imprimibles (MANT/MPV001), pruebas funcionales de fallas ocultas, diagnóstico de sobre y sub-mantenimiento, repuestos (demanda en el lead time, Poisson, lote económico, stock de protección), predictivo (MANT/PMRED001, límites, tendencia, ultrasonido), tablero completo con CIT, Ishikawa/5M, 5W+1H y hoja de verificación, tabla de mortalidad y exponencial, alertas por mail (opcional), reporte PDF mensual y semanal, manuales por rol |
 | 4. Mejoras | **Hecha** | Crow-AMSAA y Laplace por máquina (ficha y alerta semanal de degradación), Weibull bayesiano como comparación, TPM: RO = Dp·Di·Rv·Tq y seis grandes pérdidas (con piezas rechazadas en el parte), OEE completo, horómetro (horas medidas, nivel M), AMFE con ocurrencia calculada desde F(1 año) y NPR, revisión en t = η, bloques serie/paralelo |
+| 5. Papel de Weibull y ayudas | **Hecha** | Gráfico de probabilidad como el papel de la cátedra (polo y abanico de β, línea del 63,2 % y η, lectura a un tiempo de misión), página "Papel de Weibull" para datos propios, criticidad sobre 100 de la planilla del grupo, burbujas de ayuda con el tema |
 
 ## Pendiente de verificar (no se inventó nada)
 
@@ -51,6 +52,17 @@ uv pip install --python .venv/bin/python --no-deps -e .
 ```
 
 Usuarios DEMO: `demo.jefe` / `demo-jefe-2026`, `demo.operario` / PIN `1234` (ver `circularis demo cargar`).
+
+## Cómo probar la fase 5
+
+```bash
+.venv/bin/circularis app                          # demo.jefe / demo-jefe-2026
+.venv/bin/python -m pytest tests/asistente/test_papel_weibull.py tests/servicios/test_criticidad.py -v
+```
+
+- **Papel de Weibull** (menú Panel): viene con el ejemplo de la UNIDAD 2 (diap. 33–38): β ≈ 1,44, η ≈ 76 h y R(15 h) ≈ 90,8 %. Pegá tus tiempos desde Excel; si están en días, elegí "días" y cargá las horas por día.
+- **Ficha de máquina** y **Análisis Weibull:** el mismo papel con los datos del componente, con la lectura en la edad actual. Pasá el mouse por las guías del abanico, el polo y la línea del 63,2 %.
+- **Criticidad:** al evaluar una máquina aparece la criticidad sobre 100, como en la planilla del grupo.
 
 ## Cómo probar la fase 4
 

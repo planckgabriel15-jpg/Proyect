@@ -440,6 +440,20 @@ Verificación numérica previa: hecha el 15/10/2026 con Python 3.13, NumPy 2.5.4
 
 - **Qué:** cuando un componente llega a su vida característica, el semáforo suma el motivo "llegó a η: al menos un control del equipo y revisar el plan" (UNIDAD 2), configurable con `fiabilidad.revision_en_eta`; no cambia el color. Las herramientas suman bloques serie/paralelo: grupos en serie, cada uno con uno o varios bloques en paralelo, y se pueden precargar con 1 − P(Δ) de los componentes críticos de una máquina. Paralelo solo si el usuario lo declara.
 
+### D-068: Papel de Weibull de la cátedra
+
+- **Qué:** el gráfico de probabilidad reproduce el papel de la UNIDAD 2 (diap. 35): tiempo en escala logarítmica con décadas completas (al menos dos), F(t) en escala de Weibull con la grilla verde, polo en el borde izquierdo a la altura del 63,2 % con el abanico de β (6,0 a 0,5) y su escala arriba, flecha paralela a la recta con el valor de β, línea auxiliar del 63,2 % y flecha hacia el eje en η, puntos rojos con su rótulo "t, F(i)" (hasta 10 puntos; con más, solo al pasar el mouse) y la lectura de F y R para un tiempo de misión (diap. 38). En la ficha, la lectura se hace en la edad actual del componente; en el análisis Weibull, en el tiempo que elija el jefe.
+- **Nueva página "Papel de Weibull":** calculadora con el procedimiento de la cátedra para datos propios (tiempos en horas o en días × horas por día, como el TP N.º 1, con suspensiones opcionales). Muestra la tabla ordenada con F(i) de Benard, β, η, r² contra el crítico, R(misión), MTTF y el estado; además corre el ajuste completo del sistema para comparar. Viene precargada con el ejemplo de la UNIDAD 2 y no guarda nada. No depende de ningún módulo.
+- **Por qué:** el usuario pidió "el gráfico logarítmico que usamos nosotros" (el del TP y la cátedra). La recta sigue saliendo de RRX: es la versión numérica de la lectura gráfica (B-012).
+
+### D-069: Criticidad sobre 100
+
+- **Qué:** además del puntaje del TP (suma) se muestra la criticidad de 0 a 100 de la planilla "Listado de Máquinas y Detalle" del grupo: 100 · Σ peso · (valor − 1) / 4, con los pesos del Plan §8 (30/20/15/15/10/10). La fórmula se dedujo y se verificó contra las ocho máquinas de la planilla (AGR-001 73,75; LAV-001 71,25; SEC-001 46,25; MOL, TRI y ENF 23,75). La clase sigue saliendo del método del TP (D-020): la planilla no trae cortes de clase para el puntaje sobre 100.
+
+### D-070: Burbujas de ayuda con el tema
+
+- **Qué:** el botón de ayuda dice de qué se trata ("¿Qué es β?", "Cómo leer el papel", "¿Qué es MTBF?") en lugar de un "¿Qué es?" repetido. Se agregan definiciones para el papel (rango de Benard, polo y abanico de β, lectura a un tiempo de misión, r², suspensión, estado según β, criticidad sobre 100). Cada línea del papel explica qué es al pasar el mouse.
+
 ---
 
 ## Dudas y correcciones sobre la bibliografía
@@ -559,3 +573,10 @@ Verificación numérica previa: hecha el 15/10/2026 con Python 3.13, NumPy 2.5.4
 - **Duda:** el Plan propone mostrar, como alternativa al NPR, la prioridad de acción del manual AIAG-VDA [12]. La tabla que asigna H/M/L a cada combinación de G, O y D no está en el material del proyecto.
 - **Decisión:** el AP se carga a mano en el AMFE (H, M o L). No se calcula hasta tener la tabla del manual.
 
+### B-019: Análisis de Weibull del TP N.º 1 (revisión con el papel)
+
+- **Observado** al pasar los datos del TP por el papel:
+  - Cada tabla mezcla modos de falla distintos de la misma máquina (por ejemplo, en la extrusora: SSR, rodamiento del husillo, PLC y matriz). Weibull se ajusta por componente y modo (Plan §5): mezclados, β pierde sentido físico. La planilla de las agrumadoras ya lo advierte ("este Weibull no es válido").
+  - La cuba de lavado y las enfardadoras usan F(i) = i/(N+1) (rango medio, porque N > 20) y el resto, Benard; el sistema usa siempre Benard (B-002). Con Benard y RRX, la cuba da β ≈ 1,43 y η ≈ 1.621 h; el TP leyó 1,28 y 1.700 en el gráfico.
+  - El estado se nombra "Fatiga" para β entre 1,6 y 1,7 y "Vejez" para β = 1,28. La bibliografía disponible solo distingue juventud (β < 1), azar (β ≈ 1) y desgaste (β > 1).
+- **Decisión:** el sistema usa juventud, estable (al azar) y desgaste (vejez o fatiga), sin separar fatiga de vejez por el valor de β. La distinción se puede revisar con la UNIDAD 1.

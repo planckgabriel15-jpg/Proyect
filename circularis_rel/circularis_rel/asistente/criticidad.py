@@ -49,6 +49,7 @@ class ResultadoCriticidad:
     nivel: str
     clase: str
     puntaje_ponderado: float | None
+    puntaje_100: float | None = None  # planilla de criticidad de la empresa (D-069)
 
 
 def valores_invalidos(valores: dict[str, int], escalas: dict[str, tuple[int, ...]] = ESCALAS_TP) -> list[str]:
@@ -83,10 +84,18 @@ def evaluar_tp(
     nivel = nivel_por_cortes(puntaje, cortes)
     if nivel not in nivel_a_clase:
         raise ValueError(f"El nivel '{nivel}' no tiene clase A/B/C asignada")
-    ponderado = None
+    ponderado = sobre_100 = None
     if pesos_plan:
         ponderado = round(sum(valores[c] * pesos_plan[CRITERIO_PLAN[c]] for c in CRITERIOS), 4)
-    return ResultadoCriticidad(puntaje=puntaje, nivel=nivel, clase=nivel_a_clase[nivel], puntaje_ponderado=ponderado)
+        sobre_100 = puntaje_100(valores, pesos_plan)
+    return ResultadoCriticidad(puntaje=puntaje, nivel=nivel, clase=nivel_a_clase[nivel], puntaje_ponderado=ponderado,
+                               puntaje_100=sobre_100)
+
+
+def puntaje_100(valores: dict[str, int], pesos_plan: dict[str, float]) -> float:
+    """Criticidad de 0 a 100 como la planilla "Listado de Máquinas y Detalle" de la empresa (D-069):
+    100 · Σ peso · (valor − 1) / 4. Cada criterio va de 1 (nada) a 5 (máximo)."""
+    return round(100 * sum(pesos_plan[CRITERIO_PLAN[c]] * (valores[c] - 1) / 4 for c in CRITERIOS), 2)
 
 
 # ---------------------------------------------------------------------------

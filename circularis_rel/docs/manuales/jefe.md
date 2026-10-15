@@ -11,7 +11,8 @@ El sistema es tuyo: solo lo que validás entra en los cálculos.
 
 - **Análisis de problemas:** sugerencias automáticas (primeros del Pareto, fallas al azar con β ≈ 1, repeticiones). Abrí el análisis y seguí el PDCA.
 - **Plan preventivo:** el sistema propone pasar del intervalo del fabricante al **calculado** cuando el componente tiene confianza media. Aprobalo vos; el calendario de 52 semanas (**MANT/1CMP001** y **2CMP001**) y las OT se arman solos. Revisá el diagnóstico de **sobre y sub-mantenimiento**.
-- **Análisis Weibull:** método elegido, alternativa, comparación de distribuciones, histórico A/B y flota. Podés forzar un método, siempre con justificación (queda en la auditoría).
+- **Análisis Weibull:** método elegido, alternativa, comparación de distribuciones, histórico A/B y flota. Podés forzar un método, siempre con justificación (queda en la auditoría). El gráfico es el papel de Weibull de la cátedra: β se lee con el abanico del polo y η donde la recta corta el 63,2 %; elegí un tiempo y el papel te marca F y R.
+- **Papel de Weibull:** para probar datos propios (un componente y un modo por vez) antes de cargarlos, o para revisar un TP. No guarda nada.
 
 ## Todos los meses
 

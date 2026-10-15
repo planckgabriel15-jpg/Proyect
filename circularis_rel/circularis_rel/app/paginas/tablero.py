@@ -45,7 +45,7 @@ for fila in range(0, len(valores), 3):
         with col.container(border=True):
             c1, c2 = st.columns([5, 1])
             c1.markdown(f"{G.EMOJI[v.color]} **{v.codigo}** · {v.nombre}")
-            A.boton(v.codigo, c2)
+            A.boton(v.codigo, c2, etiqueta="?")
             st.metric(f"{v.codigo} del mes", A.porcentaje(v.valor), label_visibility="collapsed")
             st.caption(f"{v.codigo} = {v.formula}")
             objetivo = []

@@ -19,30 +19,167 @@ def _y_weibull(f: float) -> float:
     return math.log(-math.log(1 - f))
 
 
+# Papel de Weibull de la cátedra (UNIDAD 2, diap. 35): grilla verde, polo con abanico de β, línea de η al 63,2 %.
+_PAPEL = dict(grilla="rgba(67,160,71,0.45)", decada="#2e7d32", rotulos="#c62828", beta="#3949ab", recta="#202124",
+              puntos="#e53935", lectura="#c62828", ic="#9aa0a6")
+_F_GRILLA = (0.001, 0.002, 0.005, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.10, 0.20, 0.30, 0.40, 0.50,
+             0.60, 0.70, 0.80, 0.90, 0.95, 0.99, 0.999)
+_F_MARCAS = (0.001, 0.005, 0.01, 0.02, 0.05, 0.10, 0.20, 0.30, 0.50, 0.632, 0.80, 0.90, 0.99, 0.999)
+BETAS_ABANICO = (6.0, 3.0, 2.0, 1.6, 1.4, 1.2, 1.0, 0.9, 0.8, 0.7, 0.6, 0.5)  # escala de β del papel (diap. 35)
+
+
+def _num(x: float, decimales: int = 0) -> str:
+    texto = f"{x:,.{decimales}f}".replace(",", "X").replace(".", ",").replace("X", ".")
+    return texto
+
+
+def _pct(f: float) -> str:
+    v = round(100 * f, 1)
+    return str(int(v)) if v.is_integer() else _num(v, 1)
+
+
+def _limites_papel(xs: list[float], fs: list[float]) -> tuple[int, int, float, float]:
+    """Décadas enteras de tiempo (al menos dos, para que entre todo el abanico de β) y rango de F."""
+    lo = math.floor(math.log10(min(xs)))
+    hi = math.ceil(math.log10(max(xs)) + 1e-9)
+    hi = max(hi, lo + 2)
+    f_min = min([0.01, *[f * 0.7 for f in fs]])
+    f_max = max([0.99, *[1 - (1 - f) * 0.7 for f in fs]])
+    return lo, hi, max(f_min, 0.0005), min(f_max, 0.9995)
+
+
 def probabilidad(rangos: list[tuple[float, float, float]] | None, beta: float | None, eta: float | None,
                  beta_ic: tuple[float, float] | None = None, eta_ic: tuple[float, float] | None = None,
-                 titulo: str = "Gráfico de probabilidad Weibull") -> go.Figure:
-    """Papel Weibull: eje x = edad (log), eje y = ln(−ln(1−F)). Puntos = fallas con rango de Benard;
-    recta = ajuste; líneas punteadas = rectas con los extremos del IC (orientativo, D-041)."""
+                 titulo: str = "Papel de Weibull", t_mision: float | None = None, etiquetas_max: int = 10,
+                 unidad: str = "h") -> go.Figure:
+    """Papel de Weibull como el de la cátedra (UNIDAD 2, diap. 35–38).
+
+    Eje x = tiempo en escala logarítmica (décadas completas); eje y = F(t) en escala de Weibull, ln(−ln(1−F)).
+    Puntos = fallas con su F(i) por rango de Benard; recta = ajuste. El **polo** (borde izquierdo, a la altura del
+    63,2 %) con el abanico de β permite leer la pendiente: β es la guía paralela a la recta. La horizontal punteada
+    del 63,2 % corta a la recta en η (flecha hacia el eje). Con `t_mision` se dibuja la lectura de F y R a ese tiempo
+    (diap. 38). Las rectas punteadas grises son los extremos del IC (orientativo, D-041).
+    """
     fig = go.Figure()
-    marcas_f = [0.01, 0.05, 0.1, 0.2, 0.3, 0.5, 0.632, 0.8, 0.9, 0.95, 0.99]
-    if rangos:
-        fig.add_trace(go.Scatter(x=[r[0] for r in rangos], y=[_y_weibull(r[2]) for r in rangos], mode="markers",
-                                 name="Fallas (rango de Benard)", marker=dict(size=10, color="#1a73e8")))
-    if beta and eta:
-        xs = [r[0] for r in rangos] if rangos else [eta]
-        t = np.geomspace(max(min(xs) * 0.5, 1e-6), max(max(xs), eta) * 2, 60)
-        fig.add_trace(go.Scatter(x=t, y=[_y_weibull(kpis.infiabilidad(x, beta, eta)) for x in t], mode="lines",
-                                 name=f"Ajuste β={beta:.2f}, η={eta:.0f}", line=dict(color="#202124", width=2)))
+    rangos = rangos or []
+    xs = [r[0] for r in rangos if r[0] > 0]
+    fs = [r[2] for r in rangos]
+    hay_ajuste = bool(beta and eta)
+    if hay_ajuste:
+        xs.append(eta)
+    if t_mision and t_mision > 0:
+        xs.append(t_mision)
+    if not xs:
+        fig.update_layout(title=titulo, **_BASE)
+        return fig
+    lo, hi, f_min, f_max = _limites_papel(xs, fs)
+    x0, x1 = 10.0 ** lo, 10.0 ** hi
+    y0, y1 = _y_weibull(f_min), _y_weibull(f_max)
+
+    # Grilla del papel: 1 a 9 en cada década y los valores de F de siempre.
+    menores_x, decadas_x = [], []
+    for d in range(lo, hi + 1):
+        for k in range(1, 10):
+            x = k * 10.0 ** d
+            if x0 <= x <= x1:
+                (decadas_x if k == 1 else menores_x).extend([x, x, None])
+    fy = [f for f in _F_GRILLA if f_min <= f <= f_max]
+    menores_y = []
+    for f in fy:
+        menores_y.extend([_y_weibull(f), _y_weibull(f), None])
+    fig.add_trace(go.Scatter(x=menores_x, y=[y0, y1, None] * (len(menores_x) // 3), mode="lines", hoverinfo="skip",
+                             line=dict(color=_PAPEL["grilla"], width=1), showlegend=False))
+    fig.add_trace(go.Scatter(x=decadas_x, y=[y0, y1, None] * (len(decadas_x) // 3), mode="lines", hoverinfo="skip",
+                             line=dict(color=_PAPEL["decada"], width=1.6), showlegend=False))
+    fig.add_trace(go.Scatter(x=[x0, x1, None] * len(fy), y=menores_y, mode="lines", hoverinfo="skip",
+                             line=dict(color=_PAPEL["grilla"], width=1), showlegend=False))
+
+    # Polo, abanico de β y escala de β arriba.
+    anotaciones = []
+    for b in BETAS_ABANICO:
+        x_top = x0 * math.exp(y1 / b)
+        if x_top > x1:
+            continue
+        fig.add_trace(go.Scatter(x=[x0, x_top], y=[0, y1], mode="lines", showlegend=False, hoverinfo="text",
+                                 hovertext=f"Guía de β = {_num(b, 1)}: si la recta de tus datos es paralela a esta, "
+                                           f"β ≈ {_num(b, 1)}",
+                                 line=dict(color=_PAPEL["beta"], width=1, dash="dash")))
+        anotaciones.append(dict(x=math.log10(x_top), y=y1, text=_num(b, 1), showarrow=False, textangle=-90,
+                                yanchor="bottom", font=dict(color=_PAPEL["beta"], size=11)))
+    anotaciones.append(dict(x=lo, y=y1, text="<b>β</b>", showarrow=False, xanchor="right", yanchor="bottom",
+                            font=dict(color=_PAPEL["beta"], size=14)))
+    fig.add_trace(go.Scatter(x=[x0], y=[0], mode="markers", showlegend=False, hoverinfo="text",
+                             hovertext="Polo (punto de estimación): desde acá se traza la paralela a la recta "
+                                       "y se lee β en la escala de arriba",
+                             marker=dict(size=9, color="white", line=dict(color=_PAPEL["recta"], width=1.5))))
+    # Línea auxiliar del 63,2 %
+    fig.add_trace(go.Scatter(x=[x0, x1], y=[0, 0], mode="lines", showlegend=False, hoverinfo="text",
+                             hovertext="F = 63,2 %: la recta corta esta línea en η (vida característica)",
+                             line=dict(color=_PAPEL["recta"], width=1.2, dash="dash")))
+    anotaciones.append(dict(x=hi, y=0, text="<b>η</b>", showarrow=False, xanchor="left",
+                            font=dict(color=_PAPEL["beta"], size=14)))
+
+    if hay_ajuste:
+        t = np.geomspace(x0, x1, 80)
+        y_recta = [_y_weibull(kpis.infiabilidad(x, beta, eta)) for x in t]
+        fig.add_trace(go.Scatter(x=t, y=y_recta, mode="lines", name=f"Recta de Weibull (β = {_num(beta, 2)}, "
+                                 f"η = {_num(eta)} {unidad})", hoverinfo="skip", line=dict(color=_PAPEL["recta"], width=2.5)))
         if beta_ic and eta_ic and all(map(math.isfinite, [*beta_ic, *eta_ic])):
             for b, e in ((beta_ic[0], eta_ic[0]), (beta_ic[1], eta_ic[1])):
                 fig.add_trace(go.Scatter(x=t, y=[_y_weibull(kpis.infiabilidad(x, b, e)) for x in t], mode="lines",
-                                         name="Extremos del IC (orientativo)", showlegend=b == beta_ic[0],
-                                         line=dict(color="#9aa0a6", dash="dot")))
-    fig.update_xaxes(type="log", title="Edad (h)")
-    fig.update_yaxes(title="Probabilidad de falla acumulada F", tickvals=[_y_weibull(f) for f in marcas_f],
-                     ticktext=[f"{f:.0%}" if f != 0.632 else "63,2 %" for f in marcas_f], range=[_y_weibull(0.005), _y_weibull(0.995)])
-    fig.update_layout(title=titulo, **_BASE)
+                                         name="Extremos del intervalo de confianza", showlegend=b == beta_ic[0],
+                                         hoverinfo="skip", line=dict(color=_PAPEL["ic"], dash="dot")))
+        # Paralela por el polo: flecha con el valor de β
+        y_flecha = y1 * 0.92
+        x_flecha = x0 * math.exp(y_flecha / beta)
+        if x_flecha > x1:
+            x_flecha, y_flecha = x1, beta * math.log(x1 / x0)
+        anotaciones.append(dict(x=math.log10(x_flecha), y=y_flecha, ax=lo, ay=0, axref="x", ayref="y", text="",
+                                showarrow=True, arrowhead=2, arrowwidth=2.2, arrowcolor=_PAPEL["recta"]))
+        anotaciones.append(dict(x=math.log10(x_flecha), y=y_flecha, text=f"<b>β = {_num(beta, 2)}</b>", showarrow=False,
+                                xanchor="left", yanchor="middle", xshift=6, font=dict(size=13, color=_PAPEL["recta"]),
+                                bgcolor="rgba(255,255,255,0.85)"))
+        # η: de la intersección con el 63,2 % baja al eje
+        anotaciones.append(dict(x=math.log10(eta), y=y0, ax=math.log10(eta), ay=0, axref="x", ayref="y", text="",
+                                showarrow=True, arrowhead=2, arrowwidth=2.2, arrowcolor=_PAPEL["recta"]))
+        anotaciones.append(dict(x=math.log10(eta), y=y0, text=f"<b>η = {_num(eta)} {unidad}</b>", showarrow=False,
+                                yanchor="bottom", xanchor="left", xshift=6, yshift=4, font=dict(size=13),
+                                bgcolor="rgba(255,255,255,0.85)"))
+        if t_mision and t_mision > 0:
+            f_m = kpis.infiabilidad(t_mision, beta, eta)
+            y_m = _y_weibull(f_m)
+            fig.add_trace(go.Scatter(x=[t_mision, t_mision, x0], y=[y0, y_m, y_m], mode="lines", showlegend=False,
+                                     hoverinfo="text", hovertext=f"Lectura a t = {_num(t_mision)} {unidad}: "
+                                     f"F = {_num(100 * f_m, 1)} %, R = {_num(100 * (1 - f_m), 1)} %",
+                                     line=dict(color=_PAPEL["lectura"], width=1.8, dash="dashdot")))
+            anotaciones.append(dict(x=math.log10(t_mision), y=y_m, text=f"t = {_num(t_mision)} {unidad} → "
+                                    f"F = {_num(100 * f_m, 1)} % · R = {_num(100 * (1 - f_m), 1)} %",
+                                    showarrow=False, xanchor="left", yanchor="top", xshift=6, yshift=-4,
+                                    font=dict(color=_PAPEL["lectura"], size=12), bgcolor="rgba(255,255,255,0.85)"))
+
+    if rangos:
+        textos = [f"Falla N.º {_num(r[1], 2) if abs(r[1] - round(r[1])) > 1e-9 else int(round(r[1]))}<br>"
+                  f"t = {_num(r[0])} {unidad}<br>F(i) = {_num(100 * r[2], 2)} % (rango de Benard)" for r in rangos]
+        fig.add_trace(go.Scatter(x=[r[0] for r in rangos], y=[_y_weibull(r[2]) for r in rangos], mode="markers",
+                                 name="Fallas, F(i) por Benard", hoverinfo="text", hovertext=textos,
+                                 marker=dict(size=11, color=_PAPEL["puntos"], line=dict(color="#7f0000", width=1))))
+        if len(rangos) <= etiquetas_max:
+            for r in rangos:
+                anotaciones.append(dict(x=math.log10(r[0]), y=_y_weibull(r[2]), xanchor="left", xshift=10, yshift=-10,
+                                        text=f"t={_num(r[0])}, F={_num(100 * r[2], 2)} %", showarrow=False,
+                                        font=dict(size=10), bgcolor="rgba(255,255,255,0.9)", bordercolor="#5f6368",
+                                        borderwidth=1))
+
+    marcas = [f for f in _F_MARCAS if f_min <= f <= f_max]
+    fig.update_xaxes(type="log", range=[lo, hi], title=f"Tiempo t ({unidad}), escala logarítmica", showgrid=False,
+                     zeroline=False, tickvals=[10.0 ** d for d in range(lo, hi + 1)],
+                     ticktext=[_num(10.0 ** d, max(0, -d)) for d in range(lo, hi + 1)],
+                     tickfont=dict(color=_PAPEL["rotulos"]), showline=True, linecolor="#5f6368", mirror=True)
+    fig.update_yaxes(title="Infiabilidad F(t) (%)", range=[y0, y1], showgrid=False, zeroline=False,
+                     tickvals=[_y_weibull(f) for f in marcas], ticktext=[_pct(f) for f in marcas],
+                     tickfont=dict(color=_PAPEL["rotulos"]), showline=True, linecolor="#5f6368", mirror=True)
+    fig.update_layout(title=titulo, annotations=anotaciones, plot_bgcolor="white", hovermode="closest",
+                      **{**_BASE, "height": 560, "margin": dict(l=10, r=30, t=70, b=10)})
     return fig
 
 

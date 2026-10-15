@@ -38,3 +38,21 @@ def test_cortes_en_el_borde():
 def test_valor_fuera_de_escala():
     with pytest.raises(ValueError, match="escala"):
         evaluar_tp(dict(uso=4, alternativa=5, influencia=5, calidad=5, ambiente=3, seguridad=5), CORTES, CLASES)
+
+
+@pytest.mark.referencia
+@pytest.mark.parametrize("maquina,valores,esperado", [
+    # Planilla "Listado de Máquinas y Detalle", hoja Criticidad (rev. 2, 08/07/2026). Orden de la planilla:
+    # producción, influencia en planta, calidad, seguridad, medio ambiente, sustitución.
+    ("AGR-001", (5, 4, 2, 5, 5, 1), 73.75),
+    ("AGR-002", (5, 4, 2, 5, 5, 1), 73.75),
+    ("MOL-001", (1, 2, 2, 3, 1, 4), 23.75),
+    ("TRI-001", (1, 2, 2, 3, 1, 4), 23.75),
+    ("LAV-001", (5, 4, 4, 3, 1, 4), 71.25),
+    ("SEC-001", (3, 2, 4, 3, 1, 4), 46.25),
+    ("ENF-001", (3, 2, 2, 1, 1, 1), 23.75),
+    ("ENF-002", (3, 2, 2, 1, 1, 1), 23.75),
+])
+def test_reproduce_criticidad_sobre_100_de_la_empresa(maquina, valores, esperado):
+    v = dict(zip(("uso", "influencia", "calidad", "seguridad", "ambiente", "alternativa"), valores, strict=True))
+    assert evaluar_tp(v, CORTES, CLASES, PESOS).puntaje_100 == pytest.approx(esperado)

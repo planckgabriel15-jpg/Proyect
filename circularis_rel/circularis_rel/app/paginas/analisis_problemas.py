@@ -82,7 +82,7 @@ def formulario_otro_tipo(a, cont: dict, cerrado: bool) -> None:
 tab_pareto, tab_sug, tab_analisis, tab_nuevo = st.tabs(["Pareto", "Sugerencias", "Análisis en curso", "Nuevo análisis"])
 
 with tab_pareto:
-    c1, c2, c3 = st.columns([3, 3, 1])
+    c1, c2, c3 = st.columns([3, 3, 2])
     dias = c1.segmented_control("Período", [30, 90, 365], default=365, format_func=lambda d: f"{d} días",
                                 key="rca_dias") or 365
     opciones = ["horas", "costo", "frecuencia"] if ver_costos else ["horas", "frecuencia"]
@@ -140,7 +140,7 @@ with tab_analisis:
         aid = st.selectbox("Análisis", ids, index=ids.index(pedido) if pedido in ids else 0, format_func=nombres.get)
         a = next(x for x in lista if x.id == aid)
         cont = a.contenido or {}
-        c1, c2, c3 = st.columns([8, 1, 1])
+        c1, c2, c3 = st.columns([4, 2, 2])
         c1.markdown(f"**Problema:** {cont.get('problema', '')}")
         A.boton("cinco_porques", c2)
         A.boton("pdca", c3)

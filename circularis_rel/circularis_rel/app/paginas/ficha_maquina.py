@@ -115,21 +115,23 @@ for comp in m.componentes:
                 st.info(panel.TEXTO_INTERPRETACION[r.interpretacion.value])
             for adv in (r.comparacion or {}).get("advertencias", []):
                 st.caption("⚠️ " + adv)
-            g1, g2 = st.columns(2)
             ic_beta = (r.beta_inf, r.beta_sup) if r.beta_inf and r.beta_sup else None
             ic_eta = (r.eta_inf, r.eta_sup) if r.eta_inf and r.eta_sup else None
-            g1.plotly_chart(G.probabilidad(item["rangos"], r.beta, r.eta, ic_beta, ic_eta), width="stretch",
-                            key=f"prob_{r.id}")
-            g2.plotly_chart(G.confiabilidad_y_tasa(r.beta, r.eta, comp.edad, r.gamma or 0.0), width="stretch", key=f"rh_{r.id}")
-            b1, b2 = st.columns(2)
+            st.plotly_chart(G.probabilidad(item["rangos"], r.beta, r.eta, ic_beta, ic_eta, t_mision=comp.edad or None,
+                                           titulo="Papel de Weibull" + (" (lectura en la edad actual)" if comp.edad else "")),
+                            width="stretch", key=f"prob_{r.id}")
+            b1, b2, b3, b4 = st.columns(4)
             A.boton("grafico_probabilidad", b1)
             A.boton("beta", b2)
+            A.boton("eta", b3)
+            A.boton("lectura_mision", b4)
+            st.plotly_chart(G.confiabilidad_y_tasa(r.beta, r.eta, comp.edad, r.gamma or 0.0), width="stretch", key=f"rh_{r.id}")
 
 # La máquina como sistema reparable (fase 4)
 st.subheader("Tendencia de la máquina")
 with db.lectura() as s:
     tend = sistemas.analizar(s, activo.id, hoy - timedelta(days=730), hoy, tz)
-c1, c2 = st.columns([9, 1])
+c1, c2 = st.columns([3, 1])
 c1.caption("¿Las fallas se aceleran o se espacian con el tiempo? Crow-AMSAA (β > 1: se degrada) y prueba de Laplace, "
            "con las horas operadas acumuladas de los últimos dos años.")
 A.boton("crow_amsaa", c2)

@@ -14,6 +14,7 @@ from circularis_rel.servicios.permisos import Accion, requerir
 
 requerir(contexto.usuario()["rol"], Accion.VER_PANEL_GERENCIAL)
 st.header("🧮 Herramientas de fiabilidad")
+st.caption("El papel de Weibull para practicar con datos propios está en **Papel de Weibull**.")
 tab_mort, tab_exp, tab_bloques = st.tabs(["Tabla de mortalidad", "Modelo exponencial", "Bloques serie y paralelo"])
 
 with tab_mort:

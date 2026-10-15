@@ -22,9 +22,9 @@ PAGINAS_JEFE = ["puesta_en_marcha.py", "carga_inicial.py", "maquinas.py", "histo
                 "cerrar_ot.py", "cambio_preventivo.py", "planta.py", "reportar_falla.py", "parte_turno.py", "tarjeta.py",
                 "exportar.py", "panel_planta.py", "ficha_maquina.py", "analisis_weibull.py", "analisis_problemas.py",
                 "tablero.py", "catalogos.py", "criticidad.py", "piloto.py", "plan_preventivo.py", "repuestos.py",
-                "reportes.py", "predictivo.py", "herramientas.py", "tpm.py", "amfe.py"]
+                "reportes.py", "predictivo.py", "herramientas.py", "tpm.py", "amfe.py", "papel_weibull.py"]
 PAGINAS_OPERARIO = ["planta.py", "reportar_falla.py", "parte_turno.py", "tarjeta.py", "ficha_maquina.py", "ayuda.py"]
-PAGINAS_GERENCIA = ["panel_planta.py", "tablero.py", "ficha_maquina.py", "reportes.py", "herramientas.py", "tpm.py",
+PAGINAS_GERENCIA = ["panel_planta.py", "tablero.py", "ficha_maquina.py", "reportes.py", "herramientas.py", "tpm.py", "papel_weibull.py",
                     "exportar.py", "ayuda.py"]
 PAGINAS_ENCARGADO = ["bandeja_encargado.py", "cerrar_ot.py", "cambio_preventivo.py", "analisis_problemas.py",
                      "ficha_maquina.py", "planta.py", "exportar.py", "plan_preventivo.py", "repuestos.py", "predictivo.py"]
@@ -140,3 +140,14 @@ def test_qr_preselecciona_maquina(base):
     at.switch_page(str(APP / "paginas" / "maquinas.py")).run()
     assert not at.exception
     assert at.selectbox[0].value == "DEMO-EXT-001"
+
+
+def test_papel_de_weibull_con_el_ejemplo_de_la_catedra(base):
+    at = _app(base["JEFE"]).run()
+    at.switch_page(str(APP / "paginas" / "papel_weibull.py")).run()
+    assert not at.exception, [e.value for e in at.exception]
+    valores = {m.label: m.value for m in at.metric}
+    assert valores["β (pendiente)"] == "1,44" and valores["η (vida característica)"] == "76 h"
+    assert valores["R(15 h)"].startswith("90,")
+    at.radio(key="papel_unidad").set_value("días").run()  # en días sin las horas por día: pide el dato
+    assert any("horas por día" in e.value for e in at.error)

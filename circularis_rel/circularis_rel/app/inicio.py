@@ -52,6 +52,7 @@ exportar = pagina("exportar.py", "Exportar", "📤")
 panel_planta = pagina("panel_planta.py", "Panel de planta", "📊")
 ficha = pagina("ficha_maquina.py", "Ficha de máquina", "🏭")
 weibull = pagina("analisis_weibull.py", "Análisis Weibull", "📈")
+papel = pagina("papel_weibull.py", "Papel de Weibull", "📐")
 problemas = pagina("analisis_problemas.py", "Análisis de problemas", "🔍")
 tablero = pagina("tablero.py", "Tablero de comando", "🎯")
 plan = pagina("plan_preventivo.py", "Plan preventivo", "🗓️")
@@ -67,10 +68,10 @@ elif rol == Rol.ENCARGADO:
     paginas = {"Mantenimiento": [*mantenimiento, plan, repuestos, *predictivo, problemas, ficha], "Planta": planta,
                "Otros": [exportar, ayuda]}
 elif rol == Rol.GERENCIA:
-    paginas = {"": [panel_planta, tablero, ficha, reportes, *tpm, *herramientas, exportar, ayuda]}
+    paginas = {"": [panel_planta, tablero, ficha, reportes, *tpm, papel, *herramientas, exportar, ayuda]}
 else:  # JEFE
     paginas = {
-        "Panel": [panel_planta, ficha, weibull, problemas, tablero, reportes, *tpm, *herramientas],
+        "Panel": [panel_planta, ficha, weibull, papel, problemas, tablero, reportes, *tpm, *herramientas],
         "Gestión": [pagina("bandeja_validacion.py", "Bandeja de validación", "✅"), *mantenimiento, plan, repuestos,
                     *predictivo],
         "Planta": planta,

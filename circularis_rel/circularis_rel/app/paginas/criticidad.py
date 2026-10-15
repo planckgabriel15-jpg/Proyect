@@ -7,10 +7,11 @@ import streamlit as st
 from sqlalchemy import select
 
 from circularis_rel.app import contexto
+from circularis_rel.app.componentes import ayuda as A
 from circularis_rel.app.componentes import formularios as F
 from circularis_rel.asistente import criticidad as AC
 from circularis_rel.datos.enums import MetodoCriticidad
-from circularis_rel.datos.modelos import Activo
+from circularis_rel.datos.modelos import Activo, CriticidadEvaluacion
 from circularis_rel.servicios import criticidad as SC
 from circularis_rel.servicios import panel
 from circularis_rel.servicios import parametros as P
@@ -32,9 +33,12 @@ with db.lectura() as s:
     escalas_u1 = P.obtener(s, "criticidad.u1_escalas")
     cortes_u1 = P.obtener(s, "criticidad.u1_cortes")
     cortes_tp = P.obtener(s, "criticidad.tp_cortes")
+    sobre_100 = {ev.id_activo: (ev.criterios or {}).get("puntaje_100")
+                 for ev in s.scalars(select(CriticidadEvaluacion).where(CriticidadEvaluacion.vigente.is_(True)))}
 
 st.dataframe([{"Máquina": a.codigo, "Nombre": a.nombre, "Clase": a.criticidad_clase.value if a.criticidad_clase else "—",
                "Nivel": a.criticidad_nivel or "—", "Puntaje": a.criticidad_puntaje,
+               "Sobre 100": sobre_100.get(a.id),
                "Método": "TP" if a.criticidad_metodo == MetodoCriticidad.TP_6_CRITERIOS else
                "U1" if a.criticidad_metodo else "—"} for a in activos], hide_index=True, width="stretch")
 if not activos:
@@ -78,10 +82,12 @@ for c in AC.CRITERIOS:
 if len(valores) == len(AC.CRITERIOS):
     with db.lectura() as s:
         r = SC.calcular(s, metodo, valores)
-    c1, c2, c3 = st.columns(3)
-    c1.metric("Puntaje", f"{r.puntaje:.0f}")
+    c1, c2, c3, c4 = st.columns(4)
+    c1.metric("Puntaje", f"{r.puntaje:.0f}", help="Suma de los seis criterios (TP N.º 1)")
     c2.metric("Nivel", r.nivel or "—")
     c3.metric("Clase calculada", r.clase or "elegir")
+    if r.puntaje_100 is not None:
+        A.metrica(c4, "Criticidad sobre 100", A.numero(r.puntaje_100, 2), "criticidad_100")
     manual = None
     if not r.clase:
         manual = st.radio("Clase", ["A", "B", "C"], horizontal=True, index=None)

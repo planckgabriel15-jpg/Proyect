@@ -43,7 +43,8 @@ def guardar(s: Session, id_usuario: int, id_activo: int, metodo: MetodoCriticida
     for previa in s.scalars(select(CriticidadEvaluacion).where(CriticidadEvaluacion.id_activo == id_activo,
                                                                CriticidadEvaluacion.vigente.is_(True))):
         previa.vigente = False
-    detalle = {**valores, "puntaje_ponderado_plan": r.puntaje_ponderado, "clase_calculada": r.clase or None,
+    detalle = {**valores, "puntaje_ponderado_plan": r.puntaje_ponderado, "puntaje_100": r.puntaje_100,
+               "clase_calculada": r.clase or None,
                "clase_manual": clase_manual}
     ev = CriticidadEvaluacion(id_activo=id_activo, metodo=metodo, criterios=detalle, puntaje=r.puntaje, nivel=r.nivel or None,
                               clase=ClaseCriticidad(clase), fecha=fecha, id_usuario=id_usuario, vigente=True)
