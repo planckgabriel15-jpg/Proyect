@@ -264,7 +264,8 @@ def main(argv: list[str] | None = None) -> int:
     c.set_defaults(f=cmd_app)
     c = sub.add_parser("tareas", help="proceso de tareas programadas (servicio)")
     c.add_argument("--una-vez", choices=["nocturno", "faltantes", "backup", "prueba_restauracion", "cola", "plan",
-                                         "alertas_diarias", "mails", "mails_resumen", "reporte_mensual", "resumen_semanal"])
+                                         "alertas_diarias", "mails", "mails_resumen", "reporte_mensual", "resumen_semanal",
+                                         "tendencias", "ocurrencias_amfe"])
     c.set_defaults(f=cmd_tareas)
     c = sub.add_parser("restaurar", help="restaura un backup (hace antes un backup de la base actual)")
     c.add_argument("archivo")

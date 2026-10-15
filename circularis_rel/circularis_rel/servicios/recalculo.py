@@ -137,8 +137,9 @@ def _fila(a: AjusteWeibull, id_tipo, id_modo, id_activo, conjunto, hash_datos, v
         id_activo=id_activo, conjunto_datos=conjunto, n_fallas=a.n_fallas, n_suspensiones=a.n_suspensiones,
         n_intervalo=a.n_intervalo, metodo=metodo, forzado=forzado is not None,
         justificacion=forzado.justificacion if forzado else None, beta=a.beta, eta=a.eta, gamma=a.gamma,
-        beta_inf=a.beta_ic[0] if a.beta_ic else None, beta_sup=a.beta_ic[1] if a.beta_ic else None,
-        eta_inf=a.eta_ic[0] if a.eta_ic else None,
+        beta_inf=a.beta_ic[0] if a.beta_ic and a.beta_ic[0] > 0 else None,
+        beta_sup=a.beta_ic[1] if a.beta_ic and math.isfinite(a.beta_ic[1]) else None,
+        eta_inf=a.eta_ic[0] if a.eta_ic and a.eta_ic[0] > 0 else None,
         eta_sup=a.eta_ic[1] if a.eta_ic and math.isfinite(a.eta_ic[1]) else None,
         metodo_ic=MetodoIC(a.metodo_ic),
         nivel_ic=a.nivel_ic, r2=a.r2, r2_critico=a.r2_critico, ad=a.ad,
@@ -350,6 +351,9 @@ def actualizar_estado(s: Session, pos: PosicionComponente, tz: ZoneInfo, hoy: da
                                       umbrales(s), delta)
     if vida is not None and not vida.edad_conocida:
         color.motivos.append("Edad desconocida: el componente estaba instalado antes del sistema")
+    if dominante is not None and edad is not None and edad >= dominante.eta and P.obtener(s, "fiabilidad.revision_en_eta"):
+        color.motivos.append(f"Llegó a la vida característica η = {dominante.eta:.0f} (R ≈ 36,8 %): la cátedra recomienda al "
+                             "menos un control del equipo y revisar el plan preventivo (UNIDAD 2)")
     from circularis_rel.servicios import plan_preventivo  # import tardío: usa este módulo
 
     prueba = plan_preventivo.estado_prueba(s, pos, hoy, tz)

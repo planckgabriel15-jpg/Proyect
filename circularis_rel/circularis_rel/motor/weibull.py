@@ -217,7 +217,9 @@ def ic_razon_verosimilitud(obs: list[Observacion], beta: float, eta: float, nive
         return -r.fun
 
     def limite(fun, centro: float, factor: float) -> float:
-        """Busca el borde del intervalo alejándose de `centro` (×factor) y lo afina con Brent."""
+        """Busca el borde del intervalo alejándose de `centro` (×factor) y lo afina con Brent. Si la verosimilitud
+        perfil no cae lo suficiente (pocas fallas, mucha censura), el intervalo queda abierto de ese lado:
+        devuelve ∞ (o 0) en lugar de un número inventado (D-034)."""
         g = lambda v: lmax - fun(v) - umbral  # noqa: E731  (negativa adentro del intervalo, positiva afuera)
         afuera = centro
         for _ in range(80):
@@ -225,7 +227,7 @@ def ic_razon_verosimilitud(obs: list[Observacion], beta: float, eta: float, nive
             if g(afuera) > 0:
                 a, b = sorted((centro, afuera))
                 return optimize.brentq(g, a, b, xtol=1e-9 * centro)
-        raise RuntimeError("No se encontró el borde del intervalo de confianza")
+        return math.inf if factor > 1 else 0.0
 
     b_inf = limite(lambda b: _perfil_beta(b, sep), beta, 0.85)
     b_sup = limite(lambda b: _perfil_beta(b, sep), beta, 1.15)

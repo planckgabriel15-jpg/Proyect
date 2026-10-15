@@ -2,7 +2,7 @@
 
 Revision ID: 0001
 Revises: 
-Create Date: 2026-10-15 13:29:15.180105
+Create Date: 2026-10-15 14:45:15.520232
 
 """
 from typing import Sequence, Union
@@ -213,6 +213,7 @@ def upgrade() -> None:
     sa.Column('criticidad_metodo', sa.Enum('TP_6_CRITERIOS', 'PONDERACION_U1', name='ck_metodo_criticidad', native_enum=False, create_constraint=True, length=40), nullable=True),
     sa.Column('autonomia_pulmon_h', sa.Float(), nullable=True),
     sa.Column('ciclo_teorico_s', sa.Float(), nullable=True),
+    sa.Column('usa_horometro', sa.Boolean(), nullable=False),
     sa.Column('numero_serie', sa.String(length=80), nullable=True),
     sa.Column('fabricante', sa.String(length=120), nullable=True),
     sa.Column('modelo', sa.String(length=120), nullable=True),
@@ -366,6 +367,8 @@ def upgrade() -> None:
     sa.Column('horas_operadas', sa.Float(), nullable=False),
     sa.Column('id_motivo', sa.Integer(), nullable=True),
     sa.Column('cantidad_procesada', sa.Float(), nullable=True),
+    sa.Column('cantidad_rechazada', sa.Float(), nullable=True),
+    sa.Column('lectura_horometro', sa.Float(), nullable=True),
     sa.Column('nivel_hora', sa.Enum('M', 'D', 'E', name='ck_nivel_hora_parte', native_enum=False, create_constraint=True, length=40), nullable=False),
     sa.Column('origen', sa.Enum('OPERARIO', 'ESTIMADO_SISTEMA', 'IMPORTADO', name='ck_origen_parte', native_enum=False, create_constraint=True, length=40), nullable=False),
     sa.Column('id_usuario', sa.Integer(), nullable=True),
@@ -378,9 +381,11 @@ def upgrade() -> None:
     sa.CheckConstraint('abs(horas_no_operadas * 2 - round(horas_no_operadas * 2)) < 1e-9', name='ck_parte_paso_media_hora'),
     sa.CheckConstraint('abs(horas_operadas - (horas_turno - horas_no_operadas)) < 1e-9', name='ck_parte_horas_operadas'),
     sa.CheckConstraint('cantidad_procesada IS NULL OR cantidad_procesada >= 0', name='ck_parte_cantidad'),
+    sa.CheckConstraint('cantidad_rechazada IS NULL OR (cantidad_rechazada >= 0 AND (cantidad_procesada IS NULL OR cantidad_rechazada <= cantidad_procesada))', name='ck_parte_rechazada'),
     sa.CheckConstraint('horas_no_operadas = 0 OR id_motivo IS NOT NULL', name='ck_parte_motivo'),
     sa.CheckConstraint('horas_no_operadas >= 0 AND horas_no_operadas <= horas_turno', name='ck_parte_horas_no_op'),
     sa.CheckConstraint('horas_turno > 0 AND horas_turno <= 24', name='ck_parte_horas_turno'),
+    sa.CheckConstraint('lectura_horometro IS NULL OR lectura_horometro >= 0', name='ck_parte_horometro'),
     sa.ForeignKeyConstraint(['id_activo'], ['activo.id'], ),
     sa.ForeignKeyConstraint(['id_motivo'], ['motivo_parada.id'], ),
     sa.ForeignKeyConstraint(['id_turno'], ['turno.id'], ),

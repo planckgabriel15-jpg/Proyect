@@ -76,7 +76,7 @@ DATOS_DEMO: dict[str, list[dict]] = {
         {"codigo": "DEMO-LAV-001", "nombre": "Cuba de lavado DEMO", "linea": "DEMO-TWOOD", "etapa_proceso": "LAVADO",
          "horas_promedio_dia": 6, "autonomia_pulmon_h": 2},
         {"codigo": "DEMO-EXT-001", "nombre": "Extrusora DEMO", "linea": "DEMO-TWOOD", "etapa_proceso": "EXTRUSION",
-         "horas_promedio_dia": 8, "autonomia_pulmon_h": 0, "unidad_produccion": "DURMIENTES"},
+         "horas_promedio_dia": 8, "autonomia_pulmon_h": 0, "unidad_produccion": "DURMIENTES", "ciclo_teorico_s": 120},
     ],
     "maquina_turnos": [
         {"maquina": "DEMO-AGR-001", "turno": "DEMO-M"}, {"maquina": "DEMO-LAV-001", "turno": "DEMO-M"},
@@ -153,6 +153,7 @@ def borrar_demo(db: BaseDatos, usuario_id: int | None = None) -> None:
         Alerta,
         AnalisisProblema,
         ConsumoRepuesto,
+        EquivalenciaComponente,
         EstadoComponente,
         EventoFalla,
         IntervencionProgramada,
@@ -164,6 +165,7 @@ def borrar_demo(db: BaseDatos, usuario_id: int | None = None) -> None:
         PredictivoMedicion,
         PredictivoParametro,
         RecalculoPendiente,
+        ResultadoSistema,
         ResultadoWeibull,
         TarjetaTPM,
         VidaComponente,
@@ -193,6 +195,8 @@ def borrar_demo(db: BaseDatos, usuario_id: int | None = None) -> None:
             t.id_evento_generado = None
         s.flush()
         borrar(EstadoComponente, EstadoComponente.id_posicion.in_(posiciones))
+        borrar(ResultadoSistema, ResultadoSistema.id_activo.in_(activos))
+        borrar(EquivalenciaComponente, EquivalenciaComponente.id_posicion.in_(posiciones))
         borrar(ResultadoWeibull, or_(ResultadoWeibull.id_tipo_componente.in_(tipos), ResultadoWeibull.id_activo.in_(activos)))
         borrar(RecalculoPendiente, or_(RecalculoPendiente.id_tipo_componente.in_(tipos), RecalculoPendiente.id_activo.in_(activos)))
         borrar(Alerta, Alerta.id_activo.in_(activos))

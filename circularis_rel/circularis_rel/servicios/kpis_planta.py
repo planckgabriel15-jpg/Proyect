@@ -5,7 +5,7 @@
 - Horas paradas = horas no operadas con motivo requerido.
 - MTBF = horas operadas / fallas validadas; MTTR = Σ reparación activa / n; MTTR total = Σ parada / n.
 - OEE = disponibilidad × rendimiento × calidad. Rendimiento = cantidad × ciclo teórico / horas operadas;
-  sin dato de calidad (piezas rechazadas) el OEE queda "falta dato" (se completa en la fase 4).
+  calidad = (realizadas − rechazadas) / realizadas (B-005); sin rechazadas cargadas el OEE queda "falta dato".
 """
 
 from __future__ import annotations
@@ -53,6 +53,7 @@ def kpis_maquina(s: Session, id_activo: int, desde: date, hasta: date, tz: ZoneI
     por_motivo: dict[str, float] = {}
     estimados = n_partes = 0
     hay_cantidad = False
+    rechazada, hay_rechazada = 0.0, False
     for p in s.scalars(select(ParteTurno).where(ParteTurno.id_activo == id_activo, ParteTurno.fecha.between(desde, hasta))):
         n_partes += 1
         estimados += p.origen == "ESTIMADO_SISTEMA"
@@ -67,6 +68,9 @@ def kpis_maquina(s: Session, id_activo: int, desde: date, hasta: date, tz: ZoneI
         if p.cantidad_procesada is not None:
             cantidad += p.cantidad_procesada
             hay_cantidad = True
+            if p.cantidad_rechazada is not None:
+                rechazada += p.cantidad_rechazada
+                hay_rechazada = True
     ini, fin = _rango(desde, hasta, tz)
     eventos = list(s.scalars(select(EventoFalla).where(
         EventoFalla.id_activo == id_activo, EventoFalla.estado == EstadoEvento.VALIDADO,
@@ -79,9 +83,10 @@ def kpis_maquina(s: Session, id_activo: int, desde: date, hasta: date, tz: ZoneI
     rendimiento = None
     if hay_cantidad and a.ciclo_teorico_s and operadas > 0:
         rendimiento = min(1.0, cantidad * a.ciclo_teorico_s / 3600 / operadas)
+    calidad = (cantidad - rechazada) / cantidad if hay_rechazada and cantidad > 0 else None
     return KPIsMaquina(a.codigo, turno, requeridas, paradas, operadas, por_motivo, n, mtbf, mttr, mttr_t,
                        kpis.disponibilidad_inherente(mtbf, mttr), ao, rendimiento,
-                       kpis.oee(ao, rendimiento, None), estimados, n_partes)
+                       kpis.oee(ao, rendimiento, calidad), estimados, n_partes)
 
 
 @dataclass

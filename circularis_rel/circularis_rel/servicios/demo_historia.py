@@ -99,9 +99,14 @@ def cargar_historia_demo(db: BaseDatos, tz: ZoneInfo, hoy: date | None = None) -
                     no_op = 0.0
                     if codigo != "DEMO-AGR-001" and rng.random() < 0.05:
                         no_op = float(rng.choice([0.5, 1.0, 1.5]))
+                    cantidad = rechazada = None
+                    if codigo == "DEMO-EXT-001":  # durmientes: ciclo real algo más lento que el teórico y algún rechazo
+                        cantidad = float(round((HORAS_TURNO - no_op) * 3600 / (120 * rng.uniform(1.05, 1.25))))
+                        rechazada = float(round(cantidad * rng.uniform(0.0, 0.04)))
                     s.add(ParteTurno(id_activo=a.id, fecha=d, id_turno=t.id, horas_turno=HORAS_TURNO,
                                      estado=EstadoParte.PARCIAL if no_op else EstadoParte.TODO, horas_no_operadas=no_op,
-                                     horas_operadas=HORAS_TURNO - no_op, id_motivo=limpieza if no_op else None))
+                                     horas_operadas=HORAS_TURNO - no_op, id_motivo=limpieza if no_op else None,
+                                     cantidad_procesada=cantidad, cantidad_rechazada=rechazada))
                     resumen["partes"] += 1
         s.flush()
 
@@ -187,7 +192,7 @@ def cargar_historia_demo(db: BaseDatos, tz: ZoneInfo, hoy: date | None = None) -
 
 
 def historia_demo_y_recalculo(db: BaseDatos, tz: ZoneInfo) -> dict:
-    from circularis_rel.servicios import alertas, flota, recalculo
+    from circularis_rel.servicios import alertas, amfe, flota, recalculo, sistemas
 
     r = cargar_historia_demo(db, tz)
     with db.escritura(motivo="Recálculo de la historia DEMO") as s:
@@ -196,5 +201,8 @@ def historia_demo_y_recalculo(db: BaseDatos, tz: ZoneInfo) -> dict:
             for m in flota.modos(s, g):
                 flota.ajustar(s, g, m.id, tz)
         r |= recalculo.recalcular_todo(s, tz)
-        r["alertas"] = alertas.actualizar_riesgo(s, datetime.now(tz).date())
+        hoy = datetime.now(tz).date()
+        r["alertas"] = alertas.actualizar_riesgo(s, hoy)
+        r["tendencias"] = len(sistemas.recalcular(s, hoy - timedelta(days=1000), hoy, tz))
+        r["amfe"] = amfe.actualizar_ocurrencias(s, hoy)
     return r

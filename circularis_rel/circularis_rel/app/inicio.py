@@ -34,7 +34,7 @@ if usuario is None:
 with contexto.db().lectura() as s:
     if hay_demo(s):
         estilos.cartel_demo()
-    mod_12g, mod_12h = modulos.habilitado(s, "12G"), modulos.habilitado(s, "12H")
+    mod_12g, mod_12h, mod_12f = (modulos.habilitado(s, c) for c in ("12G", "12H", "12F"))
 
 rol = Rol(usuario["rol"])
 
@@ -59,6 +59,7 @@ repuestos = pagina("repuestos.py", "Repuestos", "📦")
 predictivo = [pagina("predictivo.py", "Predictivo", "📡")] if mod_12g else []
 herramientas = [pagina("herramientas.py", "Herramientas de fiabilidad", "🧮")] if mod_12h else []
 reportes = pagina("reportes.py", "Reportes", "🧾")
+tpm = [pagina("tpm.py", "TPM y OEE", "⚙️")] if mod_12f else []
 
 if rol == Rol.OPERARIO:
     paginas = {"": [*planta, ficha, ayuda]}
@@ -66,10 +67,10 @@ elif rol == Rol.ENCARGADO:
     paginas = {"Mantenimiento": [*mantenimiento, plan, repuestos, *predictivo, problemas, ficha], "Planta": planta,
                "Otros": [exportar, ayuda]}
 elif rol == Rol.GERENCIA:
-    paginas = {"": [panel_planta, tablero, ficha, reportes, *herramientas, exportar, ayuda]}
+    paginas = {"": [panel_planta, tablero, ficha, reportes, *tpm, *herramientas, exportar, ayuda]}
 else:  # JEFE
     paginas = {
-        "Panel": [panel_planta, ficha, weibull, problemas, tablero, reportes, *herramientas],
+        "Panel": [panel_planta, ficha, weibull, problemas, tablero, reportes, *tpm, *herramientas],
         "Gestión": [pagina("bandeja_validacion.py", "Bandeja de validación", "✅"), *mantenimiento, plan, repuestos,
                     *predictivo],
         "Planta": planta,
@@ -79,6 +80,7 @@ else:  # JEFE
             pagina("carga_inicial.py", "Carga de planillas", "📥"),
             pagina("maquinas.py", "Máquinas y revisión", "🏗️"),
             pagina("criticidad.py", "Criticidad", "⚖️"),
+            pagina("amfe.py", "AMFE", "🧯"),
             pagina("catalogos.py", "Catálogos", "📚"),
             pagina("historico.py", "Histórico (triage)", "🗂️"),
         ],

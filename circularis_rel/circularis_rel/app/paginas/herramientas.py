@@ -1,17 +1,20 @@
-"""Herramientas de fiabilidad [12.H]: tabla de mortalidad y modelo exponencial (UNIDAD 2). Sirven para poblaciones
-numerosas de ítems iguales (motores, válvulas) y para enseñar los conceptos con números propios."""
+"""Herramientas de fiabilidad [12.H]: tabla de mortalidad, modelo exponencial y bloques serie/paralelo (UNIDAD 2).
+Sirven para poblaciones numerosas de ítems iguales (motores, válvulas) y para enseñar con números propios."""
 
 import plotly.graph_objects as go
 import streamlit as st
+from sqlalchemy import select
 
 from circularis_rel.app import contexto
 from circularis_rel.app.componentes import ayuda as A
+from circularis_rel.datos.modelos import Activo
 from circularis_rel.motor import kpis
+from circularis_rel.servicios import panel
 from circularis_rel.servicios.permisos import Accion, requerir
 
 requerir(contexto.usuario()["rol"], Accion.VER_PANEL_GERENCIAL)
 st.header("🧮 Herramientas de fiabilidad")
-tab_mort, tab_exp = st.tabs(["Tabla de mortalidad", "Modelo exponencial"])
+tab_mort, tab_exp, tab_bloques = st.tabs(["Tabla de mortalidad", "Modelo exponencial", "Bloques serie y paralelo"])
 
 with tab_mort:
     st.caption("Población de ítems idénticos que arrancan juntos: cuántos fallan en cada período. Da f(t), F(t), R(t), "
@@ -56,3 +59,34 @@ with tab_exp:
     m[0].metric("λ (por período)", A.numero(lam, 4))
     m[1].metric(f"R({t:g})", A.porcentaje(r, 2))
     m[2].metric("MTBF = 1/λ", A.numero(1 / lam, 1, "períodos") if lam else "sin fallas")
+
+with tab_bloques:
+    st.caption("Confiabilidad de un conjunto (UNIDAD 2, diap. 7–10). En **serie** todos tienen que andar: Rs = Π Rj. En "
+               "**paralelo** alcanza con uno: Rp = 1 − Π(1 − Rj). Cada grupo es un bloque o varios en paralelo, y los "
+               "grupos van en serie. Declarar paralelo solo lo que de verdad se reemplaza entre sí (no se supone).")
+    db = contexto.db()
+    tz = contexto.config().zona_horaria
+    with db.lectura() as s:
+        activos = list(s.scalars(select(Activo).where(Activo.activo.is_(True)).order_by(Activo.codigo)))
+    codigo = st.selectbox("Precargar con los componentes críticos de", ["(ninguna)", *[a.codigo for a in activos]])
+    filas_bloques = [{"grupo": 1, "bloque": "A", "R": 0.95}, {"grupo": 2, "bloque": "B", "R": 0.90},
+                     {"grupo": 2, "bloque": "C", "R": 0.90}]
+    if codigo != "(ninguna)":
+        with db.lectura() as s:
+            a = next(x for x in activos if x.codigo == codigo)
+            comps = [c for c in panel.componentes(s, a.id) if c.critica and c.p is not None]
+        filas_bloques = [{"grupo": i + 1, "bloque": c.codigo, "R": round(1 - c.p, 4)} for i, c in enumerate(comps)] or filas_bloques
+        if comps:
+            st.caption("R de cada componente = 1 − P(falla hasta la próxima parada), del semáforo de hoy.")
+    datos_b = st.data_editor(filas_bloques, num_rows="dynamic", width="stretch", key=f"bloques_{codigo}",
+                             column_config={"grupo": "Grupo (en serie)", "bloque": "Bloque",
+                                            "R": st.column_config.NumberColumn("Confiabilidad R", min_value=0.0, max_value=1.0)})
+    grupos: dict = {}
+    for f in datos_b:
+        if f.get("grupo") is not None and f.get("R") is not None:
+            grupos.setdefault(f["grupo"], []).append(float(f["R"]))
+    if grupos:
+        arbol = ("serie", [("paralelo", rs) if len(rs) > 1 else rs[0] for _g, rs in sorted(grupos.items())])
+        st.metric("Confiabilidad del conjunto", A.porcentaje(kpis.mixta(arbol), 2))
+        st.caption(" · ".join(f"Grupo {g}: " + (f"paralelo de {len(rs)} → {A.porcentaje(kpis.paralelo(rs), 2)}" if len(rs) > 1
+                                                  else A.porcentaje(rs[0], 2)) for g, rs in sorted(grupos.items())))

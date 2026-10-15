@@ -18,7 +18,24 @@ Los operarios y el encargado registran eventos desde el navegador (parte de turn
 | 1c. Panel (MVP) | **Hecha** | Panel de planta (tarjetas, línea en orden de proceso con semáforo, ranking de riesgo P×Cf, Pareto por horas/costo/frecuencia, tendencia mensual, calidad de datos), ficha de máquina (componentes con edad, β, η, P(Δ) con banda y vida remanente; gráfico de probabilidad; R(t) y h(t) con la edad; línea de tiempo; horas perdidas por motivo), análisis Weibull (vigente y alternativa, comparación de distribuciones, forzar método con justificación, curva C(T)), análisis de problemas (Pareto, sugerencias automáticas, 5 Porqués con PDCA y OT modificativa), tablero de comando (CMFT, CPCT, HPHP, TBMP, TBMC, OCPM), ayuda "?" en cada indicador, historia DEMO |
 | 2. Piloto y extensión | **Hecha** | Pantalla del piloto (partes por semana, criterio de dos semanas con más del 90 %, uso de catálogos) y guion (`docs/guion_piloto.md`); catálogos editables; comparación "nuevos" contra "nuevos + histórico A/B"; flota (prueba de razón de verosimilitud y ajuste agrupado, por tipo o por equivalencia); alertas firmes solo con confianza media o alta (orientativas antes); criticidad guiada (TP y U1) y diagrama de cuadrantes de las fallas; puesta en marcha con criterios automáticos y enlaces |
 | 3. Versión 2 | **Hecha** | Plan preventivo (aprobación del intervalo, del fabricante al calculado), calendario de 52 semanas en PDF y Excel (MANT/1CMP001-2CMP001), OT preventivas con anticipación e imprimibles (MANT/MPV001), pruebas funcionales de fallas ocultas, diagnóstico de sobre y sub-mantenimiento, repuestos (demanda en el lead time, Poisson, lote económico, stock de protección), predictivo (MANT/PMRED001, límites, tendencia, ultrasonido), tablero completo con CIT, Ishikawa/5M, 5W+1H y hoja de verificación, tabla de mortalidad y exponencial, alertas por mail (opcional), reporte PDF mensual y semanal, manuales por rol |
-| 4. Mejoras | Pendiente | |
+| 4. Mejoras | **Hecha** | Crow-AMSAA y Laplace por máquina (ficha y alerta semanal de degradación), Weibull bayesiano como comparación, TPM: RO = Dp·Di·Rv·Tq y seis grandes pérdidas (con piezas rechazadas en el parte), OEE completo, horómetro (horas medidas, nivel M), AMFE con ocurrencia calculada desde F(1 año) y NPR, revisión en t = η, bloques serie/paralelo |
+
+## Pendiente de verificar (no se inventó nada)
+
+Todo lo que sigue funciona, pero depende de un dato o una fuente que el proyecto no tiene. Está marcado "a verificar" o "propuesta" en la pantalla y en `docs/DECISIONES.md`:
+
+| Qué | Dónde se ajusta | Referencia |
+|---|---|---|
+| Escalas y cortes de la ponderación U1 de criticidad (no se recibió la UNIDAD 1) | Parámetros › criticidad | P-10, D-051 |
+| Definición de disponibilidad D = (TO − ΣTA)/TO (UNIDAD 1) | — | D-007 |
+| Tabla de prioridad de acción AIAG-VDA del AMFE (se carga a mano) | AMFE | B-018 |
+| Cortes F(1 año) → ocurrencia O del AMFE (la escala del TP es cualitativa) | Parámetros › amfe.escala_ocurrencia | D-064 |
+| Grilla exacta de MANT/1CMP001 y 2CMP001 (en las diapositivas es imagen) | — | B-017 |
+| Ejemplos resueltos de Abernethy e IEC 61649 para validar el motor | — | test `xfail` |
+| Umbrales propuestos: semáforo de clase A, sobre/sub-mantenimiento, piloto, sugerencias de análisis | Parámetros | D-012, D-057, D-050, D-042 |
+| Costos reales: tarifa de mano de obra, margen por hora de la línea, tipo de cambio, K y b de inventarios | Parámetros › costos y políticas | Plan §12 |
+
+**Antes de usar el sistema en serio:** borrar los datos DEMO (Configuración › Datos DEMO).
 
 ## Uso rápido (desarrollo)
 
@@ -34,6 +51,21 @@ uv pip install --python .venv/bin/python --no-deps -e .
 ```
 
 Usuarios DEMO: `demo.jefe` / `demo-jefe-2026`, `demo.operario` / PIN `1234` (ver `circularis demo cargar`).
+
+## Cómo probar la fase 4
+
+```bash
+.venv/bin/circularis demo cargar
+.venv/bin/circularis app                          # demo.jefe / demo-jefe-2026 (habilitar 12F y 12H en Parámetros › Módulos)
+.venv/bin/circularis tareas --una-vez tendencias  # Crow-AMSAA y Laplace de cada máquina
+.venv/bin/python -m pytest tests/servicios/test_fase4.py tests/motor/test_bayes.py -v
+```
+
+- **TPM y OEE:** la extrusora DEMO tiene cantidades y rechazos ficticios: Dp, Di, Rv, Tq y RO, y el gráfico de las seis grandes pérdidas.
+- **Ficha de máquina › Tendencia de la máquina:** fallas acumuladas contra horas operadas con la curva de Crow-AMSAA y la prueba de Laplace.
+- **Análisis Weibull › Weibull bayesiano:** el β de referencia como previa, al lado del método vigente.
+- **AMFE:** la O calculada de las cuchillas (F de un año de uso) al lado de la O del TP; NPR y AP a mano.
+- **Herramientas › Bloques serie y paralelo:** precargar con los componentes críticos de una máquina.
 
 ## Cómo probar la fase 3
 
@@ -61,7 +93,7 @@ Usuarios DEMO: `demo.jefe` / `demo-jefe-2026`, `demo.operario` / PIN `1234` (ver
 
 - **Piloto:** con la demo, las tres máquinas cumplen el criterio (100 % de partes). En una base real, cargar `piloto.maquinas` en Parámetros.
 - **Panel de planta › Alertas de riesgo:** las dos alertas de la demo son orientativas (confianza baja o gris). Bajando `alertas.confianza_firme` a BAJA pasan a firmes en el próximo recálculo.
-- **Análisis Weibull:** elegir "DEMO-AGR-001 · Rulemanes"; abajo, la sección **Flota** con la prueba (p ≈ 0,96: se pueden agrupar) y el ajuste de los rulemanes de las dos máquinas.
+- **Análisis Weibull:** elegir "DEMO-AGR-001 · Rulemanes"; abajo, la sección **Flota** con la prueba de razón de verosimilitud (p > 0,05: se pueden agrupar) y el ajuste de los rulemanes de las dos máquinas.
 - **Criticidad:** responder las seis preguntas de una máquina; con "Ponderación UNIDAD 1" la clase se elige a mano hasta cargar `criticidad.u1_cortes`.
 - **Catálogos:** agregar un síntoma o desactivar uno; nada se borra.
 - **Puesta en marcha:** cada etapa con su control y un enlace a la pantalla.
@@ -76,9 +108,9 @@ Usuarios DEMO: `demo.jefe` / `demo-jefe-2026`, `demo.operario` / PIN `1234` (ver
 
 Qué mirar con la demo:
 
-- **Panel de planta:** DEMO-AGR-001 en rojo (cuchillas con 15 % de probabilidad de falla en el horizonte y edad mayor al intervalo), DEMO-LAV-001 en verde y DEMO-EXT-001 en rojo (husillo con Weibayes; la válvula queda gris por edad desconocida). Ranking de riesgo en pesos y Pareto de horas de parada.
+- **Panel de planta:** DEMO-AGR-001 en rojo (cuchillas con 15 % de probabilidad de falla en el horizonte y edad mayor al intervalo) y DEMO-EXT-001 en rojo (husillo con Weibayes; la válvula queda gris por edad desconocida). Ranking de riesgo en pesos y Pareto de horas de parada.
 - **Ficha de máquina:** el gráfico de probabilidad de las cuchillas (β ≈ 3,6, desgaste) y las curvas R(t) y h(t) con la edad actual.
-- **Análisis de problemas:** la sugerencia de los rulemanes de la agrumadora (β ≈ 0,8, fallas al azar): "Iniciar 5 Porqués", completar los porqués y la acción, generar la OT modificativa y avanzar el PDCA.
+- **Análisis de problemas:** la sugerencia de los rulemanes de la agrumadora (β cerca de 1, fallas al azar, confianza media): "Iniciar 5 Porqués", completar los porqués y la acción, generar la OT modificativa y avanzar el PDCA.
 - **Tablero:** los ratios que el sistema puede calcular solo (CPCT, HPHP) y "falta dato" en los que necesitan la facturación o las horas-hombre disponibles hasta que el jefe las carga.
 - **Gerencia** (`demo.gerencia` / `demo-gerencia-2026`) entra directo al panel; el **operario** ve la ficha sin costos.
 

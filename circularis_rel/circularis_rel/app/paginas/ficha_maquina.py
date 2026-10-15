@@ -2,6 +2,8 @@
 
 from datetime import date, timedelta
 
+import numpy as np
+import plotly.graph_objects as go
 import streamlit as st
 from sqlalchemy import select
 
@@ -10,7 +12,7 @@ from circularis_rel.app.componentes import ayuda as A
 from circularis_rel.app.componentes import formularios as F
 from circularis_rel.app.componentes import graficos as G
 from circularis_rel.datos.modelos import Activo, Catalogo
-from circularis_rel.servicios import kpis_planta, panel
+from circularis_rel.servicios import kpis_planta, panel, sistemas
 from circularis_rel.servicios.permisos import Accion, requerir
 
 u = contexto.usuario()
@@ -122,6 +124,25 @@ for comp in m.componentes:
             b1, b2 = st.columns(2)
             A.boton("grafico_probabilidad", b1)
             A.boton("beta", b2)
+
+# La máquina como sistema reparable (fase 4)
+st.subheader("Tendencia de la máquina")
+with db.lectura() as s:
+    tend = sistemas.analizar(s, activo.id, hoy - timedelta(days=730), hoy, tz)
+c1, c2 = st.columns([9, 1])
+c1.caption("¿Las fallas se aceleran o se espacian con el tiempo? Crow-AMSAA (β > 1: se degrada) y prueba de Laplace, "
+           "con las horas operadas acumuladas de los últimos dos años.")
+A.boton("crow_amsaa", c2)
+if tend.crow is None:
+    st.caption(tend.texto)
+else:
+    (st.warning if tend.degradacion else st.info)(tend.texto)
+    xs = np.linspace(0, tend.T, 80)
+    fig = go.Figure()
+    fig.add_trace(go.Scatter(x=tend.tiempos, y=list(range(1, tend.n + 1)), mode="markers", name="Fallas acumuladas"))
+    fig.add_trace(go.Scatter(x=xs, y=[tend.crow.fallas_esperadas(x) for x in xs], name=f"Crow-AMSAA β = {tend.crow.beta:.2f}"))
+    fig.update_layout(height=320, xaxis_title="Horas operadas acumuladas", yaxis_title="Fallas", margin=dict(l=10, r=10, t=10, b=10))
+    st.plotly_chart(fig, width="stretch")
 
 # Línea de tiempo y horas perdidas
 st.subheader("Línea de tiempo")

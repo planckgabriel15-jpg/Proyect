@@ -82,12 +82,14 @@ for fila in range(0, len(etapas), 3):
 
 # Alertas de riesgo
 with db.lectura() as s:
-    abiertas = [a for a in alertas.abiertas(s) if a.tipo in ("RIESGO", "RIESGO_ORIENTATIVO")]
+    abiertas = [a for a in alertas.abiertas(s) if a.tipo in ("RIESGO", "RIESGO_ORIENTATIVO", "DEGRADACION", "PREDICTIVO")]
 if abiertas:
     st.subheader("Alertas de riesgo")
     for a in abiertas:
-        if a.tipo == "RIESGO":
+        if a.tipo in ("RIESGO", "PREDICTIVO") and a.severidad == "alta":
             st.error(f"🔔 {a.mensaje}")
+        elif a.tipo in ("DEGRADACION", "PREDICTIVO"):
+            st.warning(f"📉 {a.mensaje}")
         else:
             st.warning(f"Orientativa: {a.mensaje}")
     st.caption("Las alertas firmes se habilitan por componente recién con confianza media o alta (UNIDAD 6, etapa 16); "

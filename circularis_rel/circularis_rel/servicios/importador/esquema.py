@@ -95,6 +95,7 @@ HOJAS_CARGA_INICIAL: tuple[Hoja, ...] = (
         C("factor_toneladas", "real", False, "Toneladas por unidad (para la edad en toneladas)", minimo=0),
         C("autonomia_pulmon_h", "real", False, "Horas que la línea aguanta con esta máquina parada", minimo=0),
         C("ciclo_teorico_s", "real", False, "Tiempo de ciclo teórico en segundos (para RO/OEE)", minimo=0),
+        C("usa_horometro", "bool", False, "SI si tiene horómetro: el parte pide la lectura (horas medidas)", SI_NO),
         C("numero_serie", "texto"), C("fabricante", "texto"), C("modelo", "texto"), C("proveedor", "texto"),
         C("fecha_instalacion", "fecha", False, "DD/MM/AAAA"),
         C("ancho_mm", "real", minimo=0), C("alto_mm", "real", minimo=0), C("largo_mm", "real", minimo=0),

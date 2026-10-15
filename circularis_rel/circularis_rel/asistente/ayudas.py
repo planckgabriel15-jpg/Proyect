@@ -208,4 +208,13 @@ AYUDAS: dict[str, dict[str, str]] = {
              "texto": "Horas-hombre efectivas menos las apartadas (vacaciones, accidentes, enfermedad) sobre las efectivas. "
                       "Al lado se muestra el ausentismo (apartadas sobre efectivas).",
              "fuente": "UNIDAD 5, diap. 27–28 (B-009)"},
+    "crow_amsaa": {"titulo": "Tendencia de la máquina (Crow-AMSAA y Laplace)",
+                   "texto": "Mira la máquina entera como algo que se repara: si las fallas llegan cada vez más seguido "
+                            "(β > 1, Laplace positivo) se está degradando y conviene revisar su estado general; si se espacian "
+                            "(β < 1), mejora. Con pocas fallas, la tendencia no es concluyente.",
+                   "fuente": "Plan §5 (IEC 61710)"},
+    "bayes": {"titulo": "Weibull bayesiano",
+              "texto": "Con pocas fallas, el β de referencia entra como una creencia previa con margen de error y los datos "
+                       "la corrigen. A diferencia de Weibayes, β no queda fijo. Con muchos datos se parece al ajuste común.",
+              "fuente": "Plan §5 (mejora de la fase 4)"},
 }

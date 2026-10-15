@@ -16,6 +16,8 @@ from circularis_rel.datos.modelos import (
     ResultadoWeibull,
     TipoComponente,
 )
+from circularis_rel.motor import bayes
+from circularis_rel.motor.preparacion import armar_poblacion
 from circularis_rel.servicios import flota, panel, recalculo
 from circularis_rel.servicios import parametros as P
 from circularis_rel.servicios.permisos import Accion, requerir
@@ -102,6 +104,34 @@ with st.expander("Comparación de distribuciones (AICc y Anderson-Darling: menor
                    "2 parámetros salvo que se fuerce otra cosa con justificación.")
     else:
         st.caption("Se calcula con 3 o más fallas y sin censura por intervalo.")
+
+# Weibull bayesiano (fase 4)
+with db.lectura() as s:
+    tipo_obj = s.get(TipoComponente, id_tipo)
+    sd_defecto = P.obtener(s, "motor.bayes_sd_log_beta")
+    vidas = recalculo.vidas_de_poblacion(s, id_tipo, id_activo, tz)
+    for obj in list(s.dirty):
+        s.expire(obj)
+obs_bayes, _r = armar_poblacion(vidas, id_modo)
+with st.expander("Weibull bayesiano: el β de referencia como creencia previa"):
+    A.boton("bayes")
+    c1, c2 = st.columns(2)
+    previa = c1.number_input("β de referencia (previa)", min_value=0.1, value=float(tipo_obj.beta_ref or r.beta or 2.0), step=0.1,
+                             help="Por defecto, el β de referencia del tipo de componente (con su fuente) o el del ajuste actual")
+    sd = c2.number_input("Incertidumbre de la previa (desvío en logaritmo)", min_value=0.05, value=float(sd_defecto), step=0.05,
+                         help="0,35 = 95 % de que β esté entre la mitad y el doble del de referencia")
+    if any(o.estado in ("F", "I") for o in obs_bayes if not o.solo_pronostico):
+        b = bayes.ajustar(obs_bayes, previa, sd, r.nivel_ic or 0.9)
+        st.dataframe([fila(r, "Vigente"),
+                      {"": "Bayesiano", "Método": "BAYES", "Fallas": b.n_fallas, "Suspensiones": b.n_suspensiones,
+                       "β": A.numero(b.beta, 2), f"IC β ({r.nivel_ic or 0.9:.0%})": f"{A.numero(b.beta_ic[0], 2)} a {A.numero(b.beta_ic[1], 2)}",
+                       "η (h)": A.numero(b.eta, 0), "IC η": f"{A.numero(b.eta_ic[0], 0)} a {A.numero(b.eta_ic[1], 0)}",
+                       "IC por": "credibilidad", "r²": "—", "r² crítico": "—", "Confianza": "—"}],
+                     hide_index=True, width="stretch")
+        st.caption("Es una comparación: el semáforo sigue usando el método vigente. La fuente del β de referencia: "
+                   + (tipo_obj.fuente_ref or "no cargada (se usó el β del ajuste actual)"))
+    else:
+        st.caption("Hace falta al menos una falla.")
 
 # Histórico A/B
 with db.lectura() as s:

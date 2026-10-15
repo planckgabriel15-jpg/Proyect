@@ -247,6 +247,7 @@ Verificación numérica previa: hecha el 15/10/2026 con Python 3.13, NumPy 2.5.4
 - **Hallazgo (Monte Carlo, `pytest -m lento`):** con 10 o más fallas, el IC 90 % por razón de verosimilitud cubre el valor real en 86–94 % de los casos, como pide el §13.8. Con **5 fallas cubre ~83–86 %**: el método es asintótico.
 - **Decisión:** se mantiene la razón de verosimilitud, que es lo que pide el Plan. En ese rango de fallas el método vigente es RRX con bootstrap y la etiqueta ya es "confianza baja", sin colores "duros". El test exhaustivo exige 86–94 % desde 10 fallas y al menos 80 % por debajo.
 - **No se inventa una corrección:** el factor de corrección para muestras chicas de los límites LR de Abernethy no se pudo verificar sin el libro.
+- **Intervalo abierto (fase 4):** con muy pocas fallas y mucha censura (por ejemplo, 5 fallas, 30 % de suspensiones y β ≈ 0,7) la verosimilitud perfil puede no caer lo suficiente de un lado: el límite queda abierto (∞ o 0) y la pantalla muestra solo el otro. Antes el motor lanzaba un error; lo encontró la prueba exhaustiva de Monte Carlo.
 
 ### D-035: RBA también en la alternativa MLE
 
@@ -409,6 +410,36 @@ Verificación numérica previa: hecha el 15/10/2026 con Python 3.13, NumPy 2.5.4
 
 - **Qué:** el jefe habilita módulos en Parámetros. Predictivo (12G), tablero completo (12E) y herramientas de fiabilidad (12H) aparecen solo habilitados. El plan preventivo, el calendario, los repuestos y los reportes son parte del Plan (§8, §10) y están siempre.
 
+### D-062: TPM, OEE y seis grandes pérdidas
+
+- **Qué:** RO = Dp · Di · Rv · Tq desde los partes, con las lecturas de B-003 a B-005: TT = tiempo requerido; TAP = paradas por preparación y ajuste (motivos marcados "es preparación"); TAI = el resto de las paradas requeridas. Rv = cantidad × ciclo teórico / horas operadas (≤ 1); Tq = (realizadas − rechazadas) / realizadas. El parte suma "rechazadas o a retrabajar" (opcional) y el OEE del panel usa esa calidad. Sin cantidad, ciclo teórico o rechazadas, lo que dependa de eso queda "falta dato": no se supone 100 %.
+- **Seis grandes pérdidas** en horas: las de parada salen de la categoría del motivo; velocidad reducida = horas operadas × (1 − Rv); calidad = horas operadas × Rv × (1 − Tq) más las paradas por calidad.
+- **Alternativa descartada:** pedir al operario las seis pérdidas por separado (más de 6 campos en el parte).
+
+### D-063: Weibull bayesiano
+
+- **Qué:** previa lognormal para β centrada en el β de referencia (o el del ajuste actual) con `motor.bayes_sd_log_beta` = 0,35 (95 % entre la mitad y el doble; propuesta), previa plana en ln η, verosimilitud con censura por derecha e intervalo y posterior por grilla (reproducible, sin muestreo). Se muestra **al lado** del método vigente, como comparación; el semáforo no cambia.
+- **Por qué:** con 1 o 2 fallas, Weibayes fija β; el bayesiano lo deja moverse con los datos y da intervalos de credibilidad.
+- **Alternativa descartada:** MCMC (resultados que cambian en cada corrida y una dependencia pesada para un caso de pocos datos).
+
+### D-064: Ocurrencia del AMFE desde el Weibull
+
+- **Qué:** O calculada = cortes sobre F(1 año de uso de la máquina), con la tabla de `amfe.escala_ocurrencia` (≥ 95 % → 10 … ≥ 3 % → 3; debajo, 2). Es una **propuesta sin fuente bibliográfica**: la escala O del TP N.º 1 es cualitativa ("fallas muy frecuentes"… "causa eliminada por diseño") y no trae números. El 1 nunca se asigna solo. La O del TP no se pisa: la calculada va al lado y el jefe decide.
+- **Alternativa descartada:** inventar una equivalencia "oficial" o pisar la O del TP automáticamente.
+
+### D-065: La máquina como sistema reparable
+
+- **Qué:** Crow-AMSAA y Laplace por máquina con las fallas validadas de los últimos dos años (ficha) o del último año (alerta semanal), en horas operadas acumuladas; la falla se ubica en la mitad de las horas de su día. Se pide un mínimo de `sistemas.min_fallas` (4). Si Laplace da U > 0 con p < 0,05, alerta "tendencia en degradación" (Plan §7) y resultado guardado en `resultado_sistema`.
+
+### D-066: Horómetro
+
+- **Qué:** las máquinas marcadas `usa_horometro` piden la lectura al terminar el turno. Si la diferencia con la lectura anterior coincide con las horas del parte (± `partes.tolerancia_horometro_h`), esas horas quedan como **medidas** (nivel M); si no, quedan declaradas (D) y la lectura sirve de control. Una lectura menor que la anterior se rechaza.
+- **Alternativa descartada:** reemplazar las horas del parte por las del horómetro (un error de lectura correría todas las edades).
+
+### D-067: Revisión en t = η y bloques
+
+- **Qué:** cuando un componente llega a su vida característica, el semáforo suma el motivo "llegó a η: al menos un control del equipo y revisar el plan" (UNIDAD 2), configurable con `fiabilidad.revision_en_eta`; no cambia el color. Las herramientas suman bloques serie/paralelo: grupos en serie, cada uno con uno o varios bloques en paralelo, y se pueden precargar con 1 − P(Δ) de los componentes críticos de una máquina. Paralelo solo si el usuario lo declara.
+
 ---
 
 ## Dudas y correcciones sobre la bibliografía
@@ -522,4 +553,9 @@ Verificación numérica previa: hecha el 15/10/2026 con Python 3.13, NumPy 2.5.4
 
 - **Duda:** el pedido cita los dos códigos para el calendario anual de 52 semanas, pero el texto extraído de las diapositivas de la UNIDAD 6 no trae su grilla (son imágenes). Sí trae MANT/MPV001 (OT preventiva) y MANT/PMRED001 (predictivo), que se reproducen campo por campo.
 - **Decisión:** se interpreta 1CMP001 = semanas 1 a 26 y 2CMP001 = semanas 27 a 52, con las columnas que pide el pedido (máquina, tarea, lugar, tiempo previsto y una columna por semana). Se ajusta cuando se vea la diapositiva.
+
+### B-018: Prioridad de acción (AP) de AIAG-VDA
+
+- **Duda:** el Plan propone mostrar, como alternativa al NPR, la prioridad de acción del manual AIAG-VDA [12]. La tabla que asigna H/M/L a cada combinación de G, O y D no está en el material del proyecto.
+- **Decisión:** el AP se carga a mano en el AMFE (H, M o L). No se calcula hasta tener la tabla del manual.
 

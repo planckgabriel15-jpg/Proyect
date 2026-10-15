@@ -22,10 +22,10 @@ PAGINAS_JEFE = ["puesta_en_marcha.py", "carga_inicial.py", "maquinas.py", "histo
                 "cerrar_ot.py", "cambio_preventivo.py", "planta.py", "reportar_falla.py", "parte_turno.py", "tarjeta.py",
                 "exportar.py", "panel_planta.py", "ficha_maquina.py", "analisis_weibull.py", "analisis_problemas.py",
                 "tablero.py", "catalogos.py", "criticidad.py", "piloto.py", "plan_preventivo.py", "repuestos.py",
-                "reportes.py", "predictivo.py", "herramientas.py"]
+                "reportes.py", "predictivo.py", "herramientas.py", "tpm.py", "amfe.py"]
 PAGINAS_OPERARIO = ["planta.py", "reportar_falla.py", "parte_turno.py", "tarjeta.py", "ficha_maquina.py", "ayuda.py"]
-PAGINAS_GERENCIA = ["panel_planta.py", "tablero.py", "ficha_maquina.py", "reportes.py", "herramientas.py", "exportar.py",
-                    "ayuda.py"]
+PAGINAS_GERENCIA = ["panel_planta.py", "tablero.py", "ficha_maquina.py", "reportes.py", "herramientas.py", "tpm.py",
+                    "exportar.py", "ayuda.py"]
 PAGINAS_ENCARGADO = ["bandeja_encargado.py", "cerrar_ot.py", "cambio_preventivo.py", "analisis_problemas.py",
                      "ficha_maquina.py", "planta.py", "exportar.py", "plan_preventivo.py", "repuestos.py", "predictivo.py"]
 TZ = ZoneInfo("America/Argentina/Cordoba")

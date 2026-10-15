@@ -74,8 +74,26 @@ def resumen_semanal(db: BaseDatos, cfg: Config) -> bool:
                          [(f"resumen_{desde:%Y-%m-%d}.pdf", datos, "application/pdf")])
 
 
+def tendencias(db: BaseDatos, cfg: Config) -> int:
+    """Semanal: Crow-AMSAA y Laplace del último año de cada máquina, con la alerta de degradación."""
+    from circularis_rel.servicios import sistemas
+
+    hoy = ahora().astimezone(cfg.zona_horaria).date()
+    with db.escritura(motivo=MOTIVO) as s:
+        return sum(t.degradacion for t in sistemas.recalcular(s, hoy - timedelta(days=365), hoy, cfg.zona_horaria))
+
+
+def ocurrencias_amfe(db: BaseDatos, cfg: Config) -> int:
+    from circularis_rel.servicios import amfe
+
+    hoy = ahora().astimezone(cfg.zona_horaria).date()
+    with db.escritura(motivo=MOTIVO) as s:
+        return amfe.actualizar_ocurrencias(s, hoy)
+
+
 TRABAJOS = {"plan": plan, "alertas_diarias": alertas_diarias, "mails": mails_inmediatos, "mails_resumen": mails_resumen,
-            "reporte_mensual": reporte_mensual, "resumen_semanal": resumen_semanal}
+            "reporte_mensual": reporte_mensual, "resumen_semanal": resumen_semanal, "tendencias": tendencias,
+            "ocurrencias_amfe": ocurrencias_amfe}
 
 
 def agregar(sch, db: BaseDatos, cfg: Config) -> None:
@@ -86,4 +104,6 @@ def agregar(sch, db: BaseDatos, cfg: Config) -> None:
     sch.add_job(mails_resumen, CronTrigger(hour=7, minute=0, timezone=tz), args=[db, cfg], id="mails_resumen")
     sch.add_job(resumen_semanal, CronTrigger(day_of_week="mon", hour=7, minute=30, timezone=tz), args=[db, cfg],
                 id="resumen_semanal")
+    sch.add_job(tendencias, CronTrigger(day_of_week="mon", hour=6, minute=50, timezone=tz), args=[db, cfg], id="tendencias")
+    sch.add_job(ocurrencias_amfe, CronTrigger(hour=2, minute=40, timezone=tz), args=[db, cfg], id="ocurrencias_amfe")
     sch.add_job(reporte_mensual, CronTrigger(day=1, hour=7, minute=15, timezone=tz), args=[db, cfg], id="reporte_mensual")

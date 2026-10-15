@@ -82,6 +82,7 @@ Máquinas con su catastro (UNIDAD 6, MANT/RHM001).
 | `factor_toneladas` | real |  | Toneladas por unidad (para la edad en toneladas) (rango 0 a ∞) |
 | `autonomia_pulmon_h` | real |  | Horas que la línea aguanta con esta máquina parada (rango 0 a ∞) |
 | `ciclo_teorico_s` | real |  | Tiempo de ciclo teórico en segundos (para RO/OEE) (rango 0 a ∞) |
+| `usa_horometro` | bool |  | SI si tiene horómetro: el parte pide la lectura (horas medidas). Valores: `SI`, `NO` |
 | `numero_serie` | texto |  |  |
 | `fabricante` | texto |  |  |
 | `modelo` | texto |  |  |

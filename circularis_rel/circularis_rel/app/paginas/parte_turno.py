@@ -58,16 +58,20 @@ if estado != EstadoParte.TODO:
     sug_motivo = next((d for d, i in nombres.items() if i == sugerencia.get("id_motivo")), None)
     elegido = st.pills("Motivo", list(nombres), selection_mode="single", default=sug_motivo)
     id_motivo = nombres.get(elegido) if elegido else None
-cantidad = None
+cantidad = rechazada = lectura = None
 if a.unidad_produccion != UnidadProduccion.NINGUNA:
-    cantidad = st.number_input(f"Cantidad procesada ({a.unidad_produccion.value.lower()}, opcional)", min_value=0.0,
+    c1, c2 = st.columns(2)
+    cantidad = c1.number_input(f"Cantidad procesada ({a.unidad_produccion.value.lower()}, opcional)", min_value=0.0,
                                value=None, step=1.0)
+    rechazada = c2.number_input("De esas, rechazadas o a retrabajar (opcional)", min_value=0.0, value=None, step=1.0)
+if a.usa_horometro:
+    lectura = st.number_input("Lectura del horómetro al terminar el turno (h)", min_value=0.0, value=None, step=0.1)
 
 if st.button("Guardar parte", type="primary", width="stretch"):
     try:
         with db.escritura(usuario_id=u["id"]) as s:
             registro.registrar_parte(s, u["id"], a.id, fecha, turno.id, estado, horas, id_motivo, cantidad,
-                                     F.token("parte"), tz=tz)
+                                     F.token("parte"), tz=tz, rechazada=rechazada, lectura_horometro=lectura)
         F.renovar_token("parte")
         F.recordar_maquina(codigo)
         F.guardar_mensaje_ok("parte", f"Parte de {codigo} guardado ({turnos.etiqueta(fecha, turno, hoy)}).")

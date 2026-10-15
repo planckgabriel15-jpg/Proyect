@@ -140,6 +140,7 @@ class Activo(ConFechas, Base):
     criticidad_metodo: Mapped[MetodoCriticidad | None] = mapped_column(E(MetodoCriticidad, "metodo_criticidad"))
     autonomia_pulmon_h: Mapped[float | None] = mapped_column(Float)
     ciclo_teorico_s: Mapped[float | None] = mapped_column(Float)
+    usa_horometro: Mapped[bool] = mapped_column(Boolean, default=False)  # fase 4: horas medidas (nivel M)
     # Catastro [12.B]
     numero_serie: Mapped[str | None] = mapped_column(String(80))
     fabricante: Mapped[str | None] = mapped_column(String(120))
@@ -326,6 +327,9 @@ class ParteTurno(ConFechas, Base):
         ),
         CheckConstraint("horas_no_operadas = 0 OR id_motivo IS NOT NULL", name="ck_parte_motivo"),
         CheckConstraint("cantidad_procesada IS NULL OR cantidad_procesada >= 0", name="ck_parte_cantidad"),
+        CheckConstraint("cantidad_rechazada IS NULL OR (cantidad_rechazada >= 0 AND "
+                        "(cantidad_procesada IS NULL OR cantidad_rechazada <= cantidad_procesada))", name="ck_parte_rechazada"),
+        CheckConstraint("lectura_horometro IS NULL OR lectura_horometro >= 0", name="ck_parte_horometro"),
     )
     id: Mapped[int] = mapped_column(primary_key=True)
     id_activo: Mapped[int] = mapped_column(ForeignKey("activo.id"))
@@ -337,6 +341,8 @@ class ParteTurno(ConFechas, Base):
     horas_operadas: Mapped[float] = mapped_column(Float)
     id_motivo: Mapped[int | None] = mapped_column(ForeignKey("motivo_parada.id"))
     cantidad_procesada: Mapped[float | None] = mapped_column(Float)
+    cantidad_rechazada: Mapped[float | None] = mapped_column(Float)  # desechada o retrabajada (tasa de calidad, B-005)
+    lectura_horometro: Mapped[float | None] = mapped_column(Float)
     nivel_hora: Mapped[NivelHora] = mapped_column(E(NivelHora, "nivel_hora_parte"), default=NivelHora.D)
     origen: Mapped[OrigenParte] = mapped_column(E(OrigenParte, "origen_parte"), default=OrigenParte.OPERARIO)
     id_usuario: Mapped[int | None] = mapped_column(ForeignKey("usuario.id"))

@@ -117,9 +117,19 @@ def sugerencia_parte(s: Session, id_activo: int, fecha: date, turno: Turno, tz: 
     return {"hubo_aviso": True, "estado": estado, "horas_no_operadas": horas, "id_motivo": motivo}
 
 
+def lectura_anterior(s: Session, id_activo: int, fecha: date) -> float | None:
+    """Última lectura de horómetro de la máquina antes de esa fecha (o del mismo día, en otro turno)."""
+    return s.scalar(select(ParteTurno.lectura_horometro).where(
+        ParteTurno.id_activo == id_activo, ParteTurno.lectura_horometro.is_not(None), ParteTurno.fecha <= fecha)
+        .order_by(ParteTurno.fecha.desc(), ParteTurno.lectura_horometro.desc()).limit(1))
+
+
 def registrar_parte(s: Session, id_usuario: int, id_activo: int, fecha: date, id_turno: int, estado: EstadoParte | str,
                     horas_no_operadas: float = 0.0, id_motivo: int | None = None, cantidad: float | None = None,
-                    token: str | None = None, *, tz: ZoneInfo, hoy: date | None = None) -> ParteTurno:
+                    token: str | None = None, *, tz: ZoneInfo, hoy: date | None = None, rechazada: float | None = None,
+                    lectura_horometro: float | None = None) -> ParteTurno:
+    """Parte de turno. Con horómetro, si la diferencia con la lectura anterior coincide con las horas operadas
+    (± `partes.tolerancia_horometro_h`), las horas quedan como medidas (nivel M); si no, quedan declaradas (D)."""
     u = _usuario(s, id_usuario)
     _verificar_maquina(s, u, id_activo, Accion.CARGAR_PARTE)
     turno = s.get(Turno, id_turno)
@@ -148,13 +158,24 @@ def registrar_parte(s: Session, id_usuario: int, id_activo: int, fecha: date, id
         raise ErrorRegistro("Motivo no válido")
     if cantidad is not None and cantidad < 0:
         raise ErrorRegistro("La cantidad no puede ser negativa")
+    if rechazada is not None and (rechazada < 0 or cantidad is None or rechazada > cantidad):
+        raise ErrorRegistro("Las piezas rechazadas van de 0 a la cantidad procesada (cargá también la cantidad)")
+    nivel = NivelHora.D
+    if lectura_horometro is not None:
+        anterior = lectura_anterior(s, id_activo, fecha)
+        if lectura_horometro < 0 or (anterior is not None and lectura_horometro < anterior):
+            raise ErrorRegistro(f"La lectura del horómetro no puede ser menor que la anterior ({anterior:g})")
+        tolerancia = P.obtener(s, "partes.tolerancia_horometro_h")
+        if anterior is not None and abs((lectura_horometro - anterior) - (dur - horas_no_operadas)) <= tolerancia:
+            nivel = NivelHora.M
     existente = s.scalar(select(ParteTurno).where(ParteTurno.id_activo == id_activo, ParteTurno.fecha == fecha,
                                                   ParteTurno.id_turno == id_turno))
     if existente is not None and existente.origen != OrigenParte.ESTIMADO_SISTEMA:
         raise ErrorRegistro("Ya hay un parte de esa máquina en ese turno. Si está mal, pedile al jefe que lo corrija")
     valores = dict(horas_turno=dur, estado=estado, horas_no_operadas=horas_no_operadas,
                    horas_operadas=dur - horas_no_operadas, id_motivo=id_motivo, cantidad_procesada=cantidad,
-                   nivel_hora=NivelHora.D, origen=OrigenParte.OPERARIO, id_usuario=u.id, token_envio=token)
+                   cantidad_rechazada=rechazada, lectura_horometro=lectura_horometro,
+                   nivel_hora=nivel, origen=OrigenParte.OPERARIO, id_usuario=u.id, token_envio=token)
     if existente is not None:  # reemplaza al estimado
         for k, v in valores.items():
             setattr(existente, k, v)
