@@ -1,7 +1,7 @@
 // =============================================================
 // modelo.js
-// Arma el objeto 3D completo de un renglón: la pieza, sus accesorios
-// vinculados (tapas y boquetas montadas en su lugar) y la regla del largo.
+// Arma el objeto 3D completo de un renglón: la pieza, las tapas y boquetas
+// puestas en la canaleta (renglon.accesorios) y la regla del largo.
 // =============================================================
 
 import * as THREE from 'three';
@@ -12,11 +12,10 @@ import { GENERADORES, construirTapa } from './piezasEspeciales3d.js';
 
 /**
  * @param {object} renglon
- * @param {Array<object>} accesorios  renglones vinculados a este (tapas, boquetas)
  * @param {{config, materiales}} datos
  * @returns {THREE.Group}
  */
-export function construirModelo(renglon, accesorios, datos) {
+export function construirModelo(renglon, datos) {
   const { config, materiales } = datos;
   const grupo = new THREE.Group();
   const mats = materialesDelRenglon(renglon, materiales);
@@ -32,12 +31,9 @@ export function construirModelo(renglon, accesorios, datos) {
   pieza.userData.esPiezaPrincipal = true;
   grupo.add(pieza);
 
-  // Accesorios montados (solo sobre piezas plegadas: la canaleta).
-  if (renglon.tipoPieza === 'plegada') {
-    for (const accesorio of accesorios || []) {
-      const montado = montarAccesorio(accesorio, pieza, largoCm, datos);
-      if (montado) grupo.add(montado);
-    }
+  // Tapas y boquetas puestas en la canaleta.
+  if (renglon.tipoPieza === 'plegada' && renglon.accesorios) {
+    grupo.add(montarAccesorios(renglon, pieza, largoCm, mats, datos));
   }
 
   // Regla del largo.
@@ -48,22 +44,29 @@ export function construirModelo(renglon, accesorios, datos) {
   return grupo;
 }
 
-/** Pone la tapa o la boqueta en su posición sobre la canaleta. */
-function montarAccesorio(accesorio, canaleta, largoCm, datos) {
-  const mats = materialesDelRenglon(accesorio, datos.materiales);
-  if (accesorio.generador3d === 'tapa') {
-    const esIzquierda = accesorio.plantillaId?.includes('izquierda') || accesorio.lado === 'izquierda';
-    // Tapa izquierda en Z = 0 (punta izquierda mirando la canaleta de frente), derecha en Z = largo.
-    return construirTapa(accesorio, mats, datos.config, esIzquierda ? 0 : largoCm, esIzquierda ? 1 : -1);
+/**
+ * Pone las tapas (en las puntas) y las boquetas (abajo, en el fondo) sobre la canaleta.
+ * Tapa izquierda en Z = 0 (punta izquierda mirando la canaleta de frente), derecha en Z = largo.
+ * Soldada: la pestaña queda hacia adentro de la canaleta. Engrampada: la pestaña abraza por afuera.
+ */
+function montarAccesorios(canaleta, pieza, largoCm, mats, datos) {
+  const grupo = new THREE.Group();
+  const acc = canaleta.accesorios;
+  const tapaComoRenglon = { perfil: canaleta.perfil, parametros: { pestanaApoyoCm: 1.5 }, ladoPintura: canaleta.ladoPintura };
+  if (acc.tapaIzquierda !== 'ninguna') {
+    grupo.add(construirTapa(tapaComoRenglon, mats, datos.config, 0, acc.tapaIzquierda === 'soldada' ? 1 : -1));
   }
-  if (accesorio.generador3d === 'boquetaRedonda' || accesorio.generador3d === 'boquetaRectangular') {
-    const boqueta = GENERADORES[accesorio.generador3d](accesorio.parametros || {}, accesorio, mats, datos.config);
-    const fondo = buscarFondo(canaleta.userData.geometria2d);
-    const posicion = Math.min(Math.max(leerNumero(accesorio.parametros?.posicionCm) || 0, 0), largoCm);
+  if (acc.tapaDerecha !== 'ninguna') {
+    grupo.add(construirTapa(tapaComoRenglon, mats, datos.config, largoCm, acc.tapaDerecha === 'soldada' ? -1 : 1));
+  }
+  const fondo = buscarFondo(pieza.userData.geometria2d);
+  for (const b of acc.boquetas || []) {
+    const boqueta = GENERADORES.boquetaSuelta({ pestanaCm: 2, ...b }, canaleta, mats, datos.config);
+    const posicion = Math.min(Math.max(leerNumero(b.posicionCm) || 0, 0), largoCm);
     boqueta.position.set(fondo.x, fondo.y, posicion);
-    return boqueta;
+    grupo.add(boqueta);
   }
-  return null;
+  return grupo;
 }
 
 /** Punto medio del tramo más bajo y más horizontal del perfil (el fondo de la canaleta). */

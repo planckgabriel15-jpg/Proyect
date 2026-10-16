@@ -122,13 +122,13 @@ export function crearVisor3d(contenedor, opciones = {}) {
   }
 
   return {
-    /** Muestra un renglón (con sus accesorios). Mantiene la cámara salvo la primera vez. */
-    mostrar(renglon, accesorios, datos, { reencuadrar = false } = {}) {
+    /** Muestra un renglón (con sus tapas y boquetas). Mantiene la cámara salvo la primera vez. */
+    mostrar(renglon, datos, { reencuadrar = false } = {}) {
       if (modelo) {
         escena.remove(modelo);
         liberar(modelo);
       }
-      modelo = construirModelo(renglon, accesorios, datos);
+      modelo = construirModelo(renglon, datos);
       escena.add(modelo);
       aplicarResaltado();
       if (!encuadrado || reencuadrar) {

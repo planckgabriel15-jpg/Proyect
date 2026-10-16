@@ -28,12 +28,12 @@ function preparar() {
 /**
  * @returns {string} imagen PNG como texto "data:image/png;base64,…"
  */
-export function capturarRenglon(renglon, accesorios, datos, ancho = 320, alto = 220) {
+export function capturarRenglon(renglon, datos, ancho = 320, alto = 220) {
   preparar();
   renderer.setSize(ancho, alto, false);
   camara.aspect = ancho / alto;
 
-  const modelo = construirModelo(renglon, accesorios, datos);
+  const modelo = construirModelo(renglon, datos);
   escena.add(modelo);
 
   encuadrar(camara, modelo, DIRECCIONES_VISTA.iso, 1.05);
