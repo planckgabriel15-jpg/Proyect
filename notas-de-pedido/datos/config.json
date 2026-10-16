@@ -1,6 +1,5 @@
 {
   "_leeme": "Parámetros del negocio. Los que dicen SUPUESTO están en PENDIENTES.md y hay que confirmarlos con la empresa.",
-
   "bandas": {
     "_leeme": "Banda de cotización según el desarrollo (sección 5.3). limiteChapaCompletaCm = 120 es SUPUESTO (la chapa mide 122).",
     "limiteCuartoChapaCm": 30,
@@ -10,35 +9,36 @@
     "limiteChapaCompletaCm": 120,
     "numeroChapaCompleta": 120
   },
-
-  "bandaPorUnidad": "UN",
-  "_bandaPorUnidad": "SUPUESTO: valor de 'banda' con el que se busca el código de las piezas que se cotizan por unidad (codos, sombreros, tapas...). Hoy la tabla de ejemplo no tiene esas filas: se emiten con 'código pendiente'.",
-
   "largoMaximoChapaCm": 244,
   "_largoMaximoChapaCm": "SUPUESTO: largo de la chapa y de la plegadora de referencia. Más largo → aviso de empalme.",
-
   "solapeEngrafeCm": 1,
   "_solapeEngrafeCm": "SUPUESTO: solape que se suma al perímetro de boquetas y caños.",
-
   "anguloPorDefecto": 90,
   "_anguloPorDefecto": "SUPUESTO: ángulo interior de un pliegue nuevo.",
   "anguloMinimo": 1,
   "anguloMaximo": 179,
-
   "ladoPinturaObligatorio": true,
   "_ladoPinturaObligatorio": "SUPUESTO: en prepintado hay que indicar sí o sí 'pintura afuera' o 'pintura adentro'.",
-
   "corteLaser": {
     "_leeme": "Corte láser tercerizado en el borde de una cara. Mínimos pedidos por la empresa (3,6 cm). Valores por defecto y proporciones del trapecio: SUPUESTO.",
     "anchoMinimoCaraCm": 3.6,
     "alturaMinimaOndaCm": 3.6,
     "valoresPorDefecto": {
-      "sinusoidal": { "alturaOndaCm": 3.6, "separacionVallesCm": 7.6 },
-      "trapezoidal": { "alturaOndaCm": 3.6, "separacionVallesCm": 20 }
+      "sinusoidal": {
+        "alturaOndaCm": 3.6,
+        "separacionVallesCm": 7.6
+      },
+      "trapezoidal": {
+        "alturaOndaCm": 3.6,
+        "separacionVallesCm": 20
+      }
     },
-    "proporcionesTrapecio": { "cresta": 0.3, "flanco": 0.15, "valle": 0.4 }
+    "proporcionesTrapecio": {
+      "cresta": 0.3,
+      "flanco": 0.15,
+      "valle": 0.4
+    }
   },
-
   "dibujo": {
     "_leeme": "Solo para dibujar. La luz de los dobladillos NO suma al desarrollo.",
     "luzDobladilloAbiertoCm": 0.3,
@@ -46,7 +46,6 @@
     "imanCuadriculaCm": 1,
     "imanAnguloGrados": 15
   },
-
   "renglonPorDefecto": {
     "_leeme": "SUPUESTO: valores con los que arranca una pieza nueva.",
     "largoCm": 244,
@@ -56,17 +55,54 @@
     "colorId": null,
     "ladoPintura": "afuera"
   },
-
   "diametrosComunesCm": [
-    { "etiqueta": "3\" (7,5 cm)", "valor": 7.5 },
-    { "etiqueta": "4\" (10 cm)", "valor": 10 },
-    { "etiqueta": "5\" (12,5 cm)", "valor": 12.5 },
-    { "etiqueta": "6\" (15 cm)", "valor": 15 },
-    { "etiqueta": "8\" (20 cm)", "valor": 20 }
+    {
+      "etiqueta": "3\" (7,5 cm)",
+      "valor": 7.5
+    },
+    {
+      "etiqueta": "4\" (10 cm)",
+      "valor": 10
+    },
+    {
+      "etiqueta": "5\" (12,5 cm)",
+      "valor": 12.5
+    },
+    {
+      "etiqueta": "6\" (15 cm)",
+      "valor": 15
+    },
+    {
+      "etiqueta": "8\" (20 cm)",
+      "valor": 20
+    }
   ],
-
   "claveConfiguracion": "zingueria2026",
   "_claveConfiguracion": "SUPUESTO: clave fija del prototipo. En la versión con Google se reemplaza por permisos de la cuenta.",
-
-  "autoguardadoSegundos": 5
+  "autoguardadoSegundos": 5,
+  "marca": {
+    "_leeme": "SUPUESTO: no se pudo descargar el logo ni leer los colores de abastosoluciones.com.ar desde el entorno de desarrollo. Reemplazá recursos/logo.svg por el logo oficial (o cambiá 'logo' por la ruta de un PNG) y poné acá los colores oficiales.",
+    "nombre": "Abasto Soluciones",
+    "logo": "recursos/logo.svg",
+    "colorPrincipal": "#1d3c6e",
+    "colorPrincipalOscuro": "#132a4f",
+    "colorAcento": "#e2711d",
+    "sitio": "https://abastosoluciones.com.ar"
+  },
+  "accesoriosCanaleta": {
+    "_leeme": "Tapas y boquetas integradas en la canaleta. Valores por defecto de una boqueta nueva (SUPUESTO).",
+    "tiposDeTapa": [
+      "ninguna",
+      "soldada",
+      "engrampada"
+    ],
+    "boquetaPorDefecto": {
+      "forma": "redonda",
+      "diametroCm": 10,
+      "ladoACm": 10,
+      "ladoBCm": 5,
+      "largoBocaCm": 10,
+      "posicionCm": 30
+    }
+  }
 }
