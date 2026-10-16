@@ -14,6 +14,11 @@ const f = (valor) => {
   return Number.isFinite(n) ? formatearCorto(n) : '?';
 };
 
+/** "caño Ø15" o "caño 20 × 10" según la forma (sombreros y boquetas). */
+const medidaCano = (p) => (p.forma === 'rectangular'
+  ? `${f(p.ladoACm)} × ${f(p.ladoBCm)}`
+  : (p.forma === 'cuadrada' ? `${f(p.ladoACm)} × ${f(p.ladoACm)}` : `Ø ${f(p.diametroCm)}`));
+
 /** Texto de cota simple. */
 const texto = (x, y, contenido, ancla = 'middle', clase = 'cota-texto') =>
   `<text class="${clase}" x="${x}" y="${y}" text-anchor="${ancla}">${escaparTexto(contenido)}</text>`;
@@ -126,8 +131,8 @@ const DIBUJOS = {
     <polygon class="pieza" points="140,170 320,70 500,170"/>
     <line class="pieza-linea" x1="250" y1="170" x2="250" y2="230"/><line class="pieza-linea" x1="390" y1="170" x2="390" y2="230"/>
     <rect class="pieza" x="250" y="230" width="140" height="140"/>
-    ${cotaH(250, 390, 395, `caño Ø ${f(p.diametroCm)}`)}
-    ${texto(320, 40, 'sombrero chino', 'middle', 'nota')}`,
+    ${cotaH(250, 390, 395, `caño ${medidaCano(p)}`)}
+    ${texto(320, 40, `sombrero chino ${p.forma || ''}`, 'middle', 'nota')}`,
 
   sombreroVenturi: (p) => `
     <polygon class="pieza" points="170,120 320,60 470,120"/>
@@ -141,8 +146,31 @@ const DIBUJOS = {
     <polygon class="pieza" points="160,170 320,70 480,170"/>
     <polygon class="pieza" points="160,180 480,180 320,250"/>
     <rect class="pieza" x="260" y="250" width="120" height="120"/>
-    ${cotaH(260, 380, 395, `caño Ø ${f(p.diametroCm)}`)}
-    ${texto(320, 40, 'sombrero canadiense (forma a confirmar)', 'middle', 'nota')}`,
+    ${cotaH(260, 380, 395, `caño ${medidaCano(p)}`)}
+    ${texto(320, 40, `sombrero canadiense / salamandra ${p.forma || ''}`, 'middle', 'nota')}`,
+
+  sombreroH: (p) => `
+    <rect class="pieza" x="120" y="90" width="400" height="80"/>
+    <rect class="pieza" x="270" y="170" width="100" height="200"/>
+    <line class="pieza-linea" x1="270" y1="130" x2="370" y2="130"/>
+    ${cotaH(270, 370, 395, `caño ${medidaCano(p)}`)}
+    ${texto(320, 60, `sombrero H ${p.forma || ''}`, 'middle', 'nota')}`,
+
+  sombreroSpiro: (p) => `
+    <polygon class="pieza" points="170,150 320,70 470,150"/>
+    <polygon class="pieza" points="180,165 460,165 420,195 220,195"/>
+    <polygon class="pieza" points="190,205 450,205 410,235 230,235"/>
+    <rect class="pieza" x="260" y="240" width="120" height="130"/>
+    ${cotaH(260, 380, 395, `caño ${medidaCano(p)}`)}
+    ${texto(320, 40, `sombrero tipo Spiro ${p.forma || ''}`, 'middle', 'nota')}`,
+
+  boquetaSuelta: (p) => `
+    <polygon class="pieza" points="140,90 500,90 470,120 170,120"/>
+    <rect class="pieza" x="250" y="120" width="140" height="200"/>
+    ${p.forma !== 'redonda' ? '<polygon class="pieza" points="390,120 420,100 420,300 390,320"/>' : '<ellipse class="pieza" cx="320" cy="320" rx="70" ry="10"/>'}
+    ${cotaH(250, 390, 360, `${p.forma || ''} ${medidaCano(p)}`)}
+    ${cotaV(220, 120, 320, `boca ${f(p.largoBocaCm)}`)}
+    ${cotaH(140, 250, 70, `pestaña ${f(p.pestanaCm)}`)}`,
 
   mediaCana: (p) => `
     <path class="pieza-ancha" fill="none" d="M 160 120 A 160 160 0 0 0 480 120"/>

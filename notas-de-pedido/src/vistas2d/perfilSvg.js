@@ -103,7 +103,7 @@ export function svgDelPerfil(perfil, opciones) {
       partes.push(...flechaDePintura(geometria, aPantalla, ladoPintado));
     }
     // Leyenda abajo (texto: se lee en blanco y negro).
-    const leyenda = [`Medidas EXTERIORES en cm`, `● = tramo 1`];
+    const leyenda = [`Medidas EXTERIORES en cm`, `punto = inicio del tramo 1`];
     if (opciones.ladoPintura) leyenda.push(`Pintura ${opciones.ladoPintura.toUpperCase()}`);
     partes.push(`<text class="perfil-leyenda" x="8" y="${alto - 8}">${escaparTexto(leyenda.join('  ·  '))}</text>`);
   }

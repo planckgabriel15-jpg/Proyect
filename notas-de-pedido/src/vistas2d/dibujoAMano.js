@@ -90,7 +90,7 @@ export function crearDibujoAMano(opciones) {
     svg,
     info,
     h('div', { class: 'barra-botones' },
-      h('button', { type: 'button', class: 'boton', onclick: () => { puntos.pop(); dibujar(); } }, '↶ Borrar último punto'),
+      h('button', { type: 'button', class: 'boton', onclick: () => { puntos.pop(); dibujar(); } }, 'Borrar último punto'),
       h('button', { type: 'button', class: 'boton', onclick: () => { puntos.length = 0; dibujar(); } }, 'Empezar de nuevo'),
       h('button', { type: 'button', class: 'boton', onclick: () => opciones.alCancelar() }, 'Cancelar'),
       h('button', {
@@ -99,5 +99,5 @@ export function crearDibujoAMano(opciones) {
           if (puntos.length < 2) { info.textContent = 'Necesitás al menos 2 puntos.'; return; }
           opciones.alTerminar(puntosATramos(puntos));
         },
-      }, '✓ Usar este dibujo')));
+      }, 'Usar este dibujo')));
 }
