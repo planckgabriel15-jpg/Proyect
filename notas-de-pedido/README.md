@@ -104,7 +104,7 @@ Sin frameworks y sin "paso de compilación": HTML + CSS + JavaScript moderno (m�
 index.html                     página única (las pantallas cambian con #inicio, #nota/…, #imprimir/…)
 src/app.js                     arranque y elección de pantalla según la dirección
 .
-recursos/logo.svg              logo (PROVISORIO: reemplazar por el oficial)
+recursos/logo.png              logo oficial de Abasto Soluciones
 src/pantallas/
   atajos.js                    atajos de teclado (F1 muestra la lista)
   inicio.js                    ingreso (elegir vendedor) e inicio (lista de notas de la sucursal)
@@ -156,7 +156,9 @@ docs/ESPECIFICACION.md         la especificación original
 | Agregar una pieza a la galería | `catalogo.json` | copiar una plantilla parecida, cambiarle el `id` (único) y las medidas |
 | Poner la lista real de códigos | pantalla **Configuración → Códigos → Importar** (CSV o JSON), o reemplazar `codigos.json` | columnas `elemento, material, espesor, terminacion, banda, codigo` |
 | Agregar un término al glosario ("?") | `glosario.json` | copiar una línea |
-| Poner el logo oficial | `recursos/logo.svg` | reemplazar el archivo por el logo de la empresa con el mismo nombre (o poner un PNG y cambiar `marca.logo` en `config.json`) |
+| Cambiar el logo | `recursos/logo.png` | reemplazar el archivo con el mismo nombre (o poner otro y cambiar `marca.logo` en `config.json`) |
+| Poner los nombres reales de los vendedores | `vendedores.json` | cambiar `nombre` (hoy "Vendedor 1", "Vendedor 2"…) |
+| Cambiar las opciones del lado de la pintura | `config.json` | `ladosPintura` (afuera, adentro, los dos lados) |
 | Poner los colores de la empresa | `config.json` | `marca` → `colorPrincipal`, `colorPrincipalOscuro`, `colorAcento` |
 | Cambiar cómo se arma el código genérico | `catalogo.json` y `materiales.json` | `codigoGenerico` de cada producto (siglas y medidas) y `letraCodigoGenerico` de colores y materiales |
 
@@ -213,7 +215,7 @@ Todas las fuentes están en la sección 14 de `docs/ESPECIFICACION.md` y cada pl
 
 - Nota de pedido real de la empresa: reglas de desarrollo, banda y código, y el ejemplo CG05P60. Ejemplo de código genérico (CL1010N): área comercial.
 - Productos que fabrica la empresa: [plegados y cortes](https://abastosoluciones.com.ar/7-plegados-y-cortes), [zinguería para techos](https://abastosoluciones.com.ar/4-zingueria-para-techos), [caños, codos y curvas](https://abastosoluciones.com.ar/6-canos-codos-y-curvas), [sombreros](https://abastosoluciones.com.ar/30-sombreros) y [productos marca Abasto](https://abastosoluciones.com.ar/brand/4-abasto). Se relevaron con un buscador web porque el sitio no se pudo abrir directo desde el entorno de desarrollo.
-- Catálogo online de la empresa: [plegados y cortes](https://abastosoluciones.com.ar/7-plegados-y-cortes), [zinguería para techos](https://abastosoluciones.com.ar/4-zingueria-para-techos) y [caños, codos y curvas](https://abastosoluciones.com.ar/6-canos-codos-y-curvas).
+- Artículos de reventa (ronda 5): [zinguería](https://abastosoluciones.com.ar/3-zingueria), [línea gas](https://abastosoluciones.com.ar/5-linea-gas), [cenefa punta de lis](https://abastosoluciones.com.ar/zingueria/81-cenefa-punta-de-lis-2-mt.html) y [embudo colector moldura](https://abastosoluciones.com.ar/zingueria/84-embudo-colector-moldura.html).
 - Tiendas de zinguería en Mercado Libre, con calibres, babetas, cumbreras, canaletas y venturi: [Rapimetal](https://www.mercadolibre.com.ar/tienda/rapimetal), [GEA Zinguería](https://www.mercadolibre.com.ar/pagina/geazingueria), [grampas en pulgadas](https://www.mercadolibre.com.ar/tienda/zingueriagea/clips) y [listado de cenefas](https://listado.mercadolibre.com.ar/cenefa).
 - [Tapa de canaleta izquierda (Easy)](https://www.easy.com.ar/tapa-moldura-d-embut-ch-gv-nº30-15-cm-iz/p).
 - [Guía Leroy Merlin de canalones](https://biblioteca.org.ar/libros/210136.pdf) y [tabla de chapas de la UNCuyo](https://aulaabierta.ingenieria.uncuyo.edu.ar/mod/resource/view.php?id=6819).

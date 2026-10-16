@@ -9,8 +9,8 @@ Objetivo: cargar la nota real de la empresa en el programa, con tapas y boqueta 
 
 ## Minuto 0–1: entrar
 
-1. Elegí tu nombre de la lista (por ejemplo **Ana Ejemplo**, de Colón) y tocá **Entrar**.
-2. Arriba vas a ver el logo, tu nombre y **Sucursal de hoy: Colón**. Si hoy estás en otra, tocá **Cambiar sucursal de hoy**.
+1. Elegí tu usuario de la lista (por ejemplo **Vendedor 1**, de Colón) y tocá **Entrar**.
+2. Arriba vas a ver el logo de Abasto Soluciones, tu usuario y **Sucursal de hoy: Colón**. Si hoy estás en otra, tocá **Cambiar sucursal de hoy**.
 
 ## Minuto 1–2: nota nueva
 
@@ -28,7 +28,7 @@ Objetivo: cargar la nota real de la empresa en el programa, con tapas y boqueta 
 11. Debajo de la tabla, en **Tapas y boquetas de la canaleta**, poné **Tapa izquierda: soldada** y **Tapa derecha: engrampada**.
 12. Tocá **Agregar boqueta** (**Alt+Q**), elegí la forma **rectangular**, lados **10** y **5**, y posición **60**. En el 2D aparece la vista desde arriba con la boqueta acotada a 60 cm. En el 3D (vista **Lateral**, **Alt+8**) se ve la boqueta abajo y las tapas en las puntas.
 13. Pasá al paso 3 (**Alt+flecha derecha**). Elegí **Terminación: Prepintada**, el color **negro** y **Pintura afuera**.
-14. Comprobá: **Código CG05P60** y la descripción "2,44 mts canaleta pp negro D60 CH 25 c/ tapa izq. soldada, tapa der. engrampada y 1 boqueta".
+14. Comprobá: **Código CG05P60** y la descripción "2,44 mts canaleta pp negro D60 CH 25 c/ tapa izq. soldada, tapa der. engrampada y 1 boqueta". Debajo aparecen los **códigos extra**: **TS60N × 2** (las tapas) y **BQR105N × 1** (la boqueta).
 15. Tocá **Agregar a la nota** (**Alt+flecha derecha**).
 
 ## Minuto 5–8: más productos
@@ -36,14 +36,16 @@ Objetivo: cargar la nota real de la empresa en el programa, con tapas y boqueta 
 16. **Tapa suelta:** **Alt+P**, buscá "tapa" y elegí **Tapa suelta de canaleta**. Arriba, en **Copiar perfil de**, elegí el renglón 1. Fijate que el código sale **TS60N (genérico)**. Agregala.
 17. **Sombrero rectangular:** **Alt+P**, buscá "sombrero" y elegí **Sombrero H**. Cambiá la forma a **rectangular**. El código sale **SHR2010Z (genérico)**. Agregalo.
 18. **Chapa lisa:** **Alt+P**, elegí **Chapa lisa (corte a medida)**, poné el largo **0,10** (el tramo ya es 10), y en el paso 3 elegí prepintada **negra**. El código tiene que ser **CL1010N**, igual al ejemplo de la empresa. Agregala.
-19. **Corte láser (opcional):** elegí **Cumbrera sinusoidal 20×20 (corte láser)**. En el 3D se ve el borde ondulado. Si cambiás la medida del tramo 2 a **3**, sale el aviso "la cara con corte láser mide 3 cm; el mínimo es 3,6 cm".
+19. **Artículo de catálogo:** **Alt+P**, buscá "rejilla" y elegí **Rejilla de ventilación**. No pide material ni calibre; con la medida 15x30 el código sale **RV1530**. Agregala.
+20. **Pintura de los dos lados:** en una babeta, en el paso 3 elegí prepintada y **Pintura de los dos lados**. La descripción termina en "… pp negro 2 caras D30 CH 25" y en el 3D se ven las dos caras pintadas.
+21. **Corte láser (opcional):** elegí **Cumbrera sinusoidal 20×20 (corte láser)**. En el 3D se ve el borde ondulado. Si cambiás la medida del tramo 2 a **3**, sale el aviso "la cara con corte láser mide 3 cm; el mínimo es 3,6 cm".
 
 ## Minuto 8–10: emitir, imprimir y buscar
 
-20. Tocá **Emitir nota** (**Ctrl+Enter**) y aceptá. Se asigna el **NP Nº 1** (o el siguiente de tu sucursal) y se abre la hoja para imprimir.
-21. Revisá la hoja: el logo y la sucursal en grande arriba a la izquierda; NP, fecha y factura a la derecha; la tabla **Descripción | Código | Cantidad**; y debajo de la canaleta, el detalle de tapas y boqueta con la vista desde arriba.
-22. Tocá **Imprimir / Guardar PDF** y elegí **Guardar como PDF**. Abajo de cada hoja tiene que decir tu nombre, la hora y "Página 1 de …".
-23. Andá a **Producción** (menú de arriba), escribí el nombre del cliente en el buscador y tocá **Abrir e imprimir**.
+22. Tocá **Emitir nota** (**Ctrl+Enter**) y aceptá. Se asigna el **NP Nº 1** (o el siguiente de tu sucursal) y se abre la hoja para imprimir.
+23. Revisá la hoja: el logo y la sucursal en grande arriba a la izquierda; NP, fecha y factura a la derecha; la tabla **Descripción | Código | Cantidad**; debajo de la canaleta, las filas de las tapas y la boqueta con sus códigos; y en los dibujos, el 3D grande al lado del 2D y la vista desde arriba con las posiciones.
+24. Tocá **Imprimir / Guardar PDF** y elegí **Guardar como PDF**. Abajo de cada hoja tiene que decir tu usuario, la hora y "Página 1 de …".
+25. Andá a **Producción** (menú de arriba), escribí el nombre del cliente en el buscador y tocá **Abrir e imprimir**.
 
 ## Extra (si sobra tiempo)
 
