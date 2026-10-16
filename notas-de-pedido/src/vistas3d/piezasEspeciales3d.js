@@ -23,9 +23,10 @@ const num = (valor, porDefecto) => {
  */
 function superficie(geometria, materiales, ladoPintura) {
   const grupo = new THREE.Group();
-  const pintadoAfuera = !materiales.esPrepintada || ladoPintura !== 'adentro';
-  const afuera = (pintadoAfuera ? materiales.pintado : materiales.sinPintar).clone();
-  const adentro = (pintadoAfuera ? materiales.sinPintar : materiales.pintado).clone();
+  const ambos = !materiales.esPrepintada || ladoPintura === 'ambos';
+  const pintadoAfuera = ladoPintura !== 'adentro';
+  const afuera = (ambos || pintadoAfuera ? materiales.pintado : materiales.sinPintar).clone();
+  const adentro = (ambos || !pintadoAfuera ? materiales.pintado : materiales.sinPintar).clone();
   afuera.side = THREE.FrontSide;
   adentro.side = THREE.BackSide;
   grupo.add(new THREE.Mesh(geometria, afuera));
@@ -139,6 +140,18 @@ function medidaReferencia(p) {
 export const GENERADORES = {
   canoRedondo(p, r, m) {
     return tubo(num(p.diametroCm, 10) / 2, num(r.largoCm, 100), m, r.ladoPintura);
+  },
+
+  /** Caño de bajada redondo, cuadrado o rectangular. */
+  canoSegunForma(p, r, m) {
+    return tuboSegunForma(p, num(r.largoCm, 100), m, r.ladoPintura);
+  },
+
+  /** Artículo de catálogo (no se fabrica a medida): una caja simple como referencia. */
+  articulo(p, r, m) {
+    const caja = new THREE.Mesh(new THREE.BoxGeometry(20, 12, 12), m.pintado.clone());
+    caja.position.y = 6;
+    return caja;
   },
 
   canoRectangular(p, r, m) {
@@ -332,7 +345,9 @@ export const GENERADORES = {
     const segmentos = puntos.slice(1).map((fin, i) => ({ indice: i, inicio: puntos[i], fin }));
     // Gira a la izquierda (antihorario) → el exterior queda a la derecha del recorrido.
     const pintadoAfuera = r.ladoPintura !== 'adentro';
-    const lados = m.esPrepintada
+    const lados = m.esPrepintada && r.ladoPintura === 'ambos'
+      ? { izquierda: m.pintado, derecha: m.pintado }
+      : m.esPrepintada
       ? (pintadoAfuera ? { izquierda: m.sinPintar, derecha: m.pintado } : { izquierda: m.pintado, derecha: m.sinPintar })
       : { izquierda: m.pintado, derecha: m.pintado };
     return construirDesdeSegmentos(segmentos, num(r.largoCm, 100), lados, config);
@@ -363,9 +378,10 @@ export function construirTapa(renglonTapa, materiales, config, z, sentidoZ) {
 
   // 2) Pestaña de apoyo: el mismo perfil, estirado solo `pestana` cm hacia adentro de la canaleta.
   const ladoPintado = materiales.esPrepintada ? ladoPintadoDelPerfil(perfil, renglonTapa.ladoPintura || 'afuera', config) : 'izquierda';
-  const lados = ladoPintado === 'izquierda'
-    ? { izquierda: materiales.pintado, derecha: materiales.sinPintar }
-    : { izquierda: materiales.sinPintar, derecha: materiales.pintado };
+  let lados;
+  if (ladoPintado === 'ambos') lados = { izquierda: materiales.pintado, derecha: materiales.pintado };
+  else if (ladoPintado === 'izquierda') lados = { izquierda: materiales.pintado, derecha: materiales.sinPintar };
+  else lados = { izquierda: materiales.sinPintar, derecha: materiales.pintado };
   const borde = construirDesdeSegmentos(geometria.segmentos.map((s) => ({ indice: s.indice, inicio: s.inicio, fin: s.fin })), pestana, lados, config);
   borde.position.z = sentidoZ > 0 ? z : z - pestana;
   grupo.add(borde);

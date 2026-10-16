@@ -118,9 +118,10 @@ export function construirPlegada(perfil, largoCm, materiales, ladoPintura, confi
   }));
 
   const ladoPintado = materiales.esPrepintada ? ladoPintadoDelPerfil(perfil, ladoPintura || 'afuera', config) : 'izquierda';
-  const materialesPorLado = ladoPintado === 'izquierda'
-    ? { izquierda: materiales.pintado, derecha: materiales.sinPintar }
-    : { izquierda: materiales.sinPintar, derecha: materiales.pintado };
+  let materialesPorLado;
+  if (ladoPintado === 'ambos') materialesPorLado = { izquierda: materiales.pintado, derecha: materiales.pintado };
+  else if (ladoPintado === 'izquierda') materialesPorLado = { izquierda: materiales.pintado, derecha: materiales.sinPintar };
+  else materialesPorLado = { izquierda: materiales.sinPintar, derecha: materiales.pintado };
 
   const grupo = construirDesdeSegmentos(segmentos, largoCm, materialesPorLado, config);
   grupo.userData.geometria2d = geometria;

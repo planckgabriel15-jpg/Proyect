@@ -8,6 +8,7 @@
 
 import { leerNumero, formatearCorto } from '../logica/numeros.js';
 import { escaparTexto } from './perfilSvg.js';
+import { completarTexto } from '../logica/descripcion.js';
 
 const f = (valor) => {
   const n = leerNumero(valor);
@@ -171,6 +172,13 @@ const DIBUJOS = {
     ${cotaH(250, 390, 360, `${p.forma || ''} ${medidaCano(p)}`)}
     ${cotaV(220, 120, 320, `boca ${f(p.largoBocaCm)}`)}
     ${cotaH(140, 250, 70, `pestaña ${f(p.pestanaCm)}`)}`,
+
+  canoSegunForma: (p, r) => (p.forma === 'redonda' ? DIBUJOS.canoRedondo(p, r) : DIBUJOS.canoRectangular(p.forma === 'cuadrada' ? { ...p, ladoBCm: p.ladoACm } : p, r)),
+
+  articulo: (p, r) => `
+    <rect class="pieza" x="120" y="110" width="400" height="180" rx="10"/>
+    ${texto(320, 190, completarTexto(r.textoDescripcion || 'artículo de catálogo', p), 'middle')}
+    ${texto(320, 225, 'producto de catálogo: sin dibujo de fabricación', 'middle', 'nota')}`,
 
   mediaCana: (p) => `
     <path class="pieza-ancha" fill="none" d="M 160 120 A 160 160 0 0 0 480 120"/>

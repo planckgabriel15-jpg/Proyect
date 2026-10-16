@@ -99,12 +99,14 @@ export function svgDelPerfil(perfil, opciones) {
     partes.push(...cotasDeTramos(geometria, aPantalla, opciones));
     partes.push(...cotasDeAngulos(geometria, aPantalla));
     const ladoPintado = opciones.ladoPintura ? ladoPintadoDelPerfil(perfil, opciones.ladoPintura, config) : null;
-    if (ladoPintado) {
+    if (ladoPintado === 'ambos') {
+      partes.push(...flechaDePintura(geometria, aPantalla, 'izquierda'), ...flechaDePintura(geometria, aPantalla, 'derecha'));
+    } else if (ladoPintado) {
       partes.push(...flechaDePintura(geometria, aPantalla, ladoPintado));
     }
     // Leyenda abajo (texto: se lee en blanco y negro).
     const leyenda = [`Medidas EXTERIORES en cm`, `punto = inicio del tramo 1`];
-    if (opciones.ladoPintura) leyenda.push(`Pintura ${opciones.ladoPintura.toUpperCase()}`);
+    if (opciones.ladoPintura) leyenda.push(opciones.ladoPintura === 'ambos' ? 'Pintura DE LOS DOS LADOS' : `Pintura ${opciones.ladoPintura.toUpperCase()}`);
     partes.push(`<text class="perfil-leyenda" x="8" y="${alto - 8}">${escaparTexto(leyenda.join('  ·  '))}</text>`);
   }
 
