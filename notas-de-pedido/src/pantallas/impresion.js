@@ -11,13 +11,15 @@
 // =============================================================
 
 import { h, fechaCorta, fechaYHora, mostrarAviso } from './util.js';
+import { etiquetaAtajo } from './atajos.js';
 import { estado, nombreSucursal, nombreVendedor } from './estado.js';
 import * as almacenamiento from '../datos/almacenamiento.js';
 import { calcularRenglon } from '../logica/calculoRenglon.js';
 import { textoDeTramos } from '../logica/descripcion.js';
 import { describirCorteLaser } from '../logica/corteLaser.js';
 import { formatearCorto } from '../logica/numeros.js';
-import { accesoriosDe } from '../logica/renglones.js';
+import { detalleDeAccesorios } from '../logica/accesoriosCanaleta.js';
+import { svgPlantaCanaleta } from '../vistas2d/plantaCanaletaSvg.js';
 import { svgDelPerfil } from '../vistas2d/perfilSvg.js';
 import { svgCorteLaser } from '../vistas2d/corteLaserSvg.js';
 import { svgDeEspecial } from '../vistas2d/especialSvg.js';
@@ -48,14 +50,17 @@ export async function pantallaImpresion(contenedor, notaId) {
   }`);
 
   const barra = h('div', { class: 'barra-botones no-imprimir barra-impresion' },
-    h('button', { type: 'button', class: 'boton', onclick: () => history.length > 1 ? history.back() : (location.hash = '#inicio') }, '← Volver'),
-    h('button', { type: 'button', class: 'boton grande principal', onclick: () => window.print() }, '🖨 Imprimir / Guardar PDF'),
-    emitida ? null : h('a', { href: `#nota/${nota.id}`, class: 'boton' }, '✎ Seguir editando'),
+    h('button', { type: 'button', class: 'boton', onclick: () => history.length > 1 ? history.back() : (location.hash = '#inicio') }, 'Volver'),
+    h('button', { type: 'button', class: 'boton grande principal', onclick: () => window.print() }, 'Imprimir / Guardar PDF', etiquetaAtajo('Ctrl+P')),
+    emitida ? null : h('a', { href: `#nota/${nota.id}`, class: 'boton' }, 'Seguir editando'),
     h('span', { class: 'texto-chico' }, 'Para PDF: en la ventana de impresión elegí "Guardar como PDF". Recomendado: Chrome o Edge.'));
 
   // ---------- encabezado (igual que el papel) ----------
+  const marca = datos.config.marca || {};
   const encabezado = h('header', { class: 'hoja-encabezado' },
-    h('div', { class: 'hoja-origen' }, h('span', { class: 'rotulo' }, 'Origen'), h('span', { class: 'origen-grande' }, sucursal.toUpperCase())),
+    h('div', { class: 'hoja-origen' },
+      marca.logo ? h('img', { class: 'hoja-logo', src: marca.logo, alt: marca.nombre || 'Logo' }) : null,
+      h('span', { class: 'rotulo' }, 'Origen'), h('span', { class: 'origen-grande' }, sucursal.toUpperCase())),
     h('div', { class: 'hoja-datos' },
       h('div', {}, h('span', { class: 'rotulo' }, 'NP Nº '), h('strong', { class: 'numero-np' }, emitida ? String(nota.numero) : 'BORRADOR')),
       h('div', {}, h('span', { class: 'rotulo' }, 'Fecha '), h('strong', {}, fechaNota)),
@@ -76,8 +81,9 @@ export async function pantallaImpresion(contenedor, notaId) {
       desarrolloEsManual: vivo.desarrolloEsManual,
       porUnidad: vivo.porUnidad,
       avisos: vivo.avisos,
+      codigoGenerico: vivo.codigo.generico,
     };
-    const usaPerfil = renglon.tipoPieza === 'plegada' || renglon.usaPerfilVinculado;
+    const usaPerfil = renglon.tipoPieza === 'plegada' || renglon.usaPerfil;
     const dibujo2d = usaPerfil
       ? svgDelPerfil(renglon.perfil, { config: datos.config, ancho: 560, alto: 340, ladoPintura: renglon.terminacion === 'P' ? renglon.ladoPintura : null })
       : svgDeEspecial(renglon, 560, 360);
@@ -86,9 +92,7 @@ export async function pantallaImpresion(contenedor, notaId) {
     if (usaPerfil && renglon.perfil?.tramos?.length) detalles.push(h('li', {}, h('strong', {}, 'Tramos: '), textoDeTramos(renglon.perfil.tramos)));
     if (!c.porUnidad && c.desarrolloCm) detalles.push(h('li', {}, h('strong', {}, 'Desarrollo: '), `${formatearCorto(c.desarrolloCm, 1)} cm${c.desarrolloEsManual ? ' (corregido a mano)' : ''}`));
     if (renglon.terminacion === 'P') detalles.push(h('li', {}, h('strong', {}, 'Pintura: '), (renglon.ladoPintura || '—').toUpperCase()));
-    if (renglon.vinculadoA) detalles.push(h('li', {}, h('strong', {}, 'Accesorio del renglón '), String(nota.renglones.findIndex((r) => r.id === renglon.vinculadoA) + 1)));
-    const accesorios = accesoriosDe(nota.renglones, renglon.id);
-    if (accesorios.length) detalles.push(h('li', {}, h('strong', {}, 'Lleva: '), accesorios.map((a) => `renglón ${nota.renglones.indexOf(a) + 1}`).join(', ')));
+    for (const linea of detalleDeAccesorios(renglon.accesorios)) detalles.push(h('li', {}, h('strong', {}, `${linea.split(':')[0]}: `), linea.split(':').slice(1).join(':').trim()));
     for (const tramo of (usaPerfil ? renglon.perfil.tramos : []).filter((t) => t.corteLaser)) {
       detalles.push(h('li', {}, h('strong', {}, `Tramo ${renglon.perfil.tramos.indexOf(tramo) + 1}: `), describirCorteLaser(tramo.corteLaser)));
     }
@@ -96,12 +100,13 @@ export async function pantallaImpresion(contenedor, notaId) {
       if (tramo.observacion) detalles.push(h('li', {}, h('strong', {}, `Tramo ${n + 1}: `), tramo.observacion));
     });
     if (!c.codigo) detalles.push(h('li', { class: 'resaltar-texto' }, h('strong', {}, 'CÓDIGO PENDIENTE: '), 'lo completa administración'));
-    for (const aviso of (c.avisos || []).filter((a) => !a.startsWith('Código pendiente'))) detalles.push(h('li', {}, `⚠ ${aviso}`));
+    if (c.codigoGenerico) detalles.push(h('li', {}, h('strong', {}, 'Código genérico: '), 'confirmarlo con administración'));
+    for (const aviso of (c.avisos || []).filter((a) => !a.startsWith('Código pendiente') && !a.startsWith('Código genérico'))) detalles.push(h('li', {}, h('strong', {}, 'Aviso: '), aviso));
     if (renglon.observaciones) detalles.push(h('li', {}, h('strong', {}, 'Observaciones: '), renglon.observaciones));
 
-    const laseres = usaPerfil
+    const laseres = (usaPerfil
       ? renglon.perfil.tramos.map((t, n) => (t.corteLaser ? svgCorteLaser(t, n + 1, renglon.largoCm, datos.config, 560, 190) : '')).join('')
-      : '';
+      : '') + svgPlantaCanaleta(renglon, 640, 170 + 22 * (renglon.accesorios?.boquetas?.length || 0));
 
     tabla.append(h('tbody', { class: 'hoja-renglon' },
       h('tr', { class: 'fila-principal' },
@@ -131,7 +136,7 @@ export async function pantallaImpresion(contenedor, notaId) {
     for (const renglon of nota.renglones) {
       const lugar = hoja.querySelector(`.hoja-3d[data-renglon="${renglon.id}"]`);
       try {
-        const imagen = modulo.capturarRenglon(renglon, accesoriosDe(nota.renglones, renglon.id), datos, 360, 260);
+        const imagen = modulo.capturarRenglon(renglon, datos, 360, 260);
         lugar?.append(h('img', { src: imagen, alt: 'Vista 3D (ayuda visual)' }), h('div', { class: 'texto-chico' }, 'Vista 3D: solo ayuda visual'));
       } catch (error) {
         console.warn('Imagen 3D para imprimir:', error);
@@ -141,5 +146,5 @@ export async function pantallaImpresion(contenedor, notaId) {
     mostrarAviso('Sin 3D: se imprime solo el dibujo 2D (que es la referencia oficial).', 'info');
   }
 
-  return () => { document.title = 'Notas de pedido – Zinguería'; };
+  return () => { document.title = `Notas de pedido – ${datos.config.marca?.nombre || 'Zinguería'}`; };
 }

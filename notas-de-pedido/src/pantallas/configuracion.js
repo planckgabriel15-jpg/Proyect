@@ -98,7 +98,7 @@ async function seccionSucursales(cuerpo) {
         cuerpo.replaceChildren();
         await seccionSucursales(cuerpo);
       },
-    }, '💾 Guardar sucursales'));
+    }, 'Guardar sucursales'));
 }
 
 // ---------- Códigos ----------
@@ -149,7 +149,7 @@ function seccionCodigos(cuerpo) {
     h('p', {}, `La tabla tiene ${datos.codigos.length} códigos. Columnas: elemento, material, espesor, terminacion, banda, codigo. `,
       'Un elemento "*" sirve para cualquier pieza. El programa siempre BUSCA el código acá (no lo arma).'),
     h('div', { class: 'barra-botones' },
-      h('label', { class: 'boton' }, '📂 Importar JSON o CSV… ', archivo),
+      h('label', { class: 'boton' }, 'Importar JSON o CSV ', archivo),
       h('button', {
         type: 'button', class: 'boton',
         onclick: async () => {
@@ -213,7 +213,7 @@ function seccionDatos(cuerpo) {
           enlace.click();
           enlace.remove();
         },
-      }, '⬇ Bajar copia de seguridad'),
+      }, 'Bajar copia de seguridad'),
       h('button', {
         type: 'button', class: 'boton peligro',
         onclick: async () => {

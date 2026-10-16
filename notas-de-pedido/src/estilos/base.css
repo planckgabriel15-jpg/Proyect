@@ -9,7 +9,10 @@
   --fondo-suave: #f2f4f6;
   --borde: #555;
   --borde-suave: #c8cdd2;
-  --principal: #0b4f8a;       /* azul oscuro: buen contraste con blanco */
+  /* Colores de la marca: se pisan desde datos/config.json → "marca" al arrancar. */
+  --principal: #1d3c6e;
+  --principal-oscuro: #132a4f;
+  --acento: #e2711d;
   --principal-texto: #fff;
   --peligro: #a40000;
   --ok: #1e6b2c;
@@ -45,7 +48,11 @@ a { color: var(--principal); }
 }
 .menu a { color: var(--principal-texto); text-decoration: none; padding: .4rem .6rem; border-radius: 6px; }
 .menu a.activo, .menu a:hover { background: rgba(255,255,255,.2); }
-.menu .marca { font-weight: 700; font-size: 1.1rem; }
+.menu .marca { font-weight: 700; font-size: 1.1rem; display: inline-flex; align-items: center; gap: .6rem; padding: .2rem .4rem; }
+.logo-menu { height: 40px; width: auto; display: block; }
+.boton-menu { margin-left: .25rem; background: transparent; color: var(--principal-texto); border: 1.5px solid rgba(255,255,255,.6); border-radius: 6px; padding: .35rem .7rem; font: inherit; font-size: .85rem; cursor: pointer; }
+.boton-menu:hover { background: rgba(255,255,255,.15); }
+.menu { border-bottom: 4px solid var(--acento); }
 .menu nav { display: flex; gap: .25rem; flex-wrap: wrap; }
 .menu .quien { margin-left: auto; font-size: .9rem; }
 
@@ -75,7 +82,7 @@ a { color: var(--principal); }
 .boton:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible { outline: 3px solid var(--resaltado); outline-offset: 1px; }
 .boton:disabled { opacity: .45; cursor: not-allowed; }
 .boton.principal { background: var(--principal); color: var(--principal-texto); border-color: var(--principal); }
-.boton.principal:hover { background: #083c69; }
+.boton.principal:hover { background: var(--principal-oscuro); }
 .boton.peligro { color: var(--peligro); border-color: var(--peligro); }
 .boton.chico { min-height: 36px; padding: .3rem .6rem; font-size: .9rem; }
 .boton.grande { min-height: 52px; font-size: 1.1rem; padding: .6rem 1.4rem; }
@@ -206,8 +213,8 @@ textarea { width: 100%; }
 .fila-tramo.seleccionado { background: #fff1dc; outline: 2px solid var(--resaltado); }
 .fila-tramo.con-error { background: var(--error-fondo); }
 .fila-tramo.con-error .campo-medida { border-color: var(--peligro); }
-.fila-tramo.con-aviso td:first-child::after { content: " ⚠"; color: var(--aviso); }
-.fila-tramo.con-error td:first-child::after { content: " ✖"; color: var(--peligro); }
+.fila-tramo.con-aviso td:first-child { box-shadow: inset 5px 0 0 var(--aviso); }
+.fila-tramo.con-error td:first-child { box-shadow: inset 5px 0 0 var(--peligro); }
 .numero-tramo { font-weight: 800; text-align: center; white-space: nowrap; }
 .fila-laser td { background: #f6f3ff; border-bottom: 2px solid var(--borde-suave); }
 .detalle-laser { display: flex; flex-wrap: wrap; gap: .4rem 1rem; align-items: center; font-size: .9rem; }
@@ -309,3 +316,24 @@ textarea { width: 100%; }
   .asistente-pie .barra-botones { width: 100%; }
   .asistente-pie .barra-botones .boton { flex: 1; }
 }
+
+/* ---------- atajos de teclado ---------- */
+kbd.atajo { display: inline-block; margin-left: .45rem; padding: 0 .35rem; border: 1px solid currentColor; border-radius: 4px; font: 600 .7rem/1.4 ui-monospace, Menlo, Consolas, monospace; opacity: .75; white-space: nowrap; }
+.boton.chico kbd.atajo { font-size: .65rem; margin-left: .3rem; }
+.ventana-ayuda { position: fixed; inset: 0; z-index: 900; background: rgba(0,0,0,.45); display: flex; align-items: flex-start; justify-content: center; padding: 4vh 1rem; overflow: auto; }
+.ventana-contenido { width: min(640px, 100%); }
+.ventana-contenido .titulo-seccion { justify-content: space-between; }
+.ventana-contenido td:first-child { width: 11rem; }
+.ventana-contenido kbd.atajo { margin: 0; font-size: .8rem; opacity: 1; }
+
+/* ---------- tapas y boquetas de la canaleta ---------- */
+.panel-accesorios { margin-top: 1rem; border-top: 2px solid var(--borde-suave); padding-top: .5rem; }
+.fila-boqueta { background: var(--fondo-suave); border-radius: 6px; padding: .4rem .6rem; }
+.fila-boqueta .campo-parametro { min-width: 0; }
+.numero-boqueta { align-self: center; min-width: 5.5rem; }
+.planta-svg { width: 100%; height: auto; margin-top: .4rem; background: #fff; border: 1px solid var(--borde-suave); border-radius: 6px; }
+.planta-svg .pieza, .especial-svg .pieza { fill: #e9edf1; stroke: #000; stroke-width: 2.5; }
+.planta-svg .pieza-boqueta { fill: #fff; stroke: #000; stroke-width: 2.5; }
+.planta-svg .pieza-ancha { stroke: #000; stroke-width: 8; }
+.lista-mensajes li { list-style: none; border-left: 4px solid currentColor; padding-left: .4rem; margin-bottom: .15rem; }
+.lista-mensajes { padding-left: 0; }

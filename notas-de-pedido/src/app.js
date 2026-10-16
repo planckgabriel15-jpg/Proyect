@@ -14,6 +14,7 @@ import { pantallaNota } from './pantallas/nota.js';
 import { pantallaImpresion } from './pantallas/impresion.js';
 import { pantallaProduccion } from './pantallas/produccion.js';
 import { pantallaConfiguracion } from './pantallas/configuracion.js';
+import { mostrarAyudaAtajos } from './pantallas/atajos.js';
 
 const principal = document.getElementById('principal');
 const menu = document.getElementById('menu');
@@ -23,13 +24,27 @@ function dibujarMenu(rutaActual) {
   const vendedor = vendedorActual();
   const sucursal = sucursalActual();
   const enlace = (ruta, texto) => h('a', { href: ruta, class: rutaActual === ruta ? 'activo' : '' }, texto);
+  const marca = estado.datos.config.marca || {};
   menu.replaceChildren(
-    h('a', { href: '#inicio', class: 'marca' }, 'Notas de pedido'),
+    h('a', { href: '#inicio', class: 'marca' },
+      marca.logo ? h('img', { class: 'logo-menu', src: marca.logo, alt: marca.nombre || 'Logo' }) : null,
+      h('span', { class: 'marca-texto' }, 'Notas de pedido')),
     h('nav', { 'aria-label': 'Menú' },
       enlace('#inicio', 'Inicio'),
       enlace('#produccion', 'Producción'),
       enlace('#configuracion', 'Configuración')),
-    h('span', { class: 'quien' }, vendedor ? `${vendedor.nombre} · ${sucursal?.nombre || ''}` : ''));
+    h('span', { class: 'quien' }, vendedor ? `${vendedor.nombre} · ${sucursal?.nombre || ''}` : ''),
+    h('button', { type: 'button', class: 'boton-menu', onclick: () => mostrarAyudaAtajos(), title: 'Ver atajos de teclado (F1)' }, 'Atajos (F1)'));
+}
+
+/** Colores de la empresa (datos/config.json → marca) aplicados a toda la pantalla. */
+function aplicarColoresDeMarca(marca) {
+  if (!marca) return;
+  const raiz = document.documentElement.style;
+  if (marca.colorPrincipal) raiz.setProperty('--principal', marca.colorPrincipal);
+  if (marca.colorPrincipalOscuro) raiz.setProperty('--principal-oscuro', marca.colorPrincipalOscuro);
+  if (marca.colorAcento) raiz.setProperty('--acento', marca.colorAcento);
+  if (marca.nombre) document.title = `Notas de pedido – ${marca.nombre}`;
 }
 
 async function mostrarPantalla() {
@@ -65,6 +80,7 @@ async function arrancar() {
   try {
     estado.datos = await almacenamiento.cargarDatosBase();
     estado.sesion = await almacenamiento.leerSesion();
+    aplicarColoresDeMarca(estado.datos.config.marca);
   } catch (error) {
     principal.replaceChildren(h('div', { class: 'aviso-caja error-caja' },
       `No se pudieron cargar los datos: ${error.message}. ¿Abriste la página con un servidor? (ver README.md)`));

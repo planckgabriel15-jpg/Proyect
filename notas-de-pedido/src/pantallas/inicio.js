@@ -7,6 +7,7 @@
 
 import { h, selector, fechaCorta, confirmar, mostrarAviso } from './util.js';
 import { estado, ir, vendedorActual, sucursalActual } from './estado.js';
+import { registrarAtajos, etiquetaAtajo } from './atajos.js';
 import * as almacenamiento from '../datos/almacenamiento.js';
 
 /** Ingreso del prototipo: elegir el vendedor de una lista. (Con Google será la cuenta de la empresa.) */
@@ -36,6 +37,8 @@ export async function pantallaIngreso(contenedor) {
     }, 'Entrar')));
   return () => {};
 }
+
+let quitarAtajosInicio = null;
 
 export async function pantallaInicio(contenedor) {
   const { datos } = estado;
@@ -108,11 +111,16 @@ export async function pantallaInicio(contenedor) {
 
   contenedor.replaceChildren(
     cabecera,
-    h('a', { href: '#nota/nueva', class: 'boton enorme principal' }, '+ Nueva nota de pedido'),
+    h('a', { href: '#nota/nueva', class: 'boton enorme principal' }, 'Nueva nota de pedido', etiquetaAtajo('Alt+N')),
     h('section', { class: 'panel' },
       h('h2', {}, `Notas de ${sucursal?.nombre || 'la sucursal'}`),
       h('div', { class: 'filtros' }, campoTexto, h('label', {}, 'Desde ', campoDesde), h('label', {}, 'Hasta ', campoHasta), selectorEstado),
       lista));
   await llenar();
-  return () => {};
+  quitarAtajosInicio?.(); // si la pantalla se redibuja (cambio de sucursal), no se duplican
+  quitarAtajosInicio = registrarAtajos('Inicio', [
+    { teclas: 'Alt+N', descripcion: 'Nueva nota de pedido', accion: () => ir('#nota/nueva') },
+    { teclas: 'Alt+K', descripcion: 'Buscar notas', accion: () => campoTexto.focus() },
+  ]);
+  return () => { quitarAtajosInicio?.(); quitarAtajosInicio = null; };
 }

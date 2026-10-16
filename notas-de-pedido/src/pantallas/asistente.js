@@ -16,17 +16,19 @@ import { crearDibujoAMano } from '../vistas2d/dibujoAMano.js';
 import { cargar3d } from '../vistas3d/cargar3d.js';
 import { calcularRenglon } from '../logica/calculoRenglon.js';
 import { leerNumero, formatearNumero, formatearCorto } from '../logica/numeros.js';
-import {
-  crearRenglonDesdePlantilla, buscarPlantilla, filtrarPlantillas, agruparPlantillas, vincularAccesorio,
-} from '../logica/renglones.js';
+import { crearRenglonDesdePlantilla, buscarPlantilla, filtrarPlantillas, agruparPlantillas } from '../logica/renglones.js';
 import { copiarPerfil } from '../logica/perfil.js';
+import { parametrosVisibles } from '../logica/piezasEspeciales.js';
+import { crearBoqueta, FORMAS_BOQUETA } from '../logica/accesoriosCanaleta.js';
+import { svgPlantaCanaleta } from '../vistas2d/plantaCanaletaSvg.js';
+import { registrarAtajos, etiquetaAtajo } from './atajos.js';
 
 const NOMBRES_PASOS = ['¿Qué pieza?', 'Medidas y dibujo', 'Material y cantidad'];
 
 /**
  * Abre el asistente encima de la pantalla de la nota.
  * @param {{
- *   nota: object,                 // la nota (para vincular accesorios y ver tapas/boquetas montadas)
+ *   nota: object,                 // la nota (para copiar el perfil de una canaleta a una tapa suelta)
  *   renglon?: object,             // si viene, se edita ese renglón (arranca en el paso 2)
  *   paso?: number,                // paso donde arrancar (para recuperar una pieza sin terminar)
  *   datos: object,
@@ -44,29 +46,41 @@ export function abrirAsistente(opciones) {
   let resaltado = null;
   let editor = null;
   let visor = null;
-  let verMontada = false;
+  let quitarAtajosEditor = null;
   let pestanaCelular = 'medidas';
 
   // ---------- estructura fija ----------
   const contenido = h('div', { class: 'asistente-contenido' });
   const barraProgreso = h('ol', { class: 'progreso' });
   const panelResultados = h('div', { class: 'panel-resultados', 'aria-live': 'polite' });
-  const botonAtras = h('button', { type: 'button', class: 'boton', onclick: () => irAPaso(paso - 1) }, '← Atrás');
-  const botonSiguiente = h('button', { type: 'button', class: 'boton principal', onclick: () => siguiente() }, 'Siguiente →');
+  const botonAtras = h('button', { type: 'button', class: 'boton', onclick: () => irAPaso(paso - 1) }, 'Atrás', etiquetaAtajo('Alt+ArrowLeft'));
+  const botonSiguiente = h('button', { type: 'button', class: 'boton principal', onclick: () => siguiente() }, 'Siguiente', etiquetaAtajo('Alt+ArrowRight'));
   const contenedor3d = h('div', { class: 'contenedor-3d' }, h('p', { class: 'texto-chico' }, 'Cargando 3D…'));
   const botones3d = h('div', { class: 'barra-botones vistas-3d' },
-    ...[['inicial', 'Vista inicial'], ['frente', 'Frente'], ['lateral', 'Lateral'], ['iso', 'Isométrica']].map(([vista, texto]) =>
-      h('button', { type: 'button', class: 'boton chico', onclick: () => visor?.vista(vista) }, texto)));
+    ...[['inicial', 'Vista inicial', 'Alt+0'], ['frente', 'Frente', 'Alt+7'], ['lateral', 'Lateral', 'Alt+8'], ['iso', 'Isométrica', 'Alt+9']].map(([vista, texto, teclas]) =>
+      h('button', { type: 'button', class: 'boton chico', onclick: () => visor?.vista(vista) }, texto, etiquetaAtajo(teclas))));
 
   const raiz = h('div', { class: 'asistente', role: 'dialog', 'aria-modal': 'true', 'aria-label': 'Agregar pieza' },
     h('header', { class: 'asistente-encabezado' },
       h('h2', {}, editando ? 'Editar pieza' : 'Agregar pieza'),
       barraProgreso,
-      h('button', { type: 'button', class: 'boton', onclick: () => cerrar() }, '✕ Cerrar')),
+      h('button', { type: 'button', class: 'boton', onclick: () => cerrar() }, 'Cerrar', etiquetaAtajo('Escape'))),
     contenido,
     h('footer', { class: 'asistente-pie' }, panelResultados, h('div', { class: 'barra-botones' }, botonAtras, botonSiguiente)));
   document.body.append(raiz);
   document.body.classList.add('con-asistente');
+
+  // Atajos de teclado del asistente (F1 muestra la lista).
+  const quitarAtajos = registrarAtajos('Asistente "Agregar pieza"', [
+    { teclas: 'Escape', descripcion: 'Cerrar el asistente', accion: () => cerrar() },
+    { teclas: 'Alt+ArrowRight', descripcion: 'Siguiente paso / agregar a la nota', accion: () => siguiente() },
+    { teclas: 'Alt+ArrowLeft', descripcion: 'Paso anterior', accion: () => { if (paso > 1) irAPaso(paso - 1); } },
+    { teclas: 'Alt+Q', descripcion: 'Agregar boqueta a la canaleta', accion: () => agregarBoqueta() },
+    { teclas: 'Alt+0', descripcion: 'Vista 3D inicial', accion: () => visor?.vista('inicial') },
+    { teclas: 'Alt+7', descripcion: 'Vista 3D de frente', accion: () => visor?.vista('frente') },
+    { teclas: 'Alt+8', descripcion: 'Vista 3D lateral', accion: () => visor?.vista('lateral') },
+    { teclas: 'Alt+9', descripcion: 'Vista 3D isométrica', accion: () => visor?.vista('iso') },
+  ]);
 
   // El 3D se carga una sola vez y se reutiliza en los pasos 2 y 3.
   cargar3d().then((modulo) => {
@@ -113,6 +127,8 @@ export function abrirAsistente(opciones) {
   }
 
   function terminar() {
+    quitarAtajos();
+    quitarAtajosEditor?.();
     visor?.destruir();
     raiz.remove();
     document.body.classList.remove('con-asistente');
@@ -125,9 +141,11 @@ export function abrirAsistente(opciones) {
       h('li', { class: i + 1 === paso ? 'actual' : (i + 1 < paso ? 'hecho' : '') }, `${i + 1}. ${nombre}`)));
     botonAtras.hidden = paso === 1;
     botonSiguiente.hidden = paso === 1;
-    botonSiguiente.textContent = paso === 3 ? (editando ? '✓ Guardar cambios' : '✓ Agregar a la nota') : 'Siguiente →';
+    botonSiguiente.replaceChildren(paso === 3 ? (editando ? 'Guardar cambios' : 'Agregar a la nota') : 'Siguiente', etiquetaAtajo('Alt+ArrowRight'));
     contenido.replaceChildren();
     editor = null;
+    quitarAtajosEditor?.();
+    quitarAtajosEditor = null;
     if (paso === 1) dibujarPaso1();
     if (paso === 2) dibujarPaso2();
     if (paso === 3) dibujarPaso3();
@@ -159,18 +177,13 @@ export function abrirAsistente(opciones) {
   function tarjetaDePlantilla(plantilla) {
     const miniatura = plantilla.tipoPieza === 'plegada'
       ? svgDelPerfil(plantilla.perfil, { config: datos.config, ancho: 160, alto: 110, miniatura: true })
-      : (plantilla.usaPerfilVinculado
-        ? svgDelPerfil(buscarPlantilla(datos.catalogo, 'canaleta_nota_real').perfil, { config: datos.config, ancho: 160, alto: 110, miniatura: true })
+      : (plantilla.usaPerfil
+        ? svgDelPerfil(plantilla.perfil, { config: datos.config, ancho: 160, alto: 110, miniatura: true })
         : svgMiniaturaEspecial(plantilla.generador3d));
     return h('button', {
       type: 'button', class: 'tarjeta-plantilla',
       onclick: () => {
         borrador = crearRenglonDesdePlantilla(plantilla, datos.config);
-        // Accesorios: si en la nota hay una sola canaleta, se vinculan solos.
-        if (plantilla.vinculablePara) {
-          const candidatas = renglonesVinculables(plantilla);
-          if (candidatas.length === 1) borrador = vincularAccesorio(borrador, candidatas[0]);
-        }
         paso = 2;
         dibujarPaso();
       },
@@ -180,15 +193,11 @@ export function abrirAsistente(opciones) {
     plantilla.supuesto ? h('span', { class: 'etiqueta-supuesto' }, 'medidas de ejemplo') : null);
   }
 
-  function renglonesVinculables(plantilla) {
-    return nota.renglones.filter((r) => (plantilla.vinculablePara || []).includes(r.elemento) && r.id !== borrador?.id);
-  }
-
   // ===== PASO 2: medidas y dibujo =====
   function dibujarPaso2() {
     const plantilla = buscarPlantilla(datos.catalogo, borrador.plantillaId);
     const esPlegada = borrador.tipoPieza === 'plegada';
-    const usaPerfil = esPlegada || borrador.usaPerfilVinculado;
+    const usaPerfil = esPlegada || borrador.usaPerfil;
 
     const panelMedidas = h('section', { class: 'panel panel-medidas', 'data-panel': 'medidas' });
     const panel2d = h('section', { class: 'panel panel-2d', 'data-panel': '2d' }, h('h3', {}, 'Dibujo 2D acotado'));
@@ -207,11 +216,11 @@ export function abrirAsistente(opciones) {
       if (indice !== undefined) resaltar(Number(indice));
     });
 
-    // --- Encabezado del paso: nombre, largo, vínculo ---
+    // --- Encabezado del paso: nombre y largo ---
     const encabezado = h('div', { class: 'paso2-encabezado' },
       h('div', {}, h('strong', {}, plantilla?.nombre || 'Pieza'),
         plantilla?.ayuda ? h('div', { class: 'texto-chico' }, plantilla.ayuda) : null),
-      usaPerfil ? h('div', { class: 'recordatorio-exteriores', role: 'note' }, '⚠ Cargá medidas EXTERIORES ', ayuda(datos.glosario, 'medida_exterior')) : null);
+      usaPerfil ? h('div', { class: 'recordatorio-exteriores', role: 'note' }, 'Cargá medidas EXTERIORES ', ayuda(datos.glosario, 'medida_exterior')) : null);
 
     const campos = h('div', { class: 'fila-campos' });
     if (borrador.usaLargo) {
@@ -227,14 +236,13 @@ export function abrirAsistente(opciones) {
           },
         })));
     }
-    if (plantilla?.vinculablePara) campos.append(selectorVinculo(plantilla));
+    if (borrador.usaPerfil) campos.append(selectorCopiarPerfil());
     encabezado.append(campos);
 
     // --- Medidas: tabla de tramos o formulario de parámetros ---
     if (usaPerfil) {
-      if (borrador.usaPerfilVinculado) {
-        panelMedidas.append(h('p', { class: 'texto-chico' },
-          borrador.vinculadoA ? 'La tapa copia el perfil de la canaleta vinculada. Si hace falta, corregilo acá.' : 'Vinculá la tapa a una canaleta de la nota (arriba), o cargá el perfil a mano.'));
+      if (borrador.usaPerfil) {
+        panelMedidas.append(h('p', { class: 'texto-chico' }, 'La tapa lleva el perfil de la canaleta. Copialo de una canaleta (arriba) o corregilo en la tabla.'));
       }
       editor = crearEditorTramos({
         perfil: borrador.perfil,
@@ -244,9 +252,13 @@ export function abrirAsistente(opciones) {
         alDibujarAMano: () => abrirDibujoAMano(panelMedidas),
       });
       panelMedidas.append(editor.elemento);
+      quitarAtajosEditor = registrarAtajos('Tabla de tramos', editor.listaAtajos);
     }
     if (!esPlegada) {
       panelMedidas.append(formularioParametros(plantilla));
+    }
+    if (borrador.accesorios) {
+      panelMedidas.append(panelAccesorios());
     }
 
     // --- Pestañas para celular ---
@@ -266,48 +278,89 @@ export function abrirAsistente(opciones) {
     dibujar2d();
   }
 
-  function selectorVinculo(plantilla) {
-    const candidatas = renglonesVinculables(plantilla);
-    const opcionesVinculo = [{ valor: '', texto: candidatas.length ? '— sin vincular —' : '— no hay canaletas en la nota —' }]
-      .concat(candidatas.map((r) => ({ valor: r.id, texto: `Renglón ${nota.renglones.indexOf(r) + 1}: ${calcularRenglon(r, datos).descripcion}` })));
-    const etiqueta = h('label', {}, 'Accesorio de: ',
-      selector(opcionesVinculo, borrador.vinculadoA || '', {
+  /** Tapa suelta: copiar el perfil de una canaleta de esta nota o de una plantilla. */
+  function selectorCopiarPerfil() {
+    const deLaNota = nota.renglones.filter((r) => r.elemento === 'canaleta' && r.perfil?.tramos?.length);
+    const plantillas = datos.catalogo.plantillas.filter((p) => p.elemento === 'canaleta' && p.tipoPieza === 'plegada');
+    const opcionesCopia = [{ valor: '', texto: 'elegir…' }]
+      .concat(deLaNota.map((r) => ({ valor: `renglon:${r.id}`, texto: `Renglón ${nota.renglones.indexOf(r) + 1}: ${calcularRenglon(r, datos).descripcion}` })))
+      .concat(plantillas.map((p) => ({ valor: `plantilla:${p.id}`, texto: `Plantilla: ${p.nombre}` })));
+    return h('label', {}, 'Copiar perfil de ',
+      selector(opcionesCopia, '', {
         onchange: (e) => {
-          const principal = nota.renglones.find((r) => r.id === e.target.value);
-          if (principal) {
-            borrador = vincularAccesorio(borrador, principal);
-          } else {
-            borrador.vinculadoA = null;
+          const [tipo, id] = e.target.value.split(':');
+          const origen = tipo === 'renglon' ? nota.renglones.find((r) => r.id === id) : buscarPlantilla(datos.catalogo, id);
+          if (!origen) return;
+          borrador.perfil = copiarPerfil(origen.perfil);
+          if (tipo === 'renglon') {
+            // También el material y el color de esa canaleta.
+            Object.assign(borrador, { materialId: origen.materialId, calibreId: origen.calibreId, terminacion: origen.terminacion, colorId: origen.colorId, ladoPintura: origen.ladoPintura });
           }
           dibujarPaso();
         },
       }));
-    const casilla = h('label', { class: 'casilla' },
-      h('input', { type: 'checkbox', checked: verMontada, disabled: !borrador.vinculadoA, onchange: (e) => { verMontada = e.target.checked; actualizar3d(true); } }),
-      ' Ver montada en la canaleta');
-    // Tapa sin canaleta en la nota: permitir copiar el perfil de una plantilla.
-    let copiarDePlantilla = null;
-    if (borrador.usaPerfilVinculado && !borrador.vinculadoA) {
-      const canaletas = datos.catalogo.plantillas.filter((p) => p.elemento === 'canaleta' && p.tipoPieza === 'plegada');
-      copiarDePlantilla = h('label', {}, 'Copiar perfil de: ',
-        selector([{ valor: '', texto: '— elegir —' }].concat(canaletas.map((p) => ({ valor: p.id, texto: p.nombre }))), '', {
-          onchange: (e) => {
-            const p = buscarPlantilla(datos.catalogo, e.target.value);
-            if (p) { borrador.perfil = copiarPerfil(p.perfil); dibujarPaso(); }
-          },
-        }));
-    }
-    return h('div', { class: 'fila-campos' }, etiqueta, casilla, copiarDePlantilla);
+  }
+
+  /** Canaletas: tapas (ninguna, soldada o engrampada) y boquetas puestas, con su forma, medida y posición. */
+  function panelAccesorios() {
+    const acc = borrador.accesorios;
+    const opcionesTapa = datos.config.accesoriosCanaleta.tiposDeTapa.map((t) => ({ valor: t, texto: t }));
+    const zona = h('section', { class: 'panel-accesorios' }, h('h3', {}, 'Tapas y boquetas de la canaleta'));
+    zona.append(h('div', { class: 'fila-campos' },
+      h('label', { class: 'campo-parametro' }, h('span', {}, 'Tapa izquierda'),
+        selector(opcionesTapa, acc.tapaIzquierda, { onchange: (e) => { acc.tapaIzquierda = e.target.value; actualizar(); } })),
+      h('label', { class: 'campo-parametro' }, h('span', {}, 'Tapa derecha'),
+        selector(opcionesTapa, acc.tapaDerecha, { onchange: (e) => { acc.tapaDerecha = e.target.value; actualizar(); } }))));
+
+    const numero = (objeto, campo, etiqueta) => h('label', { class: 'campo-parametro' }, h('span', {}, `${etiqueta} (cm)`),
+      h('input', {
+        type: 'text', inputmode: 'decimal', class: 'campo-medida', value: String(objeto[campo] ?? '').replace('.', ','),
+        oninput: (e) => { const n = leerNumero(e.target.value); objeto[campo] = Number.isFinite(n) ? n : e.target.value; actualizar(); },
+      }));
+
+    acc.boquetas.forEach((b, i) => {
+      const campos = [
+        h('strong', { class: 'numero-boqueta' }, `Boqueta ${i + 1}`),
+        h('label', { class: 'campo-parametro' }, h('span', {}, 'Forma'),
+          selector(FORMAS_BOQUETA.map((f) => ({ valor: f, texto: f })), b.forma, {
+            onchange: (e) => { b.forma = e.target.value; zona.replaceWith(panelAccesorios()); actualizar(); },
+          })),
+      ];
+      if (b.forma === 'redonda') campos.push(numero(b, 'diametroCm', 'Diámetro'));
+      else if (b.forma === 'cuadrada') campos.push(numero(b, 'ladoACm', 'Lado'));
+      else campos.push(numero(b, 'ladoACm', 'Lado a'), numero(b, 'ladoBCm', 'Lado b'));
+      campos.push(numero(b, 'largoBocaCm', 'Largo de la boca'), numero(b, 'posicionCm', 'Posición desde la punta izq.'),
+        h('button', {
+          type: 'button', class: 'boton chico peligro',
+          onclick: () => { acc.boquetas.splice(i, 1); zona.replaceWith(panelAccesorios()); actualizar(); },
+        }, 'Quitar'));
+      zona.append(h('div', { class: 'fila-campos fila-boqueta' }, campos));
+    });
+    zona.append(h('button', { type: 'button', class: 'boton', onclick: () => agregarBoqueta() }, 'Agregar boqueta', etiquetaAtajo('Alt+Q')),
+      h('p', { class: 'texto-chico' }, 'La posición se mide desde la punta izquierda de la canaleta hasta el centro de la boqueta.'));
+    enterPasaAlSiguiente(zona);
+    return zona;
+  }
+
+  function agregarBoqueta() {
+    if (paso !== 2 || !borrador?.accesorios) return;
+    borrador.accesorios.boquetas.push(crearBoqueta(datos.config));
+    contenido.querySelector('.panel-accesorios')?.replaceWith(panelAccesorios());
+    actualizar();
   }
 
   function formularioParametros(plantilla) {
     const formulario = h('div', { class: 'formulario-parametros' }, h('h3', {}, 'Medidas de la pieza'));
-    for (const definicion of plantilla?.parametros || []) {
+    for (const definicion of parametrosVisibles(plantilla || {}, borrador.parametros)) {
       const valorActual = borrador.parametros[definicion.id];
       let campo;
       if (definicion.tipo === 'opciones') {
         campo = selector(definicion.opciones.map((o) => ({ valor: o.valor, texto: o.etiqueta })), valorActual, {
-          onchange: (e) => { borrador.parametros[definicion.id] = leerNumero(e.target.value) || e.target.value; actualizar(); },
+          onchange: (e) => {
+            borrador.parametros[definicion.id] = leerNumero(e.target.value) || e.target.value;
+            // Si cambió la forma, cambian las medidas que se piden.
+            if (definicion.id === 'forma') dibujarPaso(); else actualizar();
+          },
         });
       } else {
         const entrada = h('input', {
@@ -454,10 +507,11 @@ export function abrirAsistente(opciones) {
       h('strong', {}, r.banda.numero ? `${r.banda.nombre} (${r.banda.numero})` : r.banda.nombre)));
     partes.push(h('span', { class: 'resultado-dato' }, 'Código ',
       h('strong', { class: r.codigo.encontrado ? 'codigo-ok' : 'codigo-falta' },
-        r.codigo.encontrado ? r.codigo.codigo : (borrador.codigoPendiente ? 'PENDIENTE' : 'no encontrado'))));
+        r.codigo.encontrado ? r.codigo.codigo : (borrador.codigoPendiente ? 'PENDIENTE' : 'no encontrado')),
+      r.codigo.generico ? h('span', { class: 'texto-chico' }, ' (genérico)') : null));
     const mensajes = [
-      ...r.errores.map((m) => h('li', { class: 'error' }, '✖ ', m)),
-      ...r.avisos.map((m) => h('li', { class: 'aviso' }, '⚠ ', m)),
+      ...r.errores.map((m) => h('li', { class: 'error' }, h('strong', {}, 'Error: '), m)),
+      ...r.avisos.filter((m) => !m.startsWith('Código genérico')).map((m) => h('li', { class: 'aviso' }, h('strong', {}, 'Aviso: '), m)),
     ];
     panelResultados.replaceChildren(
       h('div', { class: 'resultados-datos' }, ...partes),
@@ -472,14 +526,14 @@ export function abrirAsistente(opciones) {
     if (!resultado.codigo.encontrado || borrador.codigoPendiente) {
       zona.append(h('label', { class: 'casilla aviso-caja' },
         h('input', { type: 'checkbox', checked: borrador.codigoPendiente, onchange: (e) => { borrador.codigoPendiente = e.target.checked; actualizar(); } }),
-        ' Marcar "código pendiente" (administración lo completa) ', ayuda(datos.glosario, 'codigo_pendiente')));
+        ' Marcar "código pendiente" (lo completa administración) ', ayuda(datos.glosario, 'codigo_pendiente')));
     }
   }
 
   function dibujar2d() {
     if (!borrador) return;
     for (const zonaSvg of contenido.querySelectorAll('.zona-svg')) {
-      const usaPerfil = borrador.tipoPieza === 'plegada' || borrador.usaPerfilVinculado;
+      const usaPerfil = borrador.tipoPieza === 'plegada' || borrador.usaPerfil;
       zonaSvg.innerHTML = usaPerfil
         ? svgDelPerfil(borrador.perfil, {
           config: datos.config, resaltado, interactivo: true,
@@ -489,24 +543,15 @@ export function abrirAsistente(opciones) {
     }
     for (const zonaLaser of contenido.querySelectorAll('.zona-laser')) {
       const conLaser = (borrador.perfil?.tramos || []).map((t, i) => ({ t, i })).filter(({ t }) => t.corteLaser);
-      zonaLaser.innerHTML = conLaser.map(({ t, i }) => svgCorteLaser(t, i + 1, borrador.largoCm, datos.config)).join('');
+      zonaLaser.innerHTML = conLaser.map(({ t, i }) => svgCorteLaser(t, i + 1, borrador.largoCm, datos.config)).join('')
+        + svgPlantaCanaleta(borrador);
     }
   }
 
   function actualizar3d(reencuadrar) {
     if (!visor || !borrador) return;
-    let renglon3d = borrador;
-    let accesorios = nota.renglones.filter((r) => r.vinculadoA === borrador.id && r.id !== borrador.id);
-    if (verMontada && borrador.vinculadoA) {
-      // Ver el accesorio montado: se muestra la canaleta con este accesorio (en su versión actual).
-      const principal = nota.renglones.find((r) => r.id === borrador.vinculadoA);
-      if (principal) {
-        renglon3d = principal;
-        accesorios = nota.renglones.filter((r) => r.vinculadoA === principal.id && r.id !== borrador.id).concat([borrador]);
-      }
-    }
     try {
-      visor.mostrar(renglon3d, accesorios, datos, { reencuadrar });
+      visor.mostrar(borrador, datos, { reencuadrar });
       visor.resaltarTramo(resaltado);
     } catch (error) {
       console.warn('No se pudo dibujar el 3D:', error);

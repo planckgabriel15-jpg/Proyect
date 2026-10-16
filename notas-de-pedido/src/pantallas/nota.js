@@ -14,7 +14,8 @@ import { abrirAsistente } from './asistente.js';
 import * as almacenamiento from '../datos/almacenamiento.js';
 import { calcularRenglon } from '../logica/calculoRenglon.js';
 import { validarNota } from '../logica/validaciones.js';
-import { duplicarRenglon, vincularAccesorio, accesoriosDe } from '../logica/renglones.js';
+import { duplicarRenglon } from '../logica/renglones.js';
+import { registrarAtajos, etiquetaAtajo } from './atajos.js';
 import { svgDelPerfil } from '../vistas2d/perfilSvg.js';
 import { svgDeEspecial } from '../vistas2d/especialSvg.js';
 import { cargar3d } from '../vistas3d/cargar3d.js';
@@ -95,7 +96,7 @@ export async function pantallaNota(contenedor, notaId) {
           if (texto) { campoFactura.value = texto; nota.factura = texto; marcarCambio(); }
         } catch { mostrarAviso('El navegador no dejó leer el portapapeles: pegalo con Ctrl+V', 'info'); }
       },
-    }, '📋 Pegar')
+    }, 'Pegar')
     : null;
   const selectorOrigen = selector(datos.sucursales.map((s) => ({ valor: s.id, texto: s.nombre })), nota.sucursalId, {
     'aria-label': 'Sucursal de origen',
@@ -130,24 +131,23 @@ export async function pantallaNota(contenedor, notaId) {
     nota.renglones.forEach((renglon, i) => {
       const r = calcularRenglon(renglon, datos);
       const miniatura = h('div', { class: 'miniatura-renglon', 'data-renglon': renglon.id,
-        html: renglon.tipoPieza === 'plegada' || renglon.usaPerfilVinculado
+        html: renglon.tipoPieza === 'plegada' || renglon.usaPerfil
           ? svgDelPerfil(renglon.perfil, { config: datos.config, ancho: 200, alto: 140, miniatura: true })
           : svgDeEspecial(renglon, 640, 420) });
-      const vinculo = renglon.vinculadoA ? h('div', { class: 'texto-chico' }, `Accesorio del renglón ${numeroDeRenglon(renglon.vinculadoA) || '?'}`) : null;
       listaRenglones.append(h('article', { class: `tarjeta-renglon${r.errores.length ? ' con-error' : ''}` },
         h('div', { class: 'numero-renglon' }, String(i + 1)),
         miniatura,
         h('div', { class: 'datos-renglon' },
           h('div', { class: 'descripcion-renglon' }, r.descripcion),
-          h('div', {}, 'Código: ', h('strong', {}, r.codigo.encontrado ? r.codigo.codigo : (renglon.codigoPendiente ? 'PENDIENTE' : '— no encontrado —')),
+          h('div', {}, 'Código: ', h('strong', {}, r.codigo.encontrado ? r.codigo.codigo : (renglon.codigoPendiente ? 'PENDIENTE' : 'no encontrado')),
+            r.codigo.generico ? ' (genérico)' : '',
             ' · Cantidad: ', h('strong', {}, String(renglon.cantidad))),
-          vinculo,
-          r.errores.length ? h('div', { class: 'error' }, `✖ ${r.errores.length} problema(s): ${r.errores[0]}`) : null,
-          r.avisos.length ? h('div', { class: 'aviso' }, `⚠ ${r.avisos.join(' · ')}`) : null),
+          r.errores.length ? h('div', { class: 'error' }, h('strong', {}, 'Error: '), `${r.errores.length} problema(s): ${r.errores[0]}`) : null,
+          r.avisos.length ? h('div', { class: 'aviso' }, h('strong', {}, 'Aviso: '), r.avisos.join(' · ')) : null),
         h('div', { class: 'acciones-renglon' },
-          h('button', { type: 'button', class: 'boton', onclick: () => editarRenglon(renglon) }, '✎ Editar'),
-          h('button', { type: 'button', class: 'boton', onclick: () => duplicar(renglon) }, '⧉ Duplicar'),
-          h('button', { type: 'button', class: 'boton peligro', onclick: () => eliminar(renglon) }, '🗑 Eliminar'))));
+          h('button', { type: 'button', class: 'boton', onclick: () => editarRenglon(renglon) }, 'Editar'),
+          h('button', { type: 'button', class: 'boton', onclick: () => duplicar(renglon) }, 'Duplicar'),
+          h('button', { type: 'button', class: 'boton peligro', onclick: () => eliminar(renglon) }, 'Eliminar'))));
     });
     dibujarMiniaturas3d();
   }
@@ -160,7 +160,7 @@ export async function pantallaNota(contenedor, notaId) {
       const lugar = listaRenglones.querySelector(`.miniatura-renglon[data-renglon="${renglon.id}"]`);
       if (!lugar) continue;
       try {
-        const imagen = modulo.capturarRenglon(renglon, accesoriosDe(nota.renglones, renglon.id), datos, 240, 160);
+        const imagen = modulo.capturarRenglon(renglon, datos, 240, 160);
         lugar.replaceChildren(h('img', { src: imagen, alt: 'Vista 3D de la pieza' }));
       } catch (error) {
         console.warn('Miniatura 3D:', error);
@@ -177,8 +177,6 @@ export async function pantallaNota(contenedor, notaId) {
         const posicion = nota.renglones.findIndex((r) => r.id === guardado.id);
         if (posicion >= 0) nota.renglones[posicion] = guardado;
         else nota.renglones.push(guardado);
-        // Si es una canaleta con tapas vinculadas, las tapas copian el perfil nuevo.
-        nota.renglones = nota.renglones.map((r) => (r.vinculadoA === guardado.id && r.usaPerfilVinculado ? vincularAccesorio(r, guardado) : r));
         delete nota.piezaEnCurso;
         asistenteAbierto = null;
         marcarCambio();
@@ -212,10 +210,8 @@ export async function pantallaNota(contenedor, notaId) {
 
   function eliminar(renglon) {
     const numero = numeroDeRenglon(renglon.id);
-    const vinculados = nota.renglones.filter((r) => r.vinculadoA === renglon.id);
-    const extra = vinculados.length ? `\nTiene ${vinculados.length} accesorio(s) vinculado(s): quedan sueltos.` : '';
-    if (!confirmar(`¿Eliminar el renglón ${numero}?${extra}`)) return;
-    nota.renglones = nota.renglones.filter((r) => r.id !== renglon.id).map((r) => (r.vinculadoA === renglon.id ? { ...r, vinculadoA: null } : r));
+    if (!confirmar(`¿Eliminar el renglón ${numero}?`)) return;
+    nota.renglones = nota.renglones.filter((r) => r.id !== renglon.id);
     marcarCambio();
     dibujarRenglones();
   }
@@ -248,6 +244,7 @@ export async function pantallaNota(contenedor, notaId) {
         banda: resultados[i].banda,
         porUnidad: resultados[i].porUnidad,
         avisos: resultados[i].avisos,
+        codigoGenerico: resultados[i].codigo.generico,
       },
     }));
     delete nota.piezaEnCurso;
@@ -274,12 +271,19 @@ export async function pantallaNota(contenedor, notaId) {
     h('section', { class: 'panel' },
       h('div', { class: 'titulo-seccion' }, h('h2', {}, 'Piezas'), ayuda(datos.glosario, 'desarrollo')),
       listaRenglones,
-      h('button', { type: 'button', class: 'boton grande principal', onclick: () => abrir(null) }, '+ Agregar pieza')),
+      h('button', { type: 'button', class: 'boton grande principal', onclick: () => abrir(null) }, 'Agregar pieza', etiquetaAtajo('Alt+P'))),
     zonaErrores,
     h('div', { class: 'barra-botones barra-final' },
-      h('a', { href: '#inicio', class: 'boton' }, '← Inicio'),
-      h('button', { type: 'button', class: 'boton', onclick: () => guardar(false) }, '💾 Guardar borrador'),
-      h('button', { type: 'button', class: 'boton grande principal', onclick: () => emitir() }, '✓ Emitir nota')));
+      h('a', { href: '#inicio', class: 'boton' }, 'Volver al inicio'),
+      h('button', { type: 'button', class: 'boton', onclick: () => guardar(false) }, 'Guardar borrador', etiquetaAtajo('Ctrl+S')),
+      h('button', { type: 'button', class: 'boton grande principal', onclick: () => emitir() }, 'Emitir nota', etiquetaAtajo('Ctrl+Enter'))));
+
+  // Atajos de teclado de la nota (F1 muestra la lista).
+  const quitarAtajos = registrarAtajos('Nota de pedido', [
+    { teclas: 'Alt+P', descripcion: 'Agregar pieza', accion: () => { if (!asistenteAbierto) abrir(null); } },
+    { teclas: 'Ctrl+S', descripcion: 'Guardar borrador', accion: () => guardar(false) },
+    { teclas: 'Ctrl+Enter', descripcion: 'Emitir nota', accion: () => { if (!asistenteAbierto) emitir(); } },
+  ]);
 
   // ¿Quedó una pieza a medio cargar (se cortó algo)?
   if (nota.piezaEnCurso?.renglon) {
@@ -295,6 +299,7 @@ export async function pantallaNota(contenedor, notaId) {
 
   // Limpieza al salir de la pantalla.
   return () => {
+    quitarAtajos();
     clearInterval(intervalo);
     window.removeEventListener('beforeunload', guardarAlSalir);
     document.removeEventListener('visibilitychange', guardarAlSalir);

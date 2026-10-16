@@ -8,6 +8,7 @@
 // =============================================================
 
 import { h, selector, ayuda, enterPasaAlSiguiente, confirmar } from './util.js';
+import { etiquetaAtajo, textoTeclas } from './atajos.js';
 import { leerNumero } from '../logica/numeros.js';
 import { giroEnTramo, DIRECCIONES } from '../logica/geometria.js';
 import {
@@ -50,8 +51,8 @@ export function crearEditorTramos(opciones) {
 
   const raiz = h('div', { class: 'editor-tramos' });
   const cuerpoTabla = h('tbody');
-  const botonDeshacer = h('button', { type: 'button', class: 'boton chico', onclick: () => deshacer(), title: 'Deshacer (Ctrl+Z)' }, '↶ Deshacer');
-  const botonRehacer = h('button', { type: 'button', class: 'boton chico', onclick: () => rehacer(), title: 'Rehacer (Ctrl+Y)' }, '↷ Rehacer');
+  const botonDeshacer = h('button', { type: 'button', class: 'boton chico', onclick: () => deshacer(), title: 'Deshacer (Ctrl+Z)' }, 'Deshacer');
+  const botonRehacer = h('button', { type: 'button', class: 'boton chico', onclick: () => rehacer(), title: 'Rehacer (Ctrl+Y)' }, 'Rehacer');
 
   // ---------- cambios ----------
 
@@ -147,7 +148,7 @@ export function crearEditorTramos(opciones) {
       onchange: () => guardarEnHistorial(),
     });
     const campoSentido = selector(
-      [{ valor: 'izquierda', texto: '↺ izq.' }, { valor: 'derecha', texto: '↻ der.' }],
+      [{ valor: 'izquierda', texto: 'izquierda' }, { valor: 'derecha', texto: 'derecha' }],
       tramo.sentido,
       {
         'aria-label': `Sentido del tramo ${indice + 1}`, disabled: indice === 0,
@@ -245,8 +246,8 @@ export function crearEditorTramos(opciones) {
   });
   const selectorDireccion = selector(
     [
-      { valor: 'arriba', texto: '↑ arriba' }, { valor: 'abajo', texto: '↓ abajo' },
-      { valor: 'izquierda', texto: '← izquierda' }, { valor: 'derecha', texto: '→ derecha' },
+      { valor: 'arriba', texto: 'arriba' }, { valor: 'abajo', texto: 'abajo' },
+      { valor: 'izquierda', texto: 'izquierda' }, { valor: 'derecha', texto: 'derecha' },
       { valor: 'grados', texto: 'ángulo en grados…' },
     ],
     'arriba',
@@ -267,36 +268,67 @@ export function crearEditorTramos(opciones) {
     },
   );
 
+  // ---------- acciones (las usan los botones y los atajos de teclado) ----------
+
+  const acciones = {
+    agregarTramo: () => cambioEstructural(agregarTramoAlFinal(perfil, { anguloPliegue: config.anguloPorDefecto }), perfil.tramos.length),
+    insertarAntes: () => {
+      const indice = seleccionado ?? 0;
+      cambioEstructural(insertarTramoAntes(perfil, indice, { anguloPliegue: config.anguloPorDefecto }), indice);
+    },
+    borrarTramo: () => {
+      if (seleccionado === null || !perfil.tramos.length) return;
+      if (!confirmar(`¿Borrar el tramo ${seleccionado + 1}?`)) return;
+      cambioEstructural(borrarTramo(perfil, seleccionado, config), Math.max(0, seleccionado - 1));
+    },
+    deshacer: () => deshacer(),
+    rehacer: () => rehacer(),
+    aletaInicio: () => cambioEstructural(agregarAleta(perfil, 'inicio', 3, 90, 'izquierda'), 0),
+    aletaFinal: () => cambioEstructural(agregarAleta(perfil, 'fin', 3, 90, 'izquierda'), perfil.tramos.length),
+    dobladilloInicio: () => cambioEstructural(agregarDobladillo(perfil, 'inicio', true, 1, 'izquierda'), 0),
+    dobladilloFinal: () => cambioEstructural(agregarDobladillo(perfil, 'fin', true, 1, 'izquierda'), perfil.tramos.length),
+    espejar: () => cambioEstructural(espejarPerfil(perfil)),
+    dibujarAMano: () => opciones.alDibujarAMano(),
+  };
+
+  /** Lista de atajos del editor (el asistente los registra mientras está en el paso 2). */
+  const listaAtajos = [
+    { teclas: 'Alt+T', descripcion: 'Agregar tramo', accion: acciones.agregarTramo },
+    { teclas: 'Alt+I', descripcion: 'Insertar tramo antes del elegido', accion: acciones.insertarAntes },
+    { teclas: 'Alt+B', descripcion: 'Borrar el tramo elegido', accion: acciones.borrarTramo },
+    { teclas: 'Ctrl+Z', descripcion: 'Deshacer', accion: acciones.deshacer },
+    { teclas: 'Ctrl+Y', descripcion: 'Rehacer', accion: acciones.rehacer },
+    { teclas: 'Alt+1', descripcion: 'Agregar aleta al inicio', accion: acciones.aletaInicio },
+    { teclas: 'Alt+2', descripcion: 'Agregar aleta al final', accion: acciones.aletaFinal },
+    { teclas: 'Alt+3', descripcion: 'Agregar dobladillo al inicio', accion: acciones.dobladilloInicio },
+    { teclas: 'Alt+4', descripcion: 'Agregar dobladillo al final', accion: acciones.dobladilloFinal },
+    { teclas: 'Alt+J', descripcion: 'Espejar la pieza', accion: acciones.espejar },
+    { teclas: 'Alt+M', descripcion: 'Dibujar a mano', accion: acciones.dibujarAMano },
+  ];
+  const teclasDe = (descripcion) => listaAtajos.find((a) => a.descripcion === descripcion).teclas;
+  const boton = (texto, descripcion, accion, clase = 'boton') => h('button', {
+    type: 'button', class: clase, onclick: accion, title: `${descripcion} (${textoTeclas(teclasDe(descripcion))})`,
+  }, texto, etiquetaAtajo(teclasDe(descripcion)));
+
   // ---------- armado ----------
 
+  botonDeshacer.replaceChildren('Deshacer', etiquetaAtajo('Ctrl+Z'));
+  botonRehacer.replaceChildren('Rehacer', etiquetaAtajo('Ctrl+Y'));
   const barra = h('div', { class: 'barra-botones' },
-    h('button', { type: 'button', class: 'boton', onclick: () => cambioEstructural(agregarTramoAlFinal(perfil, { anguloPliegue: config.anguloPorDefecto }), perfil.tramos.length) }, '+ Agregar tramo'),
-    h('button', {
-      type: 'button', class: 'boton',
-      onclick: () => {
-        const indice = seleccionado ?? 0;
-        cambioEstructural(insertarTramoAntes(perfil, indice, { anguloPliegue: config.anguloPorDefecto }), indice);
-      },
-    }, 'Insertar antes'),
-    h('button', {
-      type: 'button', class: 'boton peligro',
-      onclick: () => {
-        if (seleccionado === null || !perfil.tramos.length) return;
-        if (!confirmar(`¿Borrar el tramo ${seleccionado + 1}?`)) return;
-        cambioEstructural(borrarTramo(perfil, seleccionado, config), Math.max(0, seleccionado - 1));
-      },
-    }, 'Borrar tramo'),
+    boton('Agregar tramo', 'Agregar tramo', acciones.agregarTramo),
+    boton('Insertar antes', 'Insertar tramo antes del elegido', acciones.insertarAntes),
+    boton('Borrar tramo', 'Borrar el tramo elegido', acciones.borrarTramo, 'boton peligro'),
     botonDeshacer,
     botonRehacer);
 
   const atajos = h('div', { class: 'barra-botones atajos' },
-    h('span', { class: 'texto-chico' }, 'Atajos:'),
-    h('button', { type: 'button', class: 'boton chico', onclick: () => cambioEstructural(agregarAleta(perfil, 'inicio', 3, 90, 'izquierda'), 0) }, '+ Aleta al inicio'),
-    h('button', { type: 'button', class: 'boton chico', onclick: () => cambioEstructural(agregarAleta(perfil, 'fin', 3, 90, 'izquierda'), perfil.tramos.length) }, '+ Aleta al final'),
-    h('button', { type: 'button', class: 'boton chico', onclick: () => cambioEstructural(agregarDobladillo(perfil, 'inicio', true, 1, 'izquierda'), 0) }, '+ Dobladillo al inicio'),
-    h('button', { type: 'button', class: 'boton chico', onclick: () => cambioEstructural(agregarDobladillo(perfil, 'fin', true, 1, 'izquierda'), perfil.tramos.length) }, '+ Dobladillo al final'),
-    h('button', { type: 'button', class: 'boton chico', onclick: () => cambioEstructural(espejarPerfil(perfil)), title: 'Dar vuelta el dibujo (izquierda ↔ derecha)' }, '⇄ Espejar'),
-    h('button', { type: 'button', class: 'boton chico', onclick: () => opciones.alDibujarAMano() }, '✎ Dibujar a mano'));
+    h('span', { class: 'texto-chico' }, 'Agregar rápido:'),
+    boton('Aleta al inicio', 'Agregar aleta al inicio', acciones.aletaInicio, 'boton chico'),
+    boton('Aleta al final', 'Agregar aleta al final', acciones.aletaFinal, 'boton chico'),
+    boton('Dobladillo al inicio', 'Agregar dobladillo al inicio', acciones.dobladilloInicio, 'boton chico'),
+    boton('Dobladillo al final', 'Agregar dobladillo al final', acciones.dobladilloFinal, 'boton chico'),
+    boton('Espejar', 'Espejar la pieza', acciones.espejar, 'boton chico'),
+    boton('Dibujar a mano', 'Dibujar a mano', acciones.dibujarAMano, 'boton chico'));
 
   const tabla = h('table', { class: 'tabla-tramos' },
     h('thead', {}, h('tr', {},
@@ -316,17 +348,12 @@ export function crearEditorTramos(opciones) {
     atajos);
   enterPasaAlSiguiente(raiz);
 
-  // Ctrl+Z / Ctrl+Y dentro del editor.
-  raiz.addEventListener('keydown', (e) => {
-    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') { e.preventDefault(); deshacer(); }
-    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'y') { e.preventDefault(); rehacer(); }
-  });
-
   dibujarTabla();
   actualizarBotonesHistorial();
 
   return {
     elemento: raiz,
+    listaAtajos,
     /** Problemas por tramo (de validarTramos) para pintar las filas. */
     mostrarProblemas(nuevos) {
       problemas = nuevos || [];
