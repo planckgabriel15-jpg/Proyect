@@ -8,7 +8,7 @@ Cuando la empresa confirme un punto, se corrige el dato y se tacha acá.
 
 | # | Pregunta | Qué hace hoy el programa | Dónde se cambia |
 |---|---|---|---|
-| 1 | ¿Tapa y boqueta van en renglón propio o como detalle del renglón de la canaleta? | Renglón propio, con su código y cantidad, y se **vincula** a la canaleta | `src/logica/renglones.js` |
+| 1 | ¿Tapa y boqueta van en renglón propio o como detalle del renglón de la canaleta? | **Resuelto (16/10):** las puestas en la canaleta van en el mismo renglón; las sueltas son productos aparte (ver 46 y 49) | `src/logica/accesoriosCanaleta.js` |
 | 2 | ¿El ángulo por defecto es 90°? ¿Siempre se anota? | 90°. En el dibujo solo se escribe el ángulo si no es 90° | `config.json` → `anguloPorDefecto` |
 | 3 | ¿Se marca siempre el lado de la pintura en prepintado? | Sí: es obligatorio en prepintado | `config.json` → `ladoPinturaObligatorio` |
 | 4 | ¿Hay otras marcas de tramo además de dobladillo y aplastamiento? | Tipos: normal, dobladillo, dobladillo aplastado, pestaña de engrafe. Se agregó **corte láser** por cara | `src/logica/geometria.js` → `TIPOS_DE_TRAMO` |
@@ -30,7 +30,7 @@ Cuando la empresa confirme un punto, se corrige el dato y se tacha acá.
 | 15 | **Descripción del material sin pintar:** se usa la abreviatura del material ("galv", "cincalum", "inox", "alum", "cobre"). Ej.: "2,44 mts canaleta galv D60 CH 25" | `materiales.json` → `abreviatura` |
 | 16 | **Clave de Configuración del prototipo:** `zingueria2026` | `config.json` → `claveConfiguracion` |
 | 17 | **Descripción de piezas especiales:** se arma con su texto y medidas, por ejemplo "boqueta redonda Ø10 galv D32,4 CH 25" o "codo 90° Ø10 4 gajos galv CH 25" (sin "D" cuando va por unidad) | `catalogo.json` → `textoDescripcion` |
-| 18 | **Código de piezas por unidad** (tapas, codos, ramales, sombreros, embudos, reducciones): se busca con banda `"UN"`. La tabla de ejemplo no tiene esas filas, así que salen con "código no encontrado" y se emiten marcando "código pendiente" | `config.json` → `bandaPorUnidad` |
+| 18 | **Código de piezas por unidad** (tapas, curvas, ramales, sombreros, troneras): **reemplazado (16/10)** por el código genérico (ver 44) | `catalogo.json` → `codigoGenerico` |
 | 19 | **Valores con los que arranca una pieza nueva:** largo 2,44 m, galvanizado, C25, natural, pintura afuera | `config.json` → `renglonPorDefecto` |
 | 20 | **Desarrollo de la canaleta media caña:** π·Ø/2 + dobladillo + pestaña | `src/logica/piezasEspeciales.js` |
 | 21 | **Tapa sin vincular:** no se puede emitir, porque producción necesita el perfil de la canaleta | `src/logica/calculoRenglon.js` |
@@ -50,26 +50,16 @@ La empresa **no** hace el corte láser: lo manda a hacer afuera y vuelve.
 | 28 | El corte va en el **borde libre** de la cara. ¿Puede ir en una cara del medio (que no tiene borde libre)? | A confirmar | — |
 | 29 | ¿El corte láser cambia el código del producto o se factura aparte? | A confirmar | `datos/codigos.json` |
 
-## D. Catálogo: plantillas agregadas para cubrir todos los productos
+## D. Catálogo
 
-Todas las medidas son de **ejemplo**: sirven para que el vendedor arranque con algo parecido y lo corrija. Producción tiene que validarlas.
-
-- **Canaletas:** americana mediana (D25), cuadrada (D40), pecho paloma (D44), cajón pluvial (D70) y media caña Ø12,5 (pieza especial). La canaleta americana arranca con el frente inclinado.
-- **Babetas:** sobre chapa sinusoidal y sobre chapa trapezoidal, las dos con **corte láser** en el ala que apoya sobre el techo (1 + 12 + 12 = 25), y babeta frontal de encuentro con muro (D26).
-- **Cumbreras:** para chapa sinusoidal y para chapa trapezoidal, con corte láser en las dos alas (reemplazan a la "troquelada"); cumbrera con dobladillos (D32) y limatesa. El ángulo por defecto de las cumbreras lisas es **150°** (hay que poner el ángulo del techo).
-- **Media cumbrera:** baja 15 cm por el muro y sigue 15 cm por el techo de un agua, con 120°.
-- **Contramuro:** pestaña de 10 cm inclinada a 45° bajo la chapa, lado del techo 12, fondo 10, lado del muro 12 y 3 cm que entran en el muro (D47).
-- **Cenefas, goteros y cierres:** gotero, cupertina o cubremuro, alféizar o vierteaguas y tapajunta.
-- **Perfiles:** ángulo esquinero 5×5, U, C, Z y omega.
-- **Boquetas y caños:** codo rectangular, ramal, reducción y embudo o tronera.
-- **Ventilación:** sombrero chino, venturi, **canadiense** y conducto. **La forma del sombrero canadiense hay que confirmarla con producción:** no encontré una definición publicada del término. En el 3D se va a dibujar como un doble cono.
+El 16/10 el catálogo se limitó a los productos que fabrica la empresa (ver puntos 42 y 43). Todas las medidas por defecto con la marca "medidas de ejemplo" las tiene que validar producción. Las cumbreras lisas arrancan con **150°**: hay que poner el ángulo del techo.
 
 ## E. Decisiones de pantallas (Etapas B a F)
 
 | # | Supuesto o decisión | Dónde se cambia |
 |---|---|---|
-| 30 | **Tapa izquierda / derecha:** la izquierda va en la punta donde arranca la canaleta (Z = 0), mirándola de frente desde afuera; la derecha, en la otra punta. ¿Así lo entienden en el taller? | `src/vistas3d/modelo.js` → `montarAccesorio` |
-| 31 | **Posición de la boqueta:** se mide desde la punta izquierda de la canaleta hasta el **centro** de la boqueta. ¿Se mide así o hasta el borde? | `datos/catalogo.json` (ayuda del parámetro) y `modelo.js` |
+| 30 | **Tapa izquierda / derecha:** la izquierda va en la punta donde arranca la canaleta, mirándola de frente desde afuera; la derecha, en la otra punta. ¿Así lo entienden en el taller? | `src/vistas3d/modelo.js` → `montarAccesorios` |
+| 31 | **Posición de la boqueta:** ver punto 47 | `accesoriosCanaleta.js` |
 | 32 | **Sentido del pliegue:** "izquierda" = gira en sentido antihorario mirando el dibujo; "derecha" = horario | `src/logica/geometria.js` |
 | 33 | **Cara de afuera y de adentro** (para la pintura): afuera es el lado convexo del perfil (por fuera de la U). En perfiles en Z, donde no hay un lado claro, se toma el lado izquierdo del recorrido | `geometria.js` → `ladoExteriorDelPerfil` |
 | 34 | Se puede **agregar a la nota una pieza con errores**: el programa avisa y no deja **emitir** hasta corregirla | `src/pantallas/asistente.js` |
@@ -80,7 +70,23 @@ Todas las medidas son de **ejemplo**: sirven para que el vendedor arranque con a
 | 39 | Los **borradores** se guardan solos cada **5 segundos**, también la pieza a medio cargar | `config.json` → `autoguardadoSegundos` |
 | 40 | Las **notas emitidas** no se pueden modificar ni borrar. Si hay un error, ¿se anula y se hace otra? (falta definir el procedimiento de anulación) | A definir |
 
-## F. Para cuando se pase a Google (Apps Script)
+## F. Cambios pedidos el 16/10/2026 (logo, catálogo, códigos, tapas y boquetas)
+
+| # | Supuesto o decisión | Dónde se cambia |
+|---|---|---|
+| 41 | **Logo y colores de Abasto Soluciones:** desde el entorno de desarrollo no se pudo abrir abastosoluciones.com.ar (el acceso estaba bloqueado). Se dejó un **logo provisorio de texto** y colores provisorios (azul #1d3c6e y naranja #e2711d). **Hay que poner el logo oficial y los colores reales** | `recursos/logo.svg` (reemplazar el archivo) y `config.json` → `marca` |
+| 42 | **Catálogo limitado a lo que la empresa publica que fabrica:** plegados y cortes (babetas, cumbreras, 1/2 cumbrera, limahoya, troneras, boquetas), zinguería para techos (babeta sinusoidal y trapezoidal, cenefa o perimetral), caños, codos y curvas (caño redondo de chapa N°25 o inoxidable 0,5 mm, caño rectangular, curva articulada, ramal 45° y 90°, codo rectangular vertical) y sombreros (no estándar, H, salamandra o canadiense, tipo Spiro). Se agregaron canaleta, tapa suelta y chapa lisa (corte a medida). **Confirmar que no falte ni sobre nada** | `datos/catalogo.json` |
+| 43 | Quedaron **fuera** del catálogo las cenefas decorativas (punta de lis, flor de lis, piña), las artesanías (baldes, palanganas, regaderas), la línea gas y los soportes (son de reventa o no son piezas a medida). Si hace falta, se cargan como texto en observaciones | `datos/catalogo.json` |
+| 44 | **Código genérico** para los productos que no están en la tabla de facturación: siglas + medidas importantes + letra. Ejemplos: chapa lisa 10x10 negra → **CL1010N**; curva articulada Ø10 90° galvanizada → CA1090Z; sombrero H rectangular 20x10 → SHR2010Z; tapa suelta de una canaleta D60 negra → TS60N. Si la tabla real trae una fila para ese elemento, manda la tabla. **Confirmar siglas y letras** | `catalogo.json` → `codigoGenerico`; `materiales.json` → `letraCodigoGenerico` |
+| 45 | **Letra del código genérico:** en prepintado, la del color (negro N, rojo teja R, gris G, blanco B, verde V). Sin pintar, la del material (galvanizado **Z**, cincalum C, inoxidable I, aluminio A, cobre U) | `materiales.json` |
+| 46 | **Tapas y boquetas puestas en la canaleta:** van en el **mismo renglón** de la canaleta. La descripción suma "c/ 2 tapas soldadas y 1 boqueta" y la hoja impresa lleva el detalle y una vista desde arriba con las posiciones. **¿Se facturan con el código de la canaleta o cada una aparte?** | `src/logica/accesoriosCanaleta.js` |
+| 47 | La **posición de la boqueta** se mide desde la punta izquierda de la canaleta hasta el **centro** de la boqueta | `accesoriosCanaleta.js` |
+| 48 | **Tapa engrampada y tapa soldada:** en el 3D, la soldada lleva la pestaña hacia adentro y la engrampada la lleva abrazando por afuera (solo para que se vea la diferencia) | `src/vistas3d/modelo.js` |
+| 49 | **Tapa suelta y boqueta suelta** son productos aparte. La tapa suelta copia el perfil de una canaleta de la nota o de una plantilla | `catalogo.json` |
+| 50 | **Sombreros circulares o rectangulares.** Las formas 3D del sombrero H, el canadiense o salamandra y el tipo Spiro son aproximadas. **¿Hace falta marcar "sombrerete aprobado" (gas)?** Hoy se anota en observaciones | `catalogo.json`, `piezasEspeciales3d.js` |
+| 51 | **Atajos de teclado:** se evitaron Alt+F, Alt+E y Alt+D porque el navegador los usa para sus menús. F1 muestra la lista | `src/pantallas/atajos.js` y cada pantalla |
+
+## G. Para cuando se pase a Google (Apps Script)
 
 - La numeración tiene que hacerse en el servidor con `LockService`, que es un candado para que dos vendedores no saquen el mismo número a la vez.
 - Las notas emitidas no se modifican: en Sheets conviene una hoja de solo lectura.

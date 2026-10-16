@@ -1,16 +1,42 @@
-# Notas de pedido – Zinguería (prototipo)
+# Notas de pedido – Abasto Soluciones (prototipo)
 
 Programa web que reemplaza la nota de pedido en papel. El vendedor:
 
 1. completa el encabezado casi sin escribir (origen, fecha y número salen solos; la factura se pega);
-2. elige la pieza de una galería (50 plantillas: canaletas, babetas, cumbreras, cenefas, perfiles, boquetas, caños, codos, sombreros…) o dibuja una a mano;
+2. elige la pieza de una galería con los productos que fabrica la empresa (canaletas con sus tapas y boquetas, babetas, cumbreras, limahoya, cenefas, chapa lisa, boquetas, troneras, caños, curvas, codos, ramales, tapas y sombreros circulares o rectangulares), o dibuja una a mano;
 3. carga las medidas en una tabla y ve **al mismo tiempo** el dibujo 2D acotado y la pieza en 3D;
-4. obtiene solo el **desarrollo**, la **banda** y el **código**;
+4. obtiene solo el **desarrollo**, la **banda** y el **código** (de la tabla de facturación o, si el producto no está, un código genérico como CL1010N);
 5. elige material, calibre, color y cantidad;
 6. emite e imprime (o guarda en PDF) una nota prolija para producción.
 
 > **Para probarlo en 10 minutos:** seguí [`GUIA-PRUEBA-10-MIN.md`](GUIA-PRUEBA-10-MIN.md).
 > **Lo que falta confirmar con la empresa:** [`PENDIENTES.md`](PENDIENTES.md).
+
+---
+
+## Atajos de teclado
+
+**F1** muestra en cualquier pantalla la lista de atajos disponibles en ese momento. Cada botón tiene su atajo escrito al lado.
+
+| Dónde | Atajo | Qué hace |
+|---|---|---|
+| Inicio | Alt+N | Nueva nota de pedido |
+| Inicio | Alt+K | Ir al buscador de notas |
+| Nota | Alt+P | Agregar pieza |
+| Nota | Ctrl+S | Guardar borrador |
+| Nota | Ctrl+Enter | Emitir nota |
+| Asistente | Alt+flecha derecha / Alt+flecha izquierda | Paso siguiente (o "Agregar a la nota") / paso anterior |
+| Asistente | Esc | Cerrar el asistente |
+| Tabla de tramos | Alt+T / Alt+I / Alt+B | Agregar tramo / insertar antes / borrar tramo |
+| Tabla de tramos | Ctrl+Z / Ctrl+Y | Deshacer / rehacer |
+| Tabla de tramos | Alt+1 / Alt+2 | Aleta al inicio / aleta al final |
+| Tabla de tramos | Alt+3 / Alt+4 | Dobladillo al inicio / dobladillo al final |
+| Tabla de tramos | Alt+J / Alt+M | Espejar / dibujar a mano |
+| Canaleta | Alt+Q | Agregar boqueta |
+| Vista 3D | Alt+0 / Alt+7 / Alt+8 / Alt+9 | Vista inicial / frente / lateral / isométrica |
+| Todas | Enter | Pasar al campo siguiente |
+
+No se usaron Alt+F, Alt+E ni Alt+D porque Chrome y Edge los usan para sus menús.
 
 ---
 
@@ -56,7 +82,7 @@ cd notas-de-pedido
 npm test          # es lo mismo que:  node --test
 ```
 
-Tiene que terminar con `# fail 0`. Hay 71 pruebas; los **16 casos obligatorios** de la especificación están en `tests/casos-obligatorios.test.js`. Las pruebas no usan el navegador: prueban la lógica (`src/logica/`), el almacenamiento (con un "navegador falso" en memoria) y los dibujos 2D.
+Tiene que terminar con `# fail 0`. Hay 77 pruebas; los **16 casos obligatorios** de la especificación están en `tests/casos-obligatorios.test.js`. Las pruebas no usan el navegador: prueban la lógica (`src/logica/`), el almacenamiento (con un "navegador falso" en memoria) y los dibujos 2D.
 
 ---
 
@@ -77,7 +103,10 @@ Sin frameworks y sin "paso de compilación": HTML + CSS + JavaScript moderno (m�
 ```
 index.html                     página única (las pantallas cambian con #inicio, #nota/…, #imprimir/…)
 src/app.js                     arranque y elección de pantalla según la dirección
+.
+recursos/logo.svg              logo (PROVISORIO: reemplazar por el oficial)
 src/pantallas/
+  atajos.js                    atajos de teclado (F1 muestra la lista)
   inicio.js                    ingreso (elegir vendedor) e inicio (lista de notas de la sucursal)
   nota.js                      nota de pedido: encabezado, renglones, autoguardado, emisión
   asistente.js                 "Agregar pieza" en 3 pasos (galería → medidas y dibujo → material)
@@ -90,13 +119,14 @@ src/vistas2d/
   perfilSvg.js                 dibujo 2D acotado del perfil (referencia oficial para fabricar)
   corteLaserSvg.js             vista de frente de la cara con corte láser
   especialSvg.js               esquemas acotados de boquetas, caños, codos, sombreros…
+  plantaCanaletaSvg.js         vista desde arriba de la canaleta con tapas y boquetas acotadas
   dibujoAMano.js               cuadrícula con imán para dibujar el perfil
 src/vistas3d/
   cargar3d.js                  carga el 3D solo si hay internet (si no, el programa sigue igual)
   escena.js                    visor 3D (girar, zoom, vistas, resaltar tramo, foto)
   extrusion.js                 piezas plegadas: cada tramo es una chapa estirada a lo largo
-  piezasEspeciales3d.js        caños, boquetas, codos, ramales, sombreros, embudos, tapas
-  modelo.js                    junta pieza + accesorios montados + regla del largo
+  piezasEspeciales3d.js        caños, boquetas, codos, ramales, sombreros, troneras, tapas
+  modelo.js                    junta pieza + tapas y boquetas puestas + regla del largo
   capturas.js                  fotos 3D para tarjetas e impresión (un solo dibujador)
   encuadre.js, materiales3d.js cámara y colores
 src/logica/                    (ver tabla de arriba)
@@ -126,12 +156,19 @@ docs/ESPECIFICACION.md         la especificación original
 | Agregar una pieza a la galería | `catalogo.json` | copiar una plantilla parecida, cambiarle el `id` (único) y las medidas |
 | Poner la lista real de códigos | pantalla **Configuración → Códigos → Importar** (CSV o JSON), o reemplazar `codigos.json` | columnas `elemento, material, espesor, terminacion, banda, codigo` |
 | Agregar un término al glosario ("?") | `glosario.json` | copiar una línea |
+| Poner el logo oficial | `recursos/logo.svg` | reemplazar el archivo por el logo de la empresa con el mismo nombre (o poner un PNG y cambiar `marca.logo` en `config.json`) |
+| Poner los colores de la empresa | `config.json` | `marca` → `colorPrincipal`, `colorPrincipalOscuro`, `colorAcento` |
+| Cambiar cómo se arma el código genérico | `catalogo.json` y `materiales.json` | `codigoGenerico` de cada producto (siglas y medidas) y `letraCodigoGenerico` de colores y materiales |
 
 > Después de tocar un `.json`, recargá la página. Si algo deja de andar, seguramente quedó una coma de más o de menos: los JSON son muy estrictos.
 
 **Cómo es una plantilla plegada:** `perfil.direccionInicial` es hacia dónde arranca el tramo 1 (`"arriba"`, `"abajo"`, `"izquierda"`, `"derecha"` o grados). Cada tramo tiene `medidaCm`, `anguloPliegue` (ángulo interior: 90 = escuadra), `sentido` (`izquierda` = gira antihorario, `derecha` = horario), `tipo` (`normal`, `dobladillo`, `dobladillo_aplastado` o `pestana_engrafe`) y `corteLaser` (`null` o `{ "tipo": "sinusoidal", "alturaOndaCm": 3.6, "separacionVallesCm": 7.6 }`).
 
-**Cómo es una plantilla especial:** `calculoDesarrollo` es uno de `perimetroRedondo`, `perimetroRectangular`, `mediaCana` o `unidad`; `generador3d` es el nombre del dibujo 3D (ver `GENERADORES` en `piezasEspeciales3d.js`); `parametros` es la lista de medidas que se piden; `textoDescripcion` lleva `{nombreDelParametro}` para armar la descripción, por ejemplo `"codo {anguloGrados}° Ø{diametroCm}"`.
+**Canaletas con tapas y boquetas:** las plantillas con `"admiteAccesorios": true` muestran, debajo de la tabla, la tapa izquierda y la derecha (ninguna, soldada o engrampada) y las boquetas (forma redonda, cuadrada o rectangular, medida, largo de la boca y posición desde la punta izquierda). Todo queda en el mismo renglón de la canaleta.
+
+**Código genérico:** `"codigoGenerico": { "siglas": "CL", "medidas": ["tramo1", "largoCm"] }` arma CL + 10 + 10 + letra (N si es prepintada negra). Las medidas pueden ser un parámetro (`diametroCm`), `tramo1`, `largoCm` o `desarrolloPerfil`. Con `siglasPorForma` y `medidasPorForma` cambian según la forma elegida. Primero siempre se busca en la tabla una fila para ese elemento.
+
+**Cómo es una plantilla especial:** `calculoDesarrollo` es uno de `perimetroRedondo`, `perimetroRectangular`, `perimetroSegunForma`, `mediaCana` o `unidad`; `generador3d` es el nombre del dibujo 3D (ver `GENERADORES` en `piezasEspeciales3d.js`); `parametros` es la lista de medidas que se piden; `textoDescripcion` lleva `{nombreDelParametro}` para armar la descripción, por ejemplo `"codo {anguloGrados}° Ø{diametroCm}"`.
 
 ---
 
@@ -174,7 +211,8 @@ Esto se resuelve en la versión con Google (ver "Próximos pasos").
 
 Todas las fuentes están en la sección 14 de `docs/ESPECIFICACION.md` y cada plantilla tiene su campo `referencia` en `datos/catalogo.json`. Las principales:
 
-- Nota de pedido real de la empresa: reglas de desarrollo, banda y código, y el ejemplo CG05P60.
+- Nota de pedido real de la empresa: reglas de desarrollo, banda y código, y el ejemplo CG05P60. Ejemplo de código genérico (CL1010N): área comercial.
+- Productos que fabrica la empresa: [plegados y cortes](https://abastosoluciones.com.ar/7-plegados-y-cortes), [zinguería para techos](https://abastosoluciones.com.ar/4-zingueria-para-techos), [caños, codos y curvas](https://abastosoluciones.com.ar/6-canos-codos-y-curvas), [sombreros](https://abastosoluciones.com.ar/30-sombreros) y [productos marca Abasto](https://abastosoluciones.com.ar/brand/4-abasto). Se relevaron con un buscador web porque el sitio no se pudo abrir directo desde el entorno de desarrollo.
 - Catálogo online de la empresa: [plegados y cortes](https://abastosoluciones.com.ar/7-plegados-y-cortes), [zinguería para techos](https://abastosoluciones.com.ar/4-zingueria-para-techos) y [caños, codos y curvas](https://abastosoluciones.com.ar/6-canos-codos-y-curvas).
 - Tiendas de zinguería en Mercado Libre, con calibres, babetas, cumbreras, canaletas y venturi: [Rapimetal](https://www.mercadolibre.com.ar/tienda/rapimetal), [GEA Zinguería](https://www.mercadolibre.com.ar/pagina/geazingueria), [grampas en pulgadas](https://www.mercadolibre.com.ar/tienda/zingueriagea/clips) y [listado de cenefas](https://listado.mercadolibre.com.ar/cenefa).
 - [Tapa de canaleta izquierda (Easy)](https://www.easy.com.ar/tapa-moldura-d-embut-ch-gv-nº30-15-cm-iz/p).
