@@ -77,6 +77,14 @@ export function validarLargo(largoCm, config) {
 /** Revisa material, calibre, terminación, color, lado de la pintura y cantidad. */
 export function validarMaterialYCantidad(renglon, materiales, config) {
   const problemas = [];
+  const cantidadLeida = leerNumero(renglon.cantidad);
+  if (renglon.sinMaterial) {
+    // Artículo de catálogo: solo importa la cantidad.
+    if (!Number.isInteger(cantidadLeida) || cantidadLeida < 1) {
+      problemas.push({ nivel: 'error', mensaje: 'La cantidad tiene que ser un número entero mayor a 0' });
+    }
+    return problemas;
+  }
   const material = materiales.materiales.find((m) => m.id === renglon.materialId);
   if (!material) {
     problemas.push({ nivel: 'error', mensaje: 'Elegí el material' });
@@ -92,8 +100,8 @@ export function validarMaterialYCantidad(renglon, materiales, config) {
     if (!materiales.colores.find((c) => c.id === renglon.colorId)) {
       problemas.push({ nivel: 'error', mensaje: 'Elegí el color de la chapa prepintada' });
     }
-    if (config.ladoPinturaObligatorio && !['afuera', 'adentro'].includes(renglon.ladoPintura)) {
-      problemas.push({ nivel: 'error', mensaje: 'Indicá de qué lado va la pintura (afuera o adentro)' });
+    if (config.ladoPinturaObligatorio && !['afuera', 'adentro', 'ambos'].includes(renglon.ladoPintura)) {
+      problemas.push({ nivel: 'error', mensaje: 'Indicá de qué lado va la pintura (afuera, adentro o los dos lados)' });
     }
   }
 

@@ -14,7 +14,7 @@ import { validarTramos, validarLargo, validarMaterialYCantidad } from './validac
 import { armarDescripcion } from './descripcion.js';
 import { buscarPlantilla } from './renglones.js';
 import { armarCodigoGenerico } from './codigoGenerico.js';
-import { validarAccesorios } from './accesoriosCanaleta.js';
+import { validarAccesorios, medidaDeBoqueta } from './accesoriosCanaleta.js';
 
 export const AVISO_CODIGO_GENERICO = 'Código genérico: no está en la tabla de facturación, confirmarlo con administración';
 
@@ -135,6 +135,12 @@ export function calcularRenglon(renglon, datos) {
     }
   }
 
+  // ---- 5b) Códigos extra: tapas y boquetas puestas en la canaleta ----
+  // Pedido de la empresa: se factura la canaleta con su código y, además, cada tapa
+  // (con el código de la tapa suelta) y cada boqueta (con el de la boqueta suelta),
+  // aunque ya vayan soldadas o engrampadas.
+  const codigosAdicionales = renglon.accesorios ? codigosDeAccesorios(renglon, datos) : [];
+
   // ---- 6) Descripción ----
   const descripcion = armarDescripcion(renglon, materiales, { desarrolloCm, porUnidad });
 
@@ -145,10 +151,53 @@ export function calcularRenglon(renglon, datos) {
     porUnidad,
     banda,
     codigo,
+    codigosAdicionales,
     descripcion,
     errores,
     avisos,
     puedeEmitirse: errores.length === 0,
     problemasTramos,
   };
+}
+
+/** Definición del código genérico de un producto suelto (tapa suelta, boqueta suelta). */
+function definicionDe(catalogo, plantillaId, porDefecto) {
+  const plantilla = catalogo ? buscarPlantilla(catalogo, plantillaId) : null;
+  return plantilla?.codigoGenerico || porDefecto;
+}
+
+/**
+ * Códigos extra de una canaleta con tapas y boquetas.
+ * @returns {Array<{codigo: string, descripcion: string, cantidad: number}>}
+ */
+export function codigosDeAccesorios(renglon, datos) {
+  const { materiales, catalogo } = datos;
+  const acc = renglon.accesorios;
+  const cantidadCanaletas = Math.max(1, Math.round(leerNumero(renglon.cantidad) || 1));
+  const lista = [];
+  const sumar = (codigo, descripcion, cantidad) => {
+    if (!codigo) return;
+    const existente = lista.find((x) => x.codigo === codigo);
+    if (existente) existente.cantidad += cantidad;
+    else lista.push({ codigo, descripcion, cantidad });
+  };
+
+  const defTapa = definicionDe(catalogo, 'tapa_suelta', { siglas: 'TS', medidas: ['desarrolloPerfil'] });
+  const tapas = [['izq.', acc.tapaIzquierda], ['der.', acc.tapaDerecha]].filter(([, tipo]) => tipo && tipo !== 'ninguna');
+  if (tapas.length) {
+    // Las dos tapas de una canaleta tienen el mismo perfil → el mismo código: van juntas en una línea.
+    const codigo = armarCodigoGenerico(defTapa, { ...renglon, parametros: {} }, materiales);
+    const detalle = tapas.map(([lado, tipo]) => `${lado} ${tipo}`).join(', ');
+    sumar(codigo, tapas.length > 1 ? `2 tapas (${detalle})` : `tapa ${detalle}`, tapas.length * cantidadCanaletas);
+  }
+
+  const defBoqueta = definicionDe(catalogo, 'boqueta_suelta', {
+    siglasPorForma: { redonda: 'BQ', cuadrada: 'BQC', rectangular: 'BQR' },
+    medidasPorForma: { redonda: ['diametroCm'], cuadrada: ['ladoACm'], rectangular: ['ladoACm', 'ladoBCm'] },
+  });
+  for (const boqueta of acc.boquetas || []) {
+    const codigo = armarCodigoGenerico(defBoqueta, { ...renglon, parametros: { ...boqueta } }, materiales);
+    sumar(codigo, `boqueta ${boqueta.forma} ${medidaDeBoqueta(boqueta)}`, cantidadCanaletas);
+  }
+  return lista;
 }

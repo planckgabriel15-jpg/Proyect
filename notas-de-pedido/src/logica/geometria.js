@@ -281,11 +281,12 @@ export function ladoExteriorDelPerfil(perfil, config) {
 }
 
 /**
- * Lado pintado según "pintura afuera" o "pintura adentro".
- * @param {'afuera'|'adentro'} ladoPintura
- * @returns {'izquierda'|'derecha'}
+ * Lado pintado según "pintura afuera", "pintura adentro" o "de los dos lados".
+ * @param {'afuera'|'adentro'|'ambos'} ladoPintura
+ * @returns {'izquierda'|'derecha'|'ambos'}
  */
 export function ladoPintadoDelPerfil(perfil, ladoPintura, config) {
+  if (ladoPintura === 'ambos') return 'ambos';
   const exterior = ladoExteriorDelPerfil(perfil, config);
   if (ladoPintura === 'adentro') {
     return exterior === 'izquierda' ? 'derecha' : 'izquierda';

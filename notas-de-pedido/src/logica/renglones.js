@@ -60,6 +60,7 @@ export function crearRenglonDesdePlantilla(plantilla, config) {
     usaLargo: plantilla.usaLargo !== false,
     calculoDesarrollo: plantilla.calculoDesarrollo || 'sumaDeTramos',
     usaPerfil: plantilla.usaPerfil === true,        // tapa suelta: pieza especial que igual lleva perfil
+    sinMaterial: plantilla.sinMaterial === true,    // artículos de catálogo: sin material, calibre ni color
     codigoGenerico: plantilla.codigoGenerico || null, // cómo armar el código si no está en la tabla
     generador3d: plantilla.generador3d || 'extrusion',
     perfil: plantilla.perfil ? copiarPerfil(plantilla.perfil) : { direccionInicial: 'arriba', tramos: [] },

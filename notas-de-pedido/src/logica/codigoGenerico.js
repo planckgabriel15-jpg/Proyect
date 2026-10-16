@@ -43,12 +43,20 @@ export function armarCodigoGenerico(definicion, renglon, materiales) {
   const numeros = [];
   for (const fuente of fuentes) {
     const valor = valorDeMedida(fuente, renglon);
-    if (!(valor > 0)) return null;
-    numeros.push(medidaParaCodigo(valor));
+    const crudo = renglon.parametros?.[fuente];
+    if (valor > 0) {
+      numeros.push(medidaParaCodigo(valor));
+    } else if (typeof crudo === 'string' && /\d/.test(crudo)) {
+      numeros.push(crudo.replace(/\D/g, '')); // "15x30" → "1530"
+    } else {
+      return null;
+    }
   }
 
   let letra = '';
-  if (renglon.terminacion === 'P') {
+  if (renglon.sinMaterial) {
+    letra = ''; // artículos de catálogo: no llevan letra de color ni material
+  } else if (renglon.terminacion === 'P') {
     letra = materiales.colores.find((c) => c.id === renglon.colorId)?.letraCodigoGenerico || '';
   } else {
     letra = materiales.materiales.find((m) => m.id === renglon.materialId)?.letraCodigoGenerico || '';

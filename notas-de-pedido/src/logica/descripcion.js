@@ -66,11 +66,13 @@ export function armarDescripcion(renglon, materiales, resultado) {
     partes.push(`c/ corte láser ${tiposDeCorte.join(' y ')}`);
   }
 
-  // 4) Terminación
+  // 4) Terminación (los artículos de catálogo no llevan material ni calibre)
   const material = materiales.materiales.find((m) => m.id === renglon.materialId);
-  if (renglon.terminacion === 'P') {
+  if (renglon.sinMaterial) {
+    // nada
+  } else if (renglon.terminacion === 'P') {
     const color = materiales.colores.find((c) => c.id === renglon.colorId);
-    partes.push(`pp ${color ? color.nombre : '(sin color)'}`);
+    partes.push(`pp ${color ? color.nombre : '(sin color)'}${renglon.ladoPintura === 'ambos' ? ' 2 caras' : ''}`);
   } else if (material) {
     partes.push(material.abreviatura);
   }
@@ -82,7 +84,7 @@ export function armarDescripcion(renglon, materiales, resultado) {
 
   // 6) Calibre
   const calibre = materiales.calibres.find((c) => c.id === renglon.calibreId);
-  if (calibre) {
+  if (calibre && !renglon.sinMaterial) {
     partes.push(`CH ${calibre.numero}`);
   }
 

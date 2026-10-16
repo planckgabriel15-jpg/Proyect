@@ -25,7 +25,10 @@ test('catálogo: ids únicos, grupos existentes y solo productos de la empresa',
     assert.ok(['plegada', 'especial'].includes(plantilla.tipoPieza));
   }
   for (const id of ['canaleta_nota_real', 'babeta_l_15', 'cumbrera_lisa_20', 'media_cumbrera', 'limahoya', 'tronera',
-    'boqueta_suelta', 'tapa_suelta', 'curva_articulada', 'ramal', 'codo_rectangular', 'cano_redondo', 'sombrero_h', 'chapa_lisa', 'pieza_libre']) {
+    'boqueta_suelta', 'tapa_suelta', 'curva_articulada', 'ramal', 'codo_rectangular', 'cano', 'sombrero_h', 'chapa_lisa', 'pieza_libre',
+    'cenefa_punta_lis', 'cenefa_flor_lis', 'cenefa_pina', 'rejilla_ventilacion', 'conducto_pasapared', 'puerta_marco', 'cerradura_puerta_marco',
+    'puerta_marco_gabinete', 'sombrerete_aprobado', 'cano_enlozado', 'balde', 'palangana', 'regadera', 'soporte_canaleta',
+    'soporte_cano_rectangular', 'embudo_colector_moldura', 'colector_recto', 'compriband']) {
     assert.ok(buscarPlantilla(catalogo, id), `falta ${id}`);
   }
   // Productos que la empresa no publica, fuera del catálogo.
@@ -63,7 +66,7 @@ test('catálogo: cada plantilla da un renglón sin errores y con código (de la 
 });
 
 test('buscador de plantillas', () => {
-  assert.ok(filtrarPlantillas(catalogo, 'CAÑO').some((p) => p.id === 'cano_redondo'));
+  assert.ok(filtrarPlantillas(catalogo, 'CAÑO').some((p) => p.id === 'cano'));
   assert.ok(filtrarPlantillas(catalogo, 'salamandra').some((p) => p.id === 'sombrero_canadiense'));
   assert.equal(agruparPlantillas(catalogo)[0].nombre, 'Canaletas');
 });
@@ -158,7 +161,7 @@ test('fórmulas de piezas especiales (SUPUESTO)', () => {
 });
 
 test('desarrollo corregido a mano queda registrado', () => {
-  const r = calcularRenglon({ ...nuevo('cano_redondo'), desarrolloManualCm: '33,5' }, datos);
+  const r = calcularRenglon({ ...nuevo('cano'), desarrolloManualCm: '33,5' }, datos);
   assert.equal(r.desarrolloCm, 33.5);
   assert.equal(r.desarrolloEsManual, true);
 });
@@ -197,5 +200,51 @@ test('textos: completar parámetros y tramos', () => {
 test('prepintado sin color ni lado de pintura → errores', () => {
   const r = calcularRenglon({ ...nuevo('babeta_l_15'), terminacion: 'P', colorId: null, ladoPintura: null }, datos);
   assert.ok(r.errores.includes('Elegí el color de la chapa prepintada'));
-  assert.ok(r.errores.includes('Indicá de qué lado va la pintura (afuera o adentro)'));
+  assert.ok(r.errores.includes('Indicá de qué lado va la pintura (afuera, adentro o los dos lados)'));
+});
+
+test('canaleta con tapas y boquetas: además del código de la canaleta, lleva el de cada tapa y boqueta', () => {
+  const canaleta = { ...nuevo('canaleta_nota_real'), terminacion: 'P', colorId: 'negro', cantidad: 2 };
+  canaleta.accesorios.tapaIzquierda = 'soldada';
+  canaleta.accesorios.tapaDerecha = 'engrampada';
+  canaleta.accesorios.boquetas.push({ ...crearBoqueta(config), forma: 'rectangular', ladoACm: 10, ladoBCm: 5, posicionCm: 60 });
+  const r = calcularRenglon(canaleta, datos);
+  assert.equal(r.codigo.codigo, 'CG05P60');
+  // Las dos tapas tienen el mismo código (tapa suelta de esa canaleta) → se suman.
+  assert.deepEqual(r.codigosAdicionales.map((c) => [c.codigo, c.cantidad]), [['TS60N', 4], ['BQR105N', 2]]);
+  const sinAccesorios = calcularRenglon(nuevo('canaleta_nota_real'), datos);
+  assert.deepEqual(sinAccesorios.codigosAdicionales, []);
+});
+
+test('caño de bajada: redondo, cuadrado o rectangular', () => {
+  const redondo = calcularRenglon(nuevo('cano'), datos);
+  assert.equal(redondo.descripcion, '1,00 mts caño Ø10 galv D32,4 CH 25');
+  assert.equal(redondo.codigo.codigo, 'CN10100Z');
+  const cuadrado = calcularRenglon({ ...nuevo('cano'), parametros: { forma: 'cuadrada', ladoACm: 8 } }, datos);
+  assert.equal(cuadrado.desarrolloCm, 33);
+  assert.equal(cuadrado.codigo.codigo, 'CNC8100Z');
+});
+
+test('artículos de catálogo: sin material ni calibre, con código genérico', () => {
+  const rejilla = { ...nuevo('rejilla_ventilacion'), parametros: { medida: '15x30' } };
+  const r = calcularRenglon(rejilla, datos);
+  assert.equal(r.descripcion, 'rejilla de ventilación aprobada 15x30');
+  assert.equal(r.codigo.codigo, 'RV1530');
+  assert.deepEqual(r.errores, []);
+  assert.equal(calcularRenglon(nuevo('balde'), datos).codigo.codigo, 'BA');
+  assert.equal(calcularRenglon({ ...nuevo('soporte_canaleta'), parametros: { forma: 'moldura' } }, datos).codigo.codigo, 'SPM');
+});
+
+test('prepintada de los dos lados', () => {
+  const r = calcularRenglon({ ...nuevo('babeta_l_15'), terminacion: 'P', colorId: 'negro', ladoPintura: 'ambos' }, datos);
+  assert.deepEqual(r.errores, []);
+  assert.equal(r.descripcion, '2,44 mts babeta 15x15 pp negro 2 caras D30 CH 25');
+});
+
+test('vendedores numerados (sin nombres)', async () => {
+  const { leerDatos } = await import('./ayudante.js');
+  const vendedores = leerDatos('vendedores.json').vendedores;
+  assert.equal(vendedores.length, 30);
+  assert.equal(vendedores[0].nombre, 'Vendedor 1');
+  assert.equal(vendedores[29].nombre, 'Vendedor 30');
 });
