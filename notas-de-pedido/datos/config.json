@@ -81,12 +81,12 @@
   "_claveConfiguracion": "SUPUESTO: clave fija del prototipo. En la versión con Google se reemplaza por permisos de la cuenta.",
   "autoguardadoSegundos": 5,
   "marca": {
-    "_leeme": "SUPUESTO: no se pudo descargar el logo ni leer los colores de abastosoluciones.com.ar desde el entorno de desarrollo. Reemplazá recursos/logo.svg por el logo oficial (o cambiá 'logo' por la ruta de un PNG) y poné acá los colores oficiales.",
+    "_leeme": "Logo y colores de Abasto Soluciones (tomados del logo oficial). Para cambiar el logo, reemplazá recursos/logo.png.",
     "nombre": "Abasto Soluciones",
-    "logo": "recursos/logo.svg",
-    "colorPrincipal": "#1d3c6e",
-    "colorPrincipalOscuro": "#132a4f",
-    "colorAcento": "#e2711d",
+    "logo": "recursos/logo.png",
+    "colorPrincipal": "#0054a6",
+    "colorPrincipalOscuro": "#003d7a",
+    "colorAcento": "#fe222c",
     "sitio": "https://abastosoluciones.com.ar"
   },
   "accesoriosCanaleta": {
@@ -104,5 +104,19 @@
       "largoBocaCm": 10,
       "posicionCm": 30
     }
-  }
+  },
+  "ladosPintura": [
+    {
+      "valor": "afuera",
+      "texto": "Pintura afuera (lado externo)"
+    },
+    {
+      "valor": "adentro",
+      "texto": "Pintura adentro (lado interno)"
+    },
+    {
+      "valor": "ambos",
+      "texto": "Pintura de los dos lados"
+    }
+  ]
 }

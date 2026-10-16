@@ -38,6 +38,10 @@
       "nombre": "Sombreros (ventilación)"
     },
     {
+      "id": "articulos",
+      "nombre": "Artículos de catálogo (reventa)"
+    },
+    {
       "id": "especial",
       "nombre": "Pieza especial a medida"
     }
@@ -868,55 +872,47 @@
       "ayuda": ""
     },
     {
-      "id": "cano_redondo",
-      "nombre": "Caño redondo",
+      "id": "cano",
+      "nombre": "Caño de bajada",
       "grupo": "canos",
       "tipoPieza": "especial",
       "elemento": "cano",
-      "textoDescripcion": "caño redondo Ø{diametroCm}",
+      "textoDescripcion": "caño {medidas}",
       "usaLargo": true,
-      "calculoDesarrollo": "perimetroRedondo",
-      "generador3d": "canoRedondo",
+      "calculoDesarrollo": "perimetroSegunForma",
+      "generador3d": "canoSegunForma",
       "parametros": [
+        {
+          "id": "forma",
+          "etiqueta": "Forma",
+          "tipo": "opciones",
+          "valorPorDefecto": "redonda",
+          "opciones": [
+            {
+              "valor": "redonda",
+              "etiqueta": "redondo"
+            },
+            {
+              "valor": "cuadrada",
+              "etiqueta": "cuadrado"
+            },
+            {
+              "valor": "rectangular",
+              "etiqueta": "rectangular"
+            }
+          ]
+        },
         {
           "id": "diametroCm",
           "etiqueta": "Diámetro",
           "tipo": "diametro",
           "unidad": "cm",
           "valorPorDefecto": 10,
-          "minimo": 0
-        }
-      ],
-      "codigoGenerico": {
-        "siglas": "CN",
-        "medidas": [
-          "diametroCm",
-          "largoCm"
-        ]
-      },
-      "supuesto": true,
-      "referencia": "Abasto Soluciones – Caños, codos y curvas (caño chapa N°25, rectangulares, curvas articuladas, inoxidable 0,5 mm, ramales 45° y 90°, codo rectangular vertical 90°): https://abastosoluciones.com.ar/6-canos-codos-y-curvas",
-      "palabrasClave": [
-        "caño",
-        "bajada",
-        "redondo",
-        "inoxidable",
-        "n°25"
-      ],
-      "ayuda": "Chapa N°25 o acero inoxidable 0,5 mm: elegilo en el paso 3. Para el caño de medio metro, poné largo 0,50.",
-      "largoPorDefectoCm": 100
-    },
-    {
-      "id": "cano_rectangular",
-      "nombre": "Caño rectangular",
-      "grupo": "canos",
-      "tipoPieza": "especial",
-      "elemento": "cano",
-      "textoDescripcion": "caño rectangular {ladoACm}x{ladoBCm}",
-      "usaLargo": true,
-      "calculoDesarrollo": "perimetroRectangular",
-      "generador3d": "canoRectangular",
-      "parametros": [
+          "minimo": 0,
+          "soloSiForma": [
+            "redonda"
+          ]
+        },
         {
           "id": "ladoACm",
           "etiqueta": "Lado a",
@@ -924,7 +920,11 @@
           "unidad": "cm",
           "valorPorDefecto": 10,
           "minimo": 0,
-          "ayuda": ""
+          "ayuda": "",
+          "soloSiForma": [
+            "cuadrada",
+            "rectangular"
+          ]
         },
         {
           "id": "ladoBCm",
@@ -933,24 +933,46 @@
           "unidad": "cm",
           "valorPorDefecto": 5,
           "minimo": 0,
-          "ayuda": ""
+          "ayuda": "",
+          "soloSiForma": [
+            "rectangular"
+          ]
         }
       ],
       "codigoGenerico": {
-        "siglas": "CNR",
-        "medidas": [
-          "ladoACm",
-          "ladoBCm",
-          "largoCm"
-        ]
+        "siglasPorForma": {
+          "redonda": "CN",
+          "cuadrada": "CNC",
+          "rectangular": "CNR"
+        },
+        "medidasPorForma": {
+          "redonda": [
+            "diametroCm",
+            "largoCm"
+          ],
+          "cuadrada": [
+            "ladoACm",
+            "largoCm"
+          ],
+          "rectangular": [
+            "ladoACm",
+            "ladoBCm",
+            "largoCm"
+          ]
+        }
       },
       "supuesto": true,
       "referencia": "Abasto Soluciones – Caños, codos y curvas (caño chapa N°25, rectangulares, curvas articuladas, inoxidable 0,5 mm, ramales 45° y 90°, codo rectangular vertical 90°): https://abastosoluciones.com.ar/6-canos-codos-y-curvas",
       "palabrasClave": [
         "caño",
-        "rectangular"
+        "bajada",
+        "redondo",
+        "rectangular",
+        "cuadrado",
+        "inoxidable",
+        "n°25"
       ],
-      "ayuda": "",
+      "ayuda": "Redondo, cuadrado o rectangular. Chapa N°25 o acero inoxidable 0,5 mm: elegilo en el paso 3. Para el caño de medio metro, poné largo 0,50.",
       "largoPorDefectoCm": 100
     },
     {
@@ -1583,6 +1605,517 @@
         "estufa"
       ],
       "ayuda": "Forma 3D aproximada (ayuda visual). Si tiene que ser un sombrerete aprobado para gas, anotalo en observaciones."
+    },
+    {
+      "id": "cenefa_punta_lis",
+      "nombre": "Cenefa Punta de Lis (2 m)",
+      "grupo": "articulos",
+      "tipoPieza": "especial",
+      "elemento": "cenefa_punta_lis",
+      "textoDescripcion": "cenefa Punta de Lis 2 m",
+      "usaLargo": false,
+      "calculoDesarrollo": "unidad",
+      "generador3d": "articulo",
+      "parametros": [],
+      "sinMaterial": true,
+      "codigoGenerico": {
+        "siglas": "CPL",
+        "medidas": []
+      },
+      "supuesto": true,
+      "referencia": "Abasto Soluciones – Zinguería para techos (babeta sinusoidal y trapezoidal, cenefas): https://abastosoluciones.com.ar/4-zingueria-para-techos",
+      "palabrasClave": [
+        "cenefa",
+        "decorativa"
+      ],
+      "ayuda": "Artículo de catálogo: se vende tal cual (sin dibujo de fabricación)."
+    },
+    {
+      "id": "cenefa_flor_lis",
+      "nombre": "Cenefa Flor de Lis (2 m)",
+      "grupo": "articulos",
+      "tipoPieza": "especial",
+      "elemento": "cenefa_flor_lis",
+      "textoDescripcion": "cenefa Flor de Lis 2 m",
+      "usaLargo": false,
+      "calculoDesarrollo": "unidad",
+      "generador3d": "articulo",
+      "parametros": [],
+      "sinMaterial": true,
+      "codigoGenerico": {
+        "siglas": "CFL",
+        "medidas": []
+      },
+      "supuesto": true,
+      "referencia": "Abasto Soluciones – Zinguería para techos (babeta sinusoidal y trapezoidal, cenefas): https://abastosoluciones.com.ar/4-zingueria-para-techos",
+      "palabrasClave": [
+        "cenefa",
+        "decorativa"
+      ],
+      "ayuda": "Artículo de catálogo: se vende tal cual (sin dibujo de fabricación)."
+    },
+    {
+      "id": "cenefa_pina",
+      "nombre": "Cenefa Piña (2 m)",
+      "grupo": "articulos",
+      "tipoPieza": "especial",
+      "elemento": "cenefa_pina",
+      "textoDescripcion": "cenefa Piña 2 m",
+      "usaLargo": false,
+      "calculoDesarrollo": "unidad",
+      "generador3d": "articulo",
+      "parametros": [],
+      "sinMaterial": true,
+      "codigoGenerico": {
+        "siglas": "CPI",
+        "medidas": []
+      },
+      "supuesto": true,
+      "referencia": "Abasto Soluciones – Zinguería para techos (babeta sinusoidal y trapezoidal, cenefas): https://abastosoluciones.com.ar/4-zingueria-para-techos",
+      "palabrasClave": [
+        "cenefa",
+        "decorativa",
+        "piña"
+      ],
+      "ayuda": "Artículo de catálogo: se vende tal cual (sin dibujo de fabricación)."
+    },
+    {
+      "id": "rejilla_ventilacion",
+      "nombre": "Rejilla de ventilación aprobada",
+      "grupo": "articulos",
+      "tipoPieza": "especial",
+      "elemento": "rejilla_ventilacion",
+      "textoDescripcion": "rejilla de ventilación aprobada {medida}",
+      "usaLargo": false,
+      "calculoDesarrollo": "unidad",
+      "generador3d": "articulo",
+      "parametros": [
+        {
+          "id": "medida",
+          "etiqueta": "Medida",
+          "tipo": "opciones",
+          "valorPorDefecto": "15x15",
+          "opciones": [
+            {
+              "valor": "15x15",
+              "etiqueta": "15 x 15"
+            },
+            {
+              "valor": "20x20",
+              "etiqueta": "20 x 20"
+            },
+            {
+              "valor": "15x30",
+              "etiqueta": "15 x 30"
+            }
+          ]
+        }
+      ],
+      "sinMaterial": true,
+      "codigoGenerico": {
+        "siglas": "RV",
+        "medidas": [
+          "medida"
+        ]
+      },
+      "supuesto": true,
+      "referencia": "Abasto Soluciones – Línea Gas: https://abastosoluciones.com.ar/5-linea-gas",
+      "palabrasClave": [
+        "rejilla",
+        "gas",
+        "ventilacion"
+      ],
+      "ayuda": "Artículo de catálogo: se vende tal cual (sin dibujo de fabricación)."
+    },
+    {
+      "id": "conducto_pasapared",
+      "nombre": "Conducto pasapared para rejilla",
+      "grupo": "articulos",
+      "tipoPieza": "especial",
+      "elemento": "conducto_pasapared",
+      "textoDescripcion": "conducto pasapared para rejilla",
+      "usaLargo": false,
+      "calculoDesarrollo": "unidad",
+      "generador3d": "articulo",
+      "parametros": [],
+      "sinMaterial": true,
+      "codigoGenerico": {
+        "siglas": "CPP",
+        "medidas": []
+      },
+      "supuesto": true,
+      "referencia": "Abasto Soluciones – Línea Gas: https://abastosoluciones.com.ar/5-linea-gas",
+      "palabrasClave": [
+        "conducto",
+        "pasapared",
+        "gas"
+      ],
+      "ayuda": "Artículo de catálogo: se vende tal cual (sin dibujo de fabricación)."
+    },
+    {
+      "id": "puerta_marco",
+      "nombre": "Puerta marco aprobada",
+      "grupo": "articulos",
+      "tipoPieza": "especial",
+      "elemento": "puerta_marco",
+      "textoDescripcion": "puerta marco aprobada",
+      "usaLargo": false,
+      "calculoDesarrollo": "unidad",
+      "generador3d": "articulo",
+      "parametros": [],
+      "sinMaterial": true,
+      "codigoGenerico": {
+        "siglas": "PM",
+        "medidas": []
+      },
+      "supuesto": true,
+      "referencia": "Abasto Soluciones – Línea Gas: https://abastosoluciones.com.ar/5-linea-gas",
+      "palabrasClave": [
+        "puerta",
+        "marco",
+        "gas",
+        "medidor"
+      ],
+      "ayuda": "Artículo de catálogo: se vende tal cual (sin dibujo de fabricación)."
+    },
+    {
+      "id": "cerradura_puerta_marco",
+      "nombre": "Cerradura de repuesto para puerta marco",
+      "grupo": "articulos",
+      "tipoPieza": "especial",
+      "elemento": "cerradura_puerta_marco",
+      "textoDescripcion": "cerradura repuesto puerta marco",
+      "usaLargo": false,
+      "calculoDesarrollo": "unidad",
+      "generador3d": "articulo",
+      "parametros": [],
+      "sinMaterial": true,
+      "codigoGenerico": {
+        "siglas": "CRP",
+        "medidas": []
+      },
+      "supuesto": true,
+      "referencia": "Abasto Soluciones – Línea Gas: https://abastosoluciones.com.ar/5-linea-gas",
+      "palabrasClave": [
+        "cerradura",
+        "gas"
+      ],
+      "ayuda": "Artículo de catálogo: se vende tal cual (sin dibujo de fabricación)."
+    },
+    {
+      "id": "puerta_marco_gabinete",
+      "nombre": "Puerta marco con gabinete de chapa",
+      "grupo": "articulos",
+      "tipoPieza": "especial",
+      "elemento": "puerta_marco_gabinete",
+      "textoDescripcion": "puerta marco con gabinete",
+      "usaLargo": false,
+      "calculoDesarrollo": "unidad",
+      "generador3d": "articulo",
+      "parametros": [],
+      "sinMaterial": true,
+      "codigoGenerico": {
+        "siglas": "PMG",
+        "medidas": []
+      },
+      "supuesto": true,
+      "referencia": "Abasto Soluciones – Línea Gas: https://abastosoluciones.com.ar/5-linea-gas",
+      "palabrasClave": [
+        "gabinete",
+        "gas"
+      ],
+      "ayuda": "Artículo de catálogo: se vende tal cual (sin dibujo de fabricación)."
+    },
+    {
+      "id": "sombrerete_aprobado",
+      "nombre": "Sombrerete aprobado",
+      "grupo": "articulos",
+      "tipoPieza": "especial",
+      "elemento": "sombrerete_aprobado",
+      "textoDescripcion": "sombrerete aprobado Ø{diametroCm}",
+      "usaLargo": false,
+      "calculoDesarrollo": "unidad",
+      "generador3d": "articulo",
+      "parametros": [
+        {
+          "id": "diametroCm",
+          "etiqueta": "Diámetro",
+          "tipo": "diametro",
+          "unidad": "cm",
+          "valorPorDefecto": 10,
+          "minimo": 0
+        }
+      ],
+      "sinMaterial": true,
+      "codigoGenerico": {
+        "siglas": "SAP",
+        "medidas": [
+          "diametroCm"
+        ]
+      },
+      "supuesto": true,
+      "referencia": "Abasto Soluciones – Sombreros (no estándar, aprobados, Hache, salamandra/canadiense, tipo Spiro): https://abastosoluciones.com.ar/30-sombreros",
+      "palabrasClave": [
+        "sombrerete",
+        "aprobado",
+        "gas"
+      ],
+      "ayuda": "Artículo de catálogo: se vende tal cual (sin dibujo de fabricación)."
+    },
+    {
+      "id": "cano_enlozado",
+      "nombre": "Caño enlozado",
+      "grupo": "articulos",
+      "tipoPieza": "especial",
+      "elemento": "cano_enlozado",
+      "textoDescripcion": "caño enlozado Ø{diametroCm}",
+      "usaLargo": false,
+      "calculoDesarrollo": "unidad",
+      "generador3d": "articulo",
+      "parametros": [
+        {
+          "id": "diametroCm",
+          "etiqueta": "Diámetro",
+          "tipo": "diametro",
+          "unidad": "cm",
+          "valorPorDefecto": 10,
+          "minimo": 0
+        }
+      ],
+      "sinMaterial": true,
+      "codigoGenerico": {
+        "siglas": "CE",
+        "medidas": [
+          "diametroCm"
+        ]
+      },
+      "supuesto": true,
+      "referencia": "Abasto Soluciones – Caños, codos y curvas (caño chapa N°25, rectangulares, curvas articuladas, inoxidable 0,5 mm, ramales 45° y 90°, codo rectangular vertical 90°): https://abastosoluciones.com.ar/6-canos-codos-y-curvas",
+      "palabrasClave": [
+        "caño",
+        "enlozado",
+        "estufa"
+      ],
+      "ayuda": "Artículo de catálogo: se vende tal cual (sin dibujo de fabricación)."
+    },
+    {
+      "id": "balde",
+      "nombre": "Balde",
+      "grupo": "articulos",
+      "tipoPieza": "especial",
+      "elemento": "balde",
+      "textoDescripcion": "balde",
+      "usaLargo": false,
+      "calculoDesarrollo": "unidad",
+      "generador3d": "articulo",
+      "parametros": [],
+      "sinMaterial": true,
+      "codigoGenerico": {
+        "siglas": "BA",
+        "medidas": []
+      },
+      "supuesto": true,
+      "referencia": "Abasto Soluciones – productos marca Abasto (canaletas, perimetrales, babetas, cumbreras): https://abastosoluciones.com.ar/brand/4-abasto",
+      "palabrasClave": [
+        "balde",
+        "artesania"
+      ],
+      "ayuda": "Artículo de catálogo: se vende tal cual (sin dibujo de fabricación)."
+    },
+    {
+      "id": "palangana",
+      "nombre": "Palangana",
+      "grupo": "articulos",
+      "tipoPieza": "especial",
+      "elemento": "palangana",
+      "textoDescripcion": "palangana",
+      "usaLargo": false,
+      "calculoDesarrollo": "unidad",
+      "generador3d": "articulo",
+      "parametros": [],
+      "sinMaterial": true,
+      "codigoGenerico": {
+        "siglas": "PA",
+        "medidas": []
+      },
+      "supuesto": true,
+      "referencia": "Abasto Soluciones – productos marca Abasto (canaletas, perimetrales, babetas, cumbreras): https://abastosoluciones.com.ar/brand/4-abasto",
+      "palabrasClave": [
+        "palangana",
+        "artesania"
+      ],
+      "ayuda": "Artículo de catálogo: se vende tal cual (sin dibujo de fabricación)."
+    },
+    {
+      "id": "regadera",
+      "nombre": "Regadera",
+      "grupo": "articulos",
+      "tipoPieza": "especial",
+      "elemento": "regadera",
+      "textoDescripcion": "regadera",
+      "usaLargo": false,
+      "calculoDesarrollo": "unidad",
+      "generador3d": "articulo",
+      "parametros": [],
+      "sinMaterial": true,
+      "codigoGenerico": {
+        "siglas": "RE",
+        "medidas": []
+      },
+      "supuesto": true,
+      "referencia": "Abasto Soluciones – productos marca Abasto (canaletas, perimetrales, babetas, cumbreras): https://abastosoluciones.com.ar/brand/4-abasto",
+      "palabrasClave": [
+        "regadera",
+        "artesania"
+      ],
+      "ayuda": "Artículo de catálogo: se vende tal cual (sin dibujo de fabricación)."
+    },
+    {
+      "id": "soporte_canaleta",
+      "nombre": "Soporte de canaleta",
+      "grupo": "articulos",
+      "tipoPieza": "especial",
+      "elemento": "soporte_canaleta",
+      "textoDescripcion": "soporte canaleta {forma}",
+      "usaLargo": false,
+      "calculoDesarrollo": "unidad",
+      "generador3d": "articulo",
+      "parametros": [
+        {
+          "id": "forma",
+          "etiqueta": "Modelo",
+          "tipo": "opciones",
+          "valorPorDefecto": "americana",
+          "opciones": [
+            {
+              "valor": "americana",
+              "etiqueta": "americana"
+            },
+            {
+              "valor": "hiper",
+              "etiqueta": "Hiper"
+            },
+            {
+              "valor": "moldura",
+              "etiqueta": "moldura"
+            }
+          ]
+        }
+      ],
+      "sinMaterial": true,
+      "codigoGenerico": {
+        "siglasPorForma": {
+          "americana": "SPA",
+          "hiper": "SPH",
+          "moldura": "SPM"
+        },
+        "medidas": []
+      },
+      "supuesto": true,
+      "referencia": "Abasto Soluciones – Zinguería (techos, línea gas, artesanías, accesorios): https://abastosoluciones.com.ar/3-zingueria",
+      "palabrasClave": [
+        "soporte",
+        "grampa",
+        "canaleta"
+      ],
+      "ayuda": "Artículo de catálogo: se vende tal cual (sin dibujo de fabricación)."
+    },
+    {
+      "id": "soporte_cano_rectangular",
+      "nombre": "Soporte para caño rectangular",
+      "grupo": "articulos",
+      "tipoPieza": "especial",
+      "elemento": "soporte_cano_rectangular",
+      "textoDescripcion": "soporte caño rectangular",
+      "usaLargo": false,
+      "calculoDesarrollo": "unidad",
+      "generador3d": "articulo",
+      "parametros": [],
+      "sinMaterial": true,
+      "codigoGenerico": {
+        "siglas": "SPR",
+        "medidas": []
+      },
+      "supuesto": true,
+      "referencia": "Abasto Soluciones – Zinguería (techos, línea gas, artesanías, accesorios): https://abastosoluciones.com.ar/3-zingueria",
+      "palabrasClave": [
+        "soporte",
+        "caño"
+      ],
+      "ayuda": "Artículo de catálogo: se vende tal cual (sin dibujo de fabricación)."
+    },
+    {
+      "id": "embudo_colector_moldura",
+      "nombre": "Embudo colector moldura",
+      "grupo": "articulos",
+      "tipoPieza": "especial",
+      "elemento": "embudo_colector_moldura",
+      "textoDescripcion": "embudo colector moldura",
+      "usaLargo": false,
+      "calculoDesarrollo": "unidad",
+      "generador3d": "articulo",
+      "parametros": [],
+      "sinMaterial": true,
+      "codigoGenerico": {
+        "siglas": "ECM",
+        "medidas": []
+      },
+      "supuesto": true,
+      "referencia": "Abasto Soluciones – Zinguería (techos, línea gas, artesanías, accesorios): https://abastosoluciones.com.ar/3-zingueria",
+      "palabrasClave": [
+        "embudo",
+        "colector"
+      ],
+      "ayuda": "Artículo de catálogo: se vende tal cual (sin dibujo de fabricación)."
+    },
+    {
+      "id": "colector_recto",
+      "nombre": "Colector recto 5x10",
+      "grupo": "articulos",
+      "tipoPieza": "especial",
+      "elemento": "colector_recto",
+      "textoDescripcion": "colector recto 5x10",
+      "usaLargo": false,
+      "calculoDesarrollo": "unidad",
+      "generador3d": "articulo",
+      "parametros": [],
+      "sinMaterial": true,
+      "codigoGenerico": {
+        "siglas": "COL510",
+        "medidas": []
+      },
+      "supuesto": true,
+      "referencia": "Abasto Soluciones – Zinguería (techos, línea gas, artesanías, accesorios): https://abastosoluciones.com.ar/3-zingueria",
+      "palabrasClave": [
+        "colector",
+        "recto"
+      ],
+      "ayuda": "Artículo de catálogo: se vende tal cual (sin dibujo de fabricación)."
+    },
+    {
+      "id": "compriband",
+      "nombre": "Compriband (banda selladora)",
+      "grupo": "articulos",
+      "tipoPieza": "especial",
+      "elemento": "compriband",
+      "textoDescripcion": "compriband",
+      "usaLargo": false,
+      "calculoDesarrollo": "unidad",
+      "generador3d": "articulo",
+      "parametros": [],
+      "sinMaterial": true,
+      "codigoGenerico": {
+        "siglas": "CB",
+        "medidas": []
+      },
+      "supuesto": true,
+      "referencia": "Abasto Soluciones – Zinguería (techos, línea gas, artesanías, accesorios): https://abastosoluciones.com.ar/3-zingueria",
+      "palabrasClave": [
+        "compriband",
+        "sellador",
+        "banda"
+      ],
+      "ayuda": "Artículo de catálogo: se vende tal cual (sin dibujo de fabricación)."
     },
     {
       "id": "pieza_libre",

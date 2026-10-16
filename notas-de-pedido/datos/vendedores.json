@@ -1,154 +1,154 @@
 {
-  "_leeme": "Vendedores FICTICIOS de ejemplo (3 por sucursal). En la versión con Google se reemplaza por la cuenta de la empresa.",
+  "_leeme": "Vendedores de ejemplo, numerados (3 por sucursal). En la versión con Google se reemplaza por la cuenta de la empresa.",
   "vendedores": [
     {
       "id": "v01",
-      "nombre": "Ana Ejemplo",
+      "nombre": "Vendedor 1",
       "sucursalHabitualId": "colon"
     },
     {
       "id": "v02",
-      "nombre": "Bruno Prueba",
+      "nombre": "Vendedor 2",
       "sucursalHabitualId": "colon"
     },
     {
       "id": "v03",
-      "nombre": "Carla Muestra",
+      "nombre": "Vendedor 3",
       "sucursalHabitualId": "colon"
     },
     {
       "id": "v04",
-      "nombre": "Diego Ficticio",
+      "nombre": "Vendedor 4",
       "sucursalHabitualId": "juan_b_justo"
     },
     {
       "id": "v05",
-      "nombre": "Elena Demo",
+      "nombre": "Vendedor 5",
       "sucursalHabitualId": "juan_b_justo"
     },
     {
       "id": "v06",
-      "nombre": "Facundo Modelo",
+      "nombre": "Vendedor 6",
       "sucursalHabitualId": "juan_b_justo"
     },
     {
       "id": "v07",
-      "nombre": "Gabriela Ensayo",
+      "nombre": "Vendedor 7",
       "sucursalHabitualId": "donato_alvarez"
     },
     {
       "id": "v08",
-      "nombre": "Hernán Simulado",
+      "nombre": "Vendedor 8",
       "sucursalHabitualId": "donato_alvarez"
     },
     {
       "id": "v09",
-      "nombre": "Inés Borrador",
+      "nombre": "Vendedor 9",
       "sucursalHabitualId": "donato_alvarez"
     },
     {
       "id": "v10",
-      "nombre": "Julián Maqueta",
+      "nombre": "Vendedor 10",
       "sucursalHabitualId": "ohiggins"
     },
     {
       "id": "v11",
-      "nombre": "Karina Plantilla",
+      "nombre": "Vendedor 11",
       "sucursalHabitualId": "ohiggins"
     },
     {
       "id": "v12",
-      "nombre": "Lucas Boceto",
+      "nombre": "Vendedor 12",
       "sucursalHabitualId": "ohiggins"
     },
     {
       "id": "v13",
-      "nombre": "Marina Esquema",
+      "nombre": "Vendedor 13",
       "sucursalHabitualId": "monsenor_pablo_cabrera"
     },
     {
       "id": "v14",
-      "nombre": "Nicolás Piloto",
+      "nombre": "Vendedor 14",
       "sucursalHabitualId": "monsenor_pablo_cabrera"
     },
     {
       "id": "v15",
-      "nombre": "Olga Ejemplar",
+      "nombre": "Vendedor 15",
       "sucursalHabitualId": "monsenor_pablo_cabrera"
     },
     {
       "id": "v16",
-      "nombre": "Pablo Testeo",
+      "nombre": "Vendedor 16",
       "sucursalHabitualId": "parque_ferreyra"
     },
     {
       "id": "v17",
-      "nombre": "Quimey Prototipo",
+      "nombre": "Vendedor 17",
       "sucursalHabitualId": "parque_ferreyra"
     },
     {
       "id": "v18",
-      "nombre": "Romina Caso",
+      "nombre": "Vendedor 18",
       "sucursalHabitualId": "parque_ferreyra"
     },
     {
       "id": "v19",
-      "nombre": "Santiago Molde",
+      "nombre": "Vendedor 19",
       "sucursalHabitualId": "francisco_de_arteaga"
     },
     {
       "id": "v20",
-      "nombre": "Tamara Patrón",
+      "nombre": "Vendedor 20",
       "sucursalHabitualId": "francisco_de_arteaga"
     },
     {
       "id": "v21",
-      "nombre": "Ulises Muestreo",
+      "nombre": "Vendedor 21",
       "sucursalHabitualId": "francisco_de_arteaga"
     },
     {
       "id": "v22",
-      "nombre": "Valeria Bosquejo",
+      "nombre": "Vendedor 22",
       "sucursalHabitualId": "carlos_paz_carcano"
     },
     {
       "id": "v23",
-      "nombre": "Walter Ensayo",
+      "nombre": "Vendedor 23",
       "sucursalHabitualId": "carlos_paz_carcano"
     },
     {
       "id": "v24",
-      "nombre": "Ximena Probeta",
+      "nombre": "Vendedor 24",
       "sucursalHabitualId": "carlos_paz_carcano"
     },
     {
       "id": "v25",
-      "nombre": "Yamila Ficción",
+      "nombre": "Vendedor 25",
       "sucursalHabitualId": "carlos_paz_san_martin"
     },
     {
       "id": "v26",
-      "nombre": "Zoe Demostración",
+      "nombre": "Vendedor 26",
       "sucursalHabitualId": "carlos_paz_san_martin"
     },
     {
       "id": "v27",
-      "nombre": "Andrés Simulacro",
+      "nombre": "Vendedor 27",
       "sucursalHabitualId": "carlos_paz_san_martin"
     },
     {
       "id": "v28",
-      "nombre": "Belén Tanteo",
+      "nombre": "Vendedor 28",
       "sucursalHabitualId": "sucursal_10"
     },
     {
       "id": "v29",
-      "nombre": "César Prueba",
+      "nombre": "Vendedor 29",
       "sucursalHabitualId": "sucursal_10"
     },
     {
       "id": "v30",
-      "nombre": "Daniela Ejercicio",
+      "nombre": "Vendedor 30",
       "sucursalHabitualId": "sucursal_10"
     }
   ]
