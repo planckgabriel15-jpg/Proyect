@@ -16,7 +16,7 @@ export const AVISO_CODIGO_NO_ENCONTRADO = 'Código no encontrado: avisar a admin
  * @returns {{encontrado: boolean, codigo: string|null, aviso: string|null}}
  */
 export function buscarCodigo(tabla, criterio) {
-  if (criterio.banda === null || criterio.banda === undefined || criterio.banda === '') {
+  if (!criterio.soloElementoExacto && (criterio.banda === null || criterio.banda === undefined || criterio.banda === '')) {
     return { encontrado: false, codigo: null, aviso: AVISO_CODIGO_NO_ENCONTRADO };
   }
 
@@ -28,8 +28,8 @@ export function buscarCodigo(tabla, criterio) {
 
   // 1) Primero buscamos una fila para ese elemento exacto (ej. "canaleta").
   let fila = (tabla || []).find((f) => f.elemento === criterio.elemento && coincideTodoMenosElemento(f));
-  // 2) Si no hay, buscamos una fila genérica (elemento "*").
-  if (!fila) {
+  // 2) Si no hay, buscamos una fila genérica (elemento "*"), salvo que se pida solo el elemento exacto.
+  if (!fila && !criterio.soloElementoExacto) {
     fila = (tabla || []).find((f) => f.elemento === '*' && coincideTodoMenosElemento(f));
   }
 

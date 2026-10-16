@@ -12,10 +12,11 @@ import { leerNumero, redondear } from './numeros.js';
  * Tipos de cálculo que puede tener una plantilla especial (campo "calculoDesarrollo"):
  *   perimetroRedondo      → π·Ø + solape de engrafe
  *   perimetroRectangular  → 2·(a + b) + solape de engrafe
+ *   perimetroSegunForma   → según el parámetro "forma": redonda (π·Ø), cuadrada (4·a) o rectangular (2·(a+b)), + solape
  *   mediaCana             → π·Ø/2 + dobladillo + pestaña trasera
  *   unidad                → se cotiza por unidad (sin desarrollo)
  */
-export const TIPOS_DE_CALCULO = ['perimetroRedondo', 'perimetroRectangular', 'mediaCana', 'unidad'];
+export const TIPOS_DE_CALCULO = ['perimetroRedondo', 'perimetroRectangular', 'perimetroSegunForma', 'mediaCana', 'unidad'];
 
 /**
  * @param {string} tipoCalculo
@@ -38,6 +39,16 @@ export function calcularDesarrolloEspecial(tipoCalculo, parametros, config) {
       const b = p('ladoBCm');
       if (!(a > 0) || !(b > 0)) return sinDato('2·(a+b) + solape');
       return { desarrolloCm: redondear(2 * (a + b) + solapeCm, 1), porUnidad: false, formula: `2 × (${a} + ${b}) + ${solapeCm} (solape)` };
+    }
+    case 'perimetroSegunForma': {
+      const forma = parametros?.forma;
+      if (forma === 'redonda' || forma === 'circular') return calcularDesarrolloEspecial('perimetroRedondo', parametros, config);
+      if (forma === 'cuadrada') {
+        const a = p('ladoACm');
+        if (!(a > 0)) return sinDato('4·a + solape');
+        return { desarrolloCm: redondear(4 * a + solapeCm, 1), porUnidad: false, formula: `4 × ${a} + ${solapeCm} (solape)` };
+      }
+      return calcularDesarrolloEspecial('perimetroRectangular', parametros, config);
     }
     case 'mediaCana': {
       const diametroCm = p('diametroCm');
@@ -68,7 +79,7 @@ function sinDato(formula) {
  */
 export function validarParametros(plantilla, parametros) {
   const problemas = [];
-  for (const definicion of plantilla.parametros || []) {
+  for (const definicion of parametrosVisibles(plantilla, parametros)) {
     const valor = parametros?.[definicion.id];
     if (definicion.tipo === 'numero' || definicion.tipo === 'diametro') {
       const numero = leerNumero(valor);
@@ -86,4 +97,12 @@ export function validarParametros(plantilla, parametros) {
     }
   }
   return problemas;
+}
+
+/**
+ * Parámetros que corresponden a la forma elegida (por ejemplo, una boqueta
+ * redonda pide diámetro y una rectangular pide lado a y lado b).
+ */
+export function parametrosVisibles(plantilla, parametros) {
+  return (plantilla.parametros || []).filter((d) => !d.soloSiForma || d.soloSiForma.includes(parametros?.forma));
 }

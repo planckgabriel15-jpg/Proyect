@@ -11,6 +11,7 @@
 // =============================================================
 
 import { leerNumero, formatearNumero, formatearCorto } from './numeros.js';
+import { describirAccesorios } from './accesoriosCanaleta.js';
 
 /**
  * Reemplaza {nombreParametro} en el texto por el valor cargado.
@@ -18,6 +19,7 @@ import { leerNumero, formatearNumero, formatearCorto } from './numeros.js';
  */
 export function completarTexto(texto, parametros = {}) {
   return String(texto || '').replace(/\{(\w+)\}/g, (coincidencia, nombre) => {
+    if (nombre === 'medidas') return textoMedidasSegunForma(parametros);
     const valor = parametros[nombre];
     if (valor === undefined || valor === null || valor === '') {
       return '?';
@@ -25,6 +27,17 @@ export function completarTexto(texto, parametros = {}) {
     const numero = leerNumero(valor);
     return Number.isFinite(numero) ? formatearCorto(numero) : String(valor);
   });
+}
+
+/** Medidas según la forma: "Ø10" (redonda o circular), "10x10" (cuadrada) o "20x10" (rectangular). */
+export function textoMedidasSegunForma(parametros = {}) {
+  const f = (v) => {
+    const n = leerNumero(v);
+    return Number.isFinite(n) ? formatearCorto(n) : '?';
+  };
+  if (parametros.forma === 'redonda' || parametros.forma === 'circular') return `Ø${f(parametros.diametroCm)}`;
+  if (parametros.forma === 'cuadrada') return `${f(parametros.ladoACm)}x${f(parametros.ladoACm)}`;
+  return `${f(parametros.ladoACm)}x${f(parametros.ladoBCm)}`;
 }
 
 /**
@@ -72,6 +85,9 @@ export function armarDescripcion(renglon, materiales, resultado) {
   if (calibre) {
     partes.push(`CH ${calibre.numero}`);
   }
+
+  // 7) Tapas y boquetas puestas en la canaleta (al final, para no cambiar el formato del papel)
+  partes.push(describirAccesorios(renglon.accesorios));
 
   return partes.filter((parte) => parte !== '').join(' ');
 }

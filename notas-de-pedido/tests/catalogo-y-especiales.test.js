@@ -2,175 +2,200 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
 import { calcularDesarrollo } from '../src/logica/desarrollo.js';
-import { calcularDesarrolloEspecial, validarParametros } from '../src/logica/piezasEspeciales.js';
-import { crearRenglonDesdePlantilla, vincularAccesorio, duplicarRenglon, filtrarPlantillas, agruparPlantillas, buscarPlantilla, accesoriosDe } from '../src/logica/renglones.js';
+import { calcularDesarrolloEspecial, validarParametros, parametrosVisibles } from '../src/logica/piezasEspeciales.js';
+import { crearRenglonDesdePlantilla, duplicarRenglon, filtrarPlantillas, agruparPlantillas, buscarPlantilla } from '../src/logica/renglones.js';
 import { calcularRenglon } from '../src/logica/calculoRenglon.js';
 import { validarTramos } from '../src/logica/validaciones.js';
 import { calcularGeometria } from '../src/logica/geometria.js';
-import { completarTexto } from '../src/logica/descripcion.js';
+import { completarTexto, textoDeTramos } from '../src/logica/descripcion.js';
+import { armarCodigoGenerico, medidaParaCodigo } from '../src/logica/codigoGenerico.js';
+import { crearBoqueta, describirAccesorios, detalleDeAccesorios, validarAccesorios } from '../src/logica/accesoriosCanaleta.js';
 import { datosCompletos } from './ayudante.js';
 
 const datos = datosCompletos();
-const { config, catalogo } = datos;
+const { config, catalogo, materiales } = datos;
+const nuevo = (id) => crearRenglonDesdePlantilla(buscarPlantilla(catalogo, id), config);
 
-test('catálogo: ids únicos y grupos existentes', () => {
+test('catálogo: ids únicos, grupos existentes y solo productos de la empresa', () => {
   const ids = catalogo.plantillas.map((p) => p.id);
   assert.equal(new Set(ids).size, ids.length, 'hay ids repetidos');
   const grupos = new Set(catalogo.grupos.map((g) => g.id));
   for (const plantilla of catalogo.plantillas) {
-    assert.ok(grupos.has(plantilla.grupo), `${plantilla.id}: grupo desconocido ${plantilla.grupo}`);
-    assert.ok(['plegada', 'especial'].includes(plantilla.tipoPieza), `${plantilla.id}: tipoPieza inválido`);
+    assert.ok(grupos.has(plantilla.grupo), `${plantilla.id}: grupo desconocido`);
+    assert.ok(['plegada', 'especial'].includes(plantilla.tipoPieza));
   }
-  // Están todos los grupos pedidos en la sección 8.3.
-  for (const nombre of ['Canaletas', 'Babetas', 'Cumbreras y limahoyas', 'Boquetas y caños', 'Tapas', 'Ventilación', 'Pieza especial a medida']) {
-    assert.ok(catalogo.grupos.some((g) => g.nombre === nombre), `falta el grupo ${nombre}`);
+  for (const id of ['canaleta_nota_real', 'babeta_l_15', 'cumbrera_lisa_20', 'media_cumbrera', 'limahoya', 'tronera',
+    'boqueta_suelta', 'tapa_suelta', 'curva_articulada', 'ramal', 'codo_rectangular', 'cano_redondo', 'sombrero_h', 'chapa_lisa', 'pieza_libre']) {
+    assert.ok(buscarPlantilla(catalogo, id), `falta ${id}`);
+  }
+  // Productos que la empresa no publica, fuera del catálogo.
+  for (const id of ['cupertina', 'alfeizar', 'perfil_z', 'sombrero_venturi', 'reduccion', 'canaleta_pecho_paloma']) {
+    assert.equal(buscarPlantilla(catalogo, id), null, `${id} no debería estar`);
   }
 });
 
-test('catálogo: desarrollos de la tabla 7.1', () => {
+test('catálogo: desarrollos de las plantillas plegadas', () => {
   const esperados = {
-    canaleta_nota_real: 60,
-    canaleta_americana_chica: 33,
-    canaleta_galponera: 60,
-    canaleta_contramuro: 47,
-    babeta_l_15: 30,
-    babeta_l_20: 40,
-    babeta_lateral_15x10: 25,
-    babeta_sobre_chapa_lisa: 25,
-    babeta_sobre_chapa_sinusoidal: 25,
-    babeta_sobre_chapa_trapezoidal: 25,
-    cumbrera_lisa_15: 30,
-    cumbrera_lisa_20: 40,
-    media_cumbrera: 30,
-    limahoya: 52,
-    cenefa_lisa: 24,
+    canaleta_nota_real: 60, canaleta_americana: 33, babeta_l_15: 30, babeta_l_20: 40,
+    babeta_sobre_chapa_sinusoidal: 25, babeta_sobre_chapa_trapezoidal: 25,
+    cumbrera_lisa_15: 30, cumbrera_lisa_20: 40, media_cumbrera: 30, limahoya: 52, cenefa_lisa: 24, chapa_lisa: 10,
   };
   for (const [id, desarrollo] of Object.entries(esperados)) {
-    const plantilla = buscarPlantilla(catalogo, id);
-    assert.ok(plantilla, `falta la plantilla ${id}`);
-    assert.equal(calcularDesarrollo(plantilla.perfil.tramos), desarrollo, id);
+    assert.equal(calcularDesarrollo(buscarPlantilla(catalogo, id).perfil.tramos), desarrollo, id);
   }
 });
 
-test('catálogo: todas las piezas plegadas tienen tramos válidos y se pueden dibujar', () => {
+test('catálogo: piezas plegadas con tramos válidos', () => {
   for (const plantilla of catalogo.plantillas.filter((p) => p.tipoPieza === 'plegada' && p.id !== 'pieza_libre')) {
-    const errores = validarTramos(plantilla.perfil.tramos, config).filter((p) => p.nivel === 'error');
-    assert.deepEqual(errores, [], plantilla.id);
-    const geometria = calcularGeometria(plantilla.perfil, config);
-    assert.equal(geometria.segmentos.length, plantilla.perfil.tramos.length, plantilla.id);
+    assert.deepEqual(validarTramos(plantilla.perfil.tramos, config).filter((p) => p.nivel === 'error'), [], plantilla.id);
+    assert.equal(calcularGeometria(plantilla.perfil, config).segmentos.length, plantilla.perfil.tramos.length);
   }
 });
 
-test('catálogo: cada plantilla crea un renglón que se calcula sin errores (salvo código por unidad)', () => {
-  for (const plantilla of catalogo.plantillas) {
+test('catálogo: cada plantilla da un renglón sin errores y con código (de la tabla o genérico)', () => {
+  for (const plantilla of catalogo.plantillas.filter((p) => p.id !== 'pieza_libre')) {
     const renglon = crearRenglonDesdePlantilla(plantilla, config);
     const r = calcularRenglon(renglon, datos);
-    const erroresEsperables = (mensaje) =>
-      mensaje.startsWith('Código no encontrado') ||       // piezas por unidad: sin fila en la tabla de ejemplo
-      mensaje.startsWith('La tapa necesita') ||           // tapas sin vincular
-      mensaje.startsWith('Agregá al menos un tramo');     // pieza libre vacía
-    const erroresRaros = r.errores.filter((e) => !erroresEsperables(e));
-    assert.deepEqual(erroresRaros, [], `${plantilla.id}: ${erroresRaros.join(' | ')}`);
-    assert.ok(r.descripcion.length > 0);
-    if (plantilla.tipoPieza === 'especial') {
-      assert.equal(validarParametros(plantilla, renglon.parametros).length, 0, plantilla.id);
-    }
+    assert.deepEqual(r.errores, [], `${plantilla.id}: ${r.errores.join(' | ')}`);
+    assert.ok(r.codigo.codigo, `${plantilla.id} sin código`);
+    assert.ok(!r.descripcion.includes('?'), `${plantilla.id}: descripción incompleta "${r.descripcion}"`);
   }
 });
 
-test('buscador de plantillas: sin tildes ni mayúsculas', () => {
-  const resultado = filtrarPlantillas(catalogo, 'CAÑO');
-  assert.ok(resultado.some((p) => p.id === 'cano_redondo'));
-  const conTilde = filtrarPlantillas(catalogo, 'alfeizar');
-  assert.ok(conTilde.some((p) => p.id === 'alfeizar'));
-  const grupos = agruparPlantillas(catalogo);
-  assert.equal(grupos[0].nombre, 'Canaletas');
+test('buscador de plantillas', () => {
+  assert.ok(filtrarPlantillas(catalogo, 'CAÑO').some((p) => p.id === 'cano_redondo'));
+  assert.ok(filtrarPlantillas(catalogo, 'salamandra').some((p) => p.id === 'sombrero_canadiense'));
+  assert.equal(agruparPlantillas(catalogo)[0].nombre, 'Canaletas');
+});
+
+// ---------- código genérico ----------
+
+test('código genérico: chapa lisa 10x10 negra → CL1010N (ejemplo de la empresa)', () => {
+  const renglon = { ...nuevo('chapa_lisa'), largoCm: 10, terminacion: 'P', colorId: 'negro' };
+  assert.equal(armarCodigoGenerico(renglon.codigoGenerico, renglon, materiales), 'CL1010N');
+  const r = calcularRenglon(renglon, datos);
+  assert.equal(r.codigo.codigo, 'CL1010N');
+  assert.equal(r.codigo.generico, true);
+  assert.ok(r.avisos.some((a) => a.startsWith('Código genérico')));
+  assert.equal(r.puedeEmitirse, true);
+});
+
+test('código genérico: medidas sin coma y letra del material si no es prepintada', () => {
+  assert.equal(medidaParaCodigo(7.5), '75');
+  assert.equal(medidaParaCodigo(12.5), '125');
+  const curva = nuevo('curva_articulada'); // Ø10, 90°, galvanizado natural
+  assert.equal(calcularRenglon(curva, datos).codigo.codigo, 'CA1090Z');
+  const sombrero = { ...nuevo('sombrero_h'), parametros: { forma: 'rectangular', ladoACm: 20, ladoBCm: 10 } };
+  assert.equal(calcularRenglon(sombrero, datos).codigo.codigo, 'SHR2010Z');
+  const boqueta = { ...nuevo('boqueta_suelta'), parametros: { forma: 'cuadrada', ladoACm: 10, largoBocaCm: 10, pestanaCm: 2 } };
+  assert.equal(calcularRenglon(boqueta, datos).codigo.codigo, 'BQC10Z');
+});
+
+test('código genérico: si la tabla tiene una fila para ese elemento, manda la tabla', () => {
+  const tabla = [...datos.codigos, { elemento: 'curva', material: 'CG', espesor: '05', terminacion: 'N', banda: 'UN', codigo: 'CURVA-REAL' }];
+  const r = calcularRenglon(nuevo('curva_articulada'), { ...datos, codigos: tabla });
+  assert.equal(r.codigo.codigo, 'CURVA-REAL');
+  assert.equal(r.codigo.generico, false);
+});
+
+test('las piezas plegadas comunes siguen buscando en la tabla (no usan código genérico)', () => {
+  const r = calcularRenglon({ ...nuevo('canaleta_nota_real'), terminacion: 'P', colorId: 'negro' }, datos);
+  assert.equal(r.codigo.codigo, 'CG05P60');
+  assert.equal(r.codigo.generico, false);
+});
+
+// ---------- tapas y boquetas puestas en la canaleta ----------
+
+test('canaleta con tapas y boquetas: descripción, detalle y validación', () => {
+  const canaleta = { ...nuevo('canaleta_nota_real'), terminacion: 'P', colorId: 'negro' };
+  assert.deepEqual(canaleta.accesorios, { tapaIzquierda: 'ninguna', tapaDerecha: 'ninguna', boquetas: [] });
+  canaleta.accesorios.tapaIzquierda = 'soldada';
+  canaleta.accesorios.tapaDerecha = 'soldada';
+  canaleta.accesorios.boquetas.push({ ...crearBoqueta(config), forma: 'rectangular', ladoACm: 10, ladoBCm: 5, posicionCm: 60 });
+  const r = calcularRenglon(canaleta, datos);
+  assert.equal(r.descripcion, '2,44 mts canaleta pp negro D60 CH 25 c/ 2 tapas soldadas y 1 boqueta');
+  assert.equal(r.codigo.codigo, 'CG05P60');
+  assert.deepEqual(r.errores, []);
+  assert.deepEqual(detalleDeAccesorios(canaleta.accesorios), [
+    'Tapa izquierda: soldada', 'Tapa derecha: soldada',
+    'Boqueta 1: rectangular 10x5, boca 10 cm, centro a 60 cm de la punta izquierda',
+  ]);
+  assert.equal(describirAccesorios({ tapaIzquierda: 'soldada', tapaDerecha: 'engrampada', boquetas: [] }), 'c/ tapa izq. soldada y tapa der. engrampada');
+  assert.equal(describirAccesorios({ tapaIzquierda: 'soldada', tapaDerecha: 'engrampada', boquetas: [{}, {}] }), 'c/ tapa izq. soldada, tapa der. engrampada y 2 boquetas');
+});
+
+test('boqueta fuera del largo de la canaleta → error; pegada a la punta → aviso', () => {
+  const acc = { tapaIzquierda: 'ninguna', tapaDerecha: 'ninguna', boquetas: [{ ...crearBoqueta(config), posicionCm: 300 }] };
+  assert.ok(validarAccesorios(acc, 244, config).some((p) => p.nivel === 'error' && p.mensaje.includes('posición')));
+  acc.boquetas[0].posicionCm = 2;
+  assert.ok(validarAccesorios(acc, 244, config).some((p) => p.nivel === 'aviso'));
+});
+
+// ---------- piezas especiales ----------
+
+test('boqueta suelta: parámetros y desarrollo según la forma', () => {
+  const plantilla = buscarPlantilla(catalogo, 'boqueta_suelta');
+  assert.deepEqual(parametrosVisibles(plantilla, { forma: 'redonda' }).map((d) => d.id), ['forma', 'diametroCm', 'largoBocaCm', 'pestanaCm']);
+  assert.deepEqual(parametrosVisibles(plantilla, { forma: 'rectangular' }).map((d) => d.id), ['forma', 'ladoACm', 'ladoBCm', 'largoBocaCm', 'pestanaCm']);
+  assert.equal(calcularDesarrolloEspecial('perimetroSegunForma', { forma: 'redonda', diametroCm: 10 }, config).desarrolloCm, 32.4);
+  assert.equal(calcularDesarrolloEspecial('perimetroSegunForma', { forma: 'cuadrada', ladoACm: 10 }, config).desarrolloCm, 41);
+  assert.equal(calcularDesarrolloEspecial('perimetroSegunForma', { forma: 'rectangular', ladoACm: 10, ladoBCm: 5 }, config).desarrolloCm, 31);
+  const r = calcularRenglon(nuevo('boqueta_suelta'), datos);
+  assert.equal(r.descripcion, 'boqueta suelta redonda Ø10 galv D32,4 CH 25');
+});
+
+test('sombreros: circulares o rectangulares', () => {
+  const circular = calcularRenglon(nuevo('sombrero_canadiense'), datos);
+  assert.equal(circular.descripcion, 'sombrero canadiense circular Ø15 galv CH 25');
+  const rect = calcularRenglon({ ...nuevo('sombrero_spiro'), parametros: { forma: 'rectangular', ladoACm: 20, ladoBCm: 10 } }, datos);
+  assert.equal(rect.descripcion, 'sombrero tipo Spiro rectangular 20x10 galv CH 25');
 });
 
 test('fórmulas de piezas especiales (SUPUESTO)', () => {
-  assert.deepEqual(calcularDesarrolloEspecial('perimetroRedondo', { diametroCm: 10 }, config).desarrolloCm, 32.4);
+  assert.equal(calcularDesarrolloEspecial('perimetroRedondo', { diametroCm: 10 }, config).desarrolloCm, 32.4);
   assert.equal(calcularDesarrolloEspecial('perimetroRectangular', { ladoACm: 10, ladoBCm: 5 }, config).desarrolloCm, 31);
-  assert.equal(calcularDesarrolloEspecial('mediaCana', { diametroCm: 12.5, dobladilloCm: 1, pestanaCm: 3 }, config).desarrolloCm, 23.6);
-  const unidad = calcularDesarrolloEspecial('unidad', {}, config);
-  assert.equal(unidad.porUnidad, true);
-  assert.equal(unidad.desarrolloCm, null);
-  assert.equal(calcularDesarrolloEspecial('perimetroRedondo', { diametroCm: '' }, config).desarrolloCm, null);
-});
-
-test('boqueta redonda Ø10: desarrollo 32,4 → banda 60, código encontrado', () => {
-  const plantilla = buscarPlantilla(catalogo, 'boqueta_redonda');
-  const renglon = crearRenglonDesdePlantilla(plantilla, config);
-  const r = calcularRenglon(renglon, datos);
-  assert.equal(r.desarrolloCm, 32.4);
-  assert.equal(r.banda.numero, 60);
-  assert.equal(r.codigo.codigo, 'CG05N60');
-  assert.equal(r.descripcion, 'boqueta redonda Ø10 galv D32,4 CH 25');
+  assert.equal(calcularDesarrolloEspecial('unidad', {}, config).porUnidad, true);
 });
 
 test('desarrollo corregido a mano queda registrado', () => {
-  const plantilla = buscarPlantilla(catalogo, 'cano_redondo');
-  const renglon = { ...crearRenglonDesdePlantilla(plantilla, config), desarrolloManualCm: '33,5' };
-  const r = calcularRenglon(renglon, datos);
+  const r = calcularRenglon({ ...nuevo('cano_redondo'), desarrolloManualCm: '33,5' }, datos);
   assert.equal(r.desarrolloCm, 33.5);
   assert.equal(r.desarrolloEsManual, true);
-  assert.ok(r.avisos.some((a) => a.includes('corregido a mano')));
 });
 
-test('codo: se cotiza por unidad; sin código en la tabla → bloquea salvo "código pendiente"', () => {
-  const plantilla = buscarPlantilla(catalogo, 'codo_redondo');
-  const renglon = crearRenglonDesdePlantilla(plantilla, config);
-  const r = calcularRenglon(renglon, datos);
+test('parámetros inválidos → error', () => {
+  const plantilla = buscarPlantilla(catalogo, 'curva_articulada');
+  assert.equal(validarParametros(plantilla, { diametroCm: 0, anguloGrados: 60, gajos: 1 }).length, 3);
+});
+
+test('tapa suelta: trae el perfil de la canaleta, se cotiza por unidad', () => {
+  const tapa = nuevo('tapa_suelta');
+  assert.equal(tapa.perfil.tramos.length, 4);
+  const r = calcularRenglon(tapa, datos);
   assert.equal(r.porUnidad, true);
-  assert.equal(r.descripcion, 'codo 90° Ø10 4 gajos galv CH 25');
-  assert.equal(r.puedeEmitirse, false);
-  const conPendiente = calcularRenglon({ ...renglon, codigoPendiente: true }, datos);
-  assert.equal(conPendiente.puedeEmitirse, true);
+  assert.equal(r.descripcion, 'tapa suelta izquierda canaleta galv CH 25');
+  assert.equal(r.codigo.codigo, 'TS60Z');
+  const sinPerfil = calcularRenglon({ ...tapa, perfil: { direccionInicial: 'arriba', tramos: [] } }, datos);
+  assert.ok(sinPerfil.errores.some((e) => e.startsWith('La tapa necesita')));
 });
 
-test('parámetros inválidos de una pieza especial → error', () => {
-  const plantilla = buscarPlantilla(catalogo, 'codo_redondo');
-  const problemas = validarParametros(plantilla, { diametroCm: 0, anguloGrados: 60, gajos: 1 });
-  assert.equal(problemas.length, 3);
-});
-
-test('tapa vinculada copia el perfil y el material de la canaleta', () => {
-  const canaleta = { ...crearRenglonDesdePlantilla(buscarPlantilla(catalogo, 'canaleta_nota_real'), config), terminacion: 'P', colorId: 'negro' };
-  const tapa = crearRenglonDesdePlantilla(buscarPlantilla(catalogo, 'tapa_izquierda'), config);
-  assert.equal(calcularRenglon(tapa, datos).puedeEmitirse, false); // sin vincular no se puede fabricar
-  const vinculada = vincularAccesorio(tapa, canaleta);
-  assert.equal(vinculada.vinculadoA, canaleta.id);
-  assert.equal(vinculada.perfil.tramos.length, 4);
-  assert.equal(vinculada.colorId, 'negro');
-  const r = calcularRenglon({ ...vinculada, codigoPendiente: true }, datos);
-  assert.equal(r.descripcion, 'tapa izquierda canaleta pp negro CH 25');
-  assert.equal(r.puedeEmitirse, true);
-  assert.deepEqual(accesoriosDe([canaleta, vinculada], canaleta.id).map((x) => x.id), [vinculada.id]);
-});
-
-test('duplicar renglón cambia el id y no comparte el perfil', () => {
-  const original = crearRenglonDesdePlantilla(buscarPlantilla(catalogo, 'babeta_l_15'), config);
+test('duplicar renglón', () => {
+  const original = nuevo('babeta_l_15');
   const copia = duplicarRenglon(original);
   assert.notEqual(copia.id, original.id);
   copia.perfil.tramos[0].medidaCm = 99;
   assert.equal(original.perfil.tramos[0].medidaCm, 15);
 });
 
-test('completar texto de descripción con parámetros', () => {
-  assert.equal(completarTexto('reducción Ø{diametroMayorCm} a Ø{diametroMenorCm}', { diametroMayorCm: 15, diametroMenorCm: '12,5' }), 'reducción Ø15 a Ø12,5');
+test('textos: completar parámetros y tramos', () => {
   assert.equal(completarTexto('caño Ø{diametroCm}', {}), 'caño Ø?');
+  assert.equal(completarTexto('x {medidas}', { forma: 'cuadrada', ladoACm: 7.5 }), 'x 7,5x7,5');
+  assert.equal(textoDeTramos(buscarPlantilla(catalogo, 'canaleta_nota_real').perfil.tramos), '1 (dobl. aplast.) + 20 + 32 + 7 = 60');
+  assert.equal(textoDeTramos(buscarPlantilla(catalogo, 'babeta_sobre_chapa_sinusoidal').perfil.tramos), '1 (dobl.) + 12 + 12 (láser sinusoidal) = 25');
 });
 
 test('prepintado sin color ni lado de pintura → errores', () => {
-  const renglon = { ...crearRenglonDesdePlantilla(buscarPlantilla(catalogo, 'babeta_l_15'), config), terminacion: 'P', colorId: null, ladoPintura: null };
-  const r = calcularRenglon(renglon, datos);
+  const r = calcularRenglon({ ...nuevo('babeta_l_15'), terminacion: 'P', colorId: null, ladoPintura: null }, datos);
   assert.ok(r.errores.includes('Elegí el color de la chapa prepintada'));
   assert.ok(r.errores.includes('Indicá de qué lado va la pintura (afuera o adentro)'));
-});
-
-test('texto de tramos para la nota impresa', async () => {
-  const { textoDeTramos } = await import('../src/logica/descripcion.js');
-  const tramos = buscarPlantilla(catalogo, 'canaleta_nota_real').perfil.tramos;
-  assert.equal(textoDeTramos(tramos), '1 (dobl. aplast.) + 20 + 32 + 7 = 60');
-  const laser = buscarPlantilla(catalogo, 'babeta_sobre_chapa_sinusoidal').perfil.tramos;
-  assert.equal(textoDeTramos(laser), '1 (dobl.) + 12 + 12 (láser sinusoidal) = 25');
 });

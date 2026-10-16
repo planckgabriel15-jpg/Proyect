@@ -1,10 +1,11 @@
 // =============================================================
 // renglones.js
-// Crear, duplicar y vincular renglones de la nota.
+// Crear y duplicar renglones de la nota.
 // Un renglón = una pieza (con su dibujo, largo, material, código y cantidad).
 // =============================================================
 
 import { copiarPerfil } from './perfil.js';
+import { accesoriosVacios } from './accesoriosCanaleta.js';
 
 /** Busca una plantilla del catálogo por su id. */
 export function buscarPlantilla(catalogo, plantillaId) {
@@ -58,7 +59,8 @@ export function crearRenglonDesdePlantilla(plantilla, config) {
     textoDescripcion: plantilla.textoDescripcion,   // ej. "canaleta"
     usaLargo: plantilla.usaLargo !== false,
     calculoDesarrollo: plantilla.calculoDesarrollo || 'sumaDeTramos',
-    usaPerfilVinculado: plantilla.usaPerfilVinculado === true, // tapas
+    usaPerfil: plantilla.usaPerfil === true,        // tapa suelta: pieza especial que igual lleva perfil
+    codigoGenerico: plantilla.codigoGenerico || null, // cómo armar el código si no está en la tabla
     generador3d: plantilla.generador3d || 'extrusion',
     perfil: plantilla.perfil ? copiarPerfil(plantilla.perfil) : { direccionInicial: 'arriba', tramos: [] },
     parametros,
@@ -72,7 +74,8 @@ export function crearRenglonDesdePlantilla(plantilla, config) {
     observaciones: '',
     desarrolloManualCm: null,
     codigoPendiente: false,
-    vinculadoA: null,
+    // Tapas y boquetas puestas en la canaleta (solo canaletas).
+    accesorios: plantilla.admiteAccesorios ? accesoriosVacios() : null,
   };
 }
 
@@ -81,28 +84,4 @@ export function duplicarRenglon(renglon) {
   const copia = JSON.parse(JSON.stringify(renglon));
   copia.id = crearId('r');
   return copia;
-}
-
-/**
- * Vincula un accesorio (tapa, boqueta) a un renglón principal (canaleta).
- * Las tapas copian el perfil, el material, el calibre y el color de la canaleta.
- * Devuelve el accesorio NUEVO (no modifica el original).
- */
-export function vincularAccesorio(accesorio, principal) {
-  const nuevo = JSON.parse(JSON.stringify(accesorio));
-  nuevo.vinculadoA = principal.id;
-  if (nuevo.usaPerfilVinculado) {
-    nuevo.perfil = copiarPerfil(principal.perfil);
-    nuevo.materialId = principal.materialId;
-    nuevo.calibreId = principal.calibreId;
-    nuevo.terminacion = principal.terminacion;
-    nuevo.colorId = principal.colorId;
-    nuevo.ladoPintura = principal.ladoPintura;
-  }
-  return nuevo;
-}
-
-/** Lista los accesorios vinculados a un renglón (para dibujarlos montados en 3D). */
-export function accesoriosDe(renglones, renglonPrincipalId) {
-  return renglones.filter((r) => r.vinculadoA === renglonPrincipalId);
 }

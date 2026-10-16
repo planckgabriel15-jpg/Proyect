@@ -5,6 +5,7 @@ import assert from 'node:assert/strict';
 import { svgDelPerfil } from '../src/vistas2d/perfilSvg.js';
 import { svgCorteLaser } from '../src/vistas2d/corteLaserSvg.js';
 import { svgDeEspecial } from '../src/vistas2d/especialSvg.js';
+import { svgPlantaCanaleta } from '../src/vistas2d/plantaCanaletaSvg.js';
 import { crearRenglonDesdePlantilla, buscarPlantilla } from '../src/logica/renglones.js';
 import { datosCompletos } from './ayudante.js';
 
@@ -28,7 +29,7 @@ test('2D de la canaleta de la nota real: medidas, dobladillo y leyenda', () => {
 });
 
 test('2D: el ángulo se escribe cuando no es 90°', () => {
-  const svg = svgDelPerfil(buscarPlantilla(catalogo, 'canaleta_americana_chica').perfil, { config });
+  const svg = svgDelPerfil(buscarPlantilla(catalogo, 'canaleta_americana').perfil, { config });
   assert.ok(textos(svg).includes('100°'));
 });
 
@@ -55,9 +56,21 @@ test('vista de la cara con corte láser: acota onda, valles y ancho', () => {
 });
 
 test('esquema 2D de todas las piezas especiales (salvo tapas, que usan el perfil)', () => {
-  for (const plantilla of catalogo.plantillas.filter((p) => p.tipoPieza === 'especial' && !p.usaPerfilVinculado)) {
+  for (const plantilla of catalogo.plantillas.filter((p) => p.tipoPieza === 'especial' && !p.usaPerfil)) {
     const svg = svgDeEspecial(crearRenglonDesdePlantilla(plantilla, config));
     assert.ok(!svg.includes('Sin esquema'), `${plantilla.id} no tiene esquema 2D`);
     assert.ok(!textos(svg).some((x) => x.includes('?')), `${plantilla.id}: hay medidas sin completar`);
   }
+});
+
+test('vista desde arriba de la canaleta: tapas y posición de boquetas acotadas', () => {
+  const canaleta = crearRenglonDesdePlantilla(buscarPlantilla(catalogo, 'canaleta_nota_real'), config);
+  assert.equal(svgPlantaCanaleta(canaleta), '', 'sin tapas ni boquetas no se dibuja');
+  canaleta.accesorios.tapaIzquierda = 'engrampada';
+  canaleta.accesorios.boquetas.push({ forma: 'cuadrada', ladoACm: 10, largoBocaCm: 10, posicionCm: 60 });
+  const t = textos(svgPlantaCanaleta(canaleta));
+  assert.ok(t.includes('tapa izq.'));
+  assert.ok(t.includes('engrampada'));
+  assert.ok(t.includes('B1 10x10'));
+  assert.ok(t.includes('60'));
 });

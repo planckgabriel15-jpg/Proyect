@@ -13,6 +13,10 @@ import { calcularDesarrolloEspecial, validarParametros } from './piezasEspeciale
 import { validarTramos, validarLargo, validarMaterialYCantidad } from './validaciones.js';
 import { armarDescripcion } from './descripcion.js';
 import { buscarPlantilla } from './renglones.js';
+import { armarCodigoGenerico } from './codigoGenerico.js';
+import { validarAccesorios } from './accesoriosCanaleta.js';
+
+export const AVISO_CODIGO_GENERICO = 'Código genérico: no está en la tabla de facturación, confirmarlo con administración';
 
 /**
  * @param {object} renglon
@@ -56,10 +60,10 @@ export function calcularRenglon(renglon, datos) {
       agregar(validarParametros(plantilla, renglon.parametros));
     }
 
-    // Tapas: necesitan el perfil de la canaleta para poder fabricarse.
-    if (renglon.usaPerfilVinculado) {
+    // Tapa suelta: necesita el perfil de la canaleta para poder fabricarse.
+    if (renglon.usaPerfil) {
       if (!renglon.perfil?.tramos?.length) {
-        errores.push('La tapa necesita el perfil de una canaleta: vinculala al renglón de la canaleta');
+        errores.push('La tapa necesita el perfil de la canaleta: copialo de una canaleta o cargalo en la tabla');
       } else {
         problemasTramos = validarTramos(renglon.perfil.tramos, config);
         agregar(problemasTramos);
@@ -80,12 +84,17 @@ export function calcularRenglon(renglon, datos) {
     agregar(validarLargo(renglon.largoCm, config));
   }
 
+  // ---- 2b) Tapas y boquetas puestas en la canaleta ----
+  if (renglon.accesorios) {
+    agregar(validarAccesorios(renglon.accesorios, renglon.largoCm, config));
+  }
+
   // ---- 3) Material, calibre, color, cantidad ----
   agregar(validarMaterialYCantidad(renglon, materiales, config));
 
   // ---- 4) Banda ----
   const banda = porUnidad
-    ? { numero: config.bandaPorUnidad, nombre: 'por unidad', requiereSoldar: false, aviso: null }
+    ? { numero: null, nombre: 'por unidad', requiereSoldar: false, aviso: null }
     : calcularBanda(desarrolloCm, config);
   if (banda.requiereSoldar) {
     avisos.push(AVISO_REQUIERE_SOLDAR);
@@ -94,20 +103,34 @@ export function calcularRenglon(renglon, datos) {
   // ---- 5) Código (se BUSCA en la tabla, no se arma) ----
   const material = materiales.materiales.find((m) => m.id === renglon.materialId);
   const calibre = materiales.calibres.find((c) => c.id === renglon.calibreId);
-  let codigo = { encontrado: false, codigo: null, aviso: null };
+  let codigo = { encontrado: false, codigo: null, aviso: null, generico: false };
   if (material && calibre) {
-    codigo = buscarCodigo(codigos, {
+    const criterio = {
       elemento: renglon.elemento,
       material: material.codigo,
       espesor: calibre.codigoEspesor,
       terminacion: renglon.terminacion,
-      banda: banda.numero,
-    });
+      banda: banda.numero ?? 'UN',
+    };
+    if (renglon.codigoGenerico) {
+      // Productos sin código en facturación: si la tabla tiene una fila para ESE elemento, manda la tabla;
+      // si no, se arma el código genérico (siglas + medidas + letra de color/material).
+      codigo = { ...buscarCodigo(codigos, { ...criterio, soloElementoExacto: true }), generico: false };
+      if (!codigo.encontrado) {
+        const generico = armarCodigoGenerico(renglon.codigoGenerico, renglon, materiales);
+        if (generico) {
+          codigo = { encontrado: true, codigo: generico, aviso: AVISO_CODIGO_GENERICO, generico: true };
+          avisos.push(AVISO_CODIGO_GENERICO);
+        }
+      }
+    } else {
+      codigo = { ...buscarCodigo(codigos, criterio), generico: false };
+    }
     if (!codigo.encontrado) {
       if (renglon.codigoPendiente) {
         avisos.push('Código pendiente: lo completa administración');
       } else {
-        errores.push(codigo.aviso);
+        errores.push(codigo.aviso || 'Código no encontrado: avisar a administración');
       }
     }
   }
