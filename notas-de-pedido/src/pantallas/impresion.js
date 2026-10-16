@@ -82,6 +82,7 @@ export async function pantallaImpresion(contenedor, notaId) {
       porUnidad: vivo.porUnidad,
       avisos: vivo.avisos,
       codigoGenerico: vivo.codigo.generico,
+      codigosAdicionales: vivo.codigosAdicionales,
     };
     const usaPerfil = renglon.tipoPieza === 'plegada' || renglon.usaPerfil;
     const dibujo2d = usaPerfil
@@ -91,7 +92,7 @@ export async function pantallaImpresion(contenedor, notaId) {
     const detalles = [];
     if (usaPerfil && renglon.perfil?.tramos?.length) detalles.push(h('li', {}, h('strong', {}, 'Tramos: '), textoDeTramos(renglon.perfil.tramos)));
     if (!c.porUnidad && c.desarrolloCm) detalles.push(h('li', {}, h('strong', {}, 'Desarrollo: '), `${formatearCorto(c.desarrolloCm, 1)} cm${c.desarrolloEsManual ? ' (corregido a mano)' : ''}`));
-    if (renglon.terminacion === 'P') detalles.push(h('li', {}, h('strong', {}, 'Pintura: '), (renglon.ladoPintura || '—').toUpperCase()));
+    if (renglon.terminacion === 'P' && !renglon.sinMaterial) detalles.push(h('li', {}, h('strong', {}, 'Pintura: '), renglon.ladoPintura === 'ambos' ? 'DE LOS DOS LADOS' : (renglon.ladoPintura || '—').toUpperCase()));
     for (const linea of detalleDeAccesorios(renglon.accesorios)) detalles.push(h('li', {}, h('strong', {}, `${linea.split(':')[0]}: `), linea.split(':').slice(1).join(':').trim()));
     for (const tramo of (usaPerfil ? renglon.perfil.tramos : []).filter((t) => t.corteLaser)) {
       detalles.push(h('li', {}, h('strong', {}, `Tramo ${renglon.perfil.tramos.indexOf(tramo) + 1}: `), describirCorteLaser(tramo.corteLaser)));
@@ -113,6 +114,11 @@ export async function pantallaImpresion(contenedor, notaId) {
         h('td', {}, h('span', { class: 'numero-en-hoja' }, `${i + 1}.`), ' ', c.descripcion),
         h('td', { class: 'col-codigo' }, c.codigo || 'PENDIENTE'),
         h('td', { class: 'col-cantidad' }, String(renglon.cantidad))),
+      // Tapas y boquetas puestas en la canaleta: se facturan con su propio código (pedido de la empresa).
+      (c.codigosAdicionales || []).map((extra) => h('tr', { class: 'fila-adicional' },
+        h('td', {}, `   + ${extra.descripcion} (puesta en la canaleta)`),
+        h('td', { class: 'col-codigo' }, extra.codigo),
+        h('td', { class: 'col-cantidad' }, String(extra.cantidad)))),
       h('tr', { class: 'fila-dibujo' }, h('td', { colspan: 3 },
         h('div', { class: 'hoja-dibujos' },
           h('div', { class: 'hoja-2d', html: dibujo2d }),
@@ -136,7 +142,7 @@ export async function pantallaImpresion(contenedor, notaId) {
     for (const renglon of nota.renglones) {
       const lugar = hoja.querySelector(`.hoja-3d[data-renglon="${renglon.id}"]`);
       try {
-        const imagen = modulo.capturarRenglon(renglon, datos, 360, 260);
+        const imagen = modulo.capturarRenglon(renglon, datos, 760, 520);
         lugar?.append(h('img', { src: imagen, alt: 'Vista 3D (ayuda visual)' }), h('div', { class: 'texto-chico' }, 'Vista 3D: solo ayuda visual'));
       } catch (error) {
         console.warn('Imagen 3D para imprimir:', error);

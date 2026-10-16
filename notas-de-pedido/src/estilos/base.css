@@ -49,7 +49,8 @@ a { color: var(--principal); }
 .menu a { color: var(--principal-texto); text-decoration: none; padding: .4rem .6rem; border-radius: 6px; }
 .menu a.activo, .menu a:hover { background: rgba(255,255,255,.2); }
 .menu .marca { font-weight: 700; font-size: 1.1rem; display: inline-flex; align-items: center; gap: .6rem; padding: .2rem .4rem; }
-.logo-menu { height: 40px; width: auto; display: block; }
+.logo-menu { height: 44px; width: auto; display: block; background: #fff; border-radius: 6px; padding: 2px 6px; }
+.codigo-extra { display: inline-block; margin-left: .4rem; font-weight: 600; }
 .boton-menu { margin-left: .25rem; background: transparent; color: var(--principal-texto); border: 1.5px solid rgba(255,255,255,.6); border-radius: 6px; padding: .35rem .7rem; font: inherit; font-size: .85rem; cursor: pointer; }
 .boton-menu:hover { background: rgba(255,255,255,.15); }
 .menu { border-bottom: 4px solid var(--acento); }

@@ -414,6 +414,7 @@ export function abrirAsistente(opciones) {
     const campo = (texto, control, idAyuda) => h('label', { class: 'campo-parametro' },
       h('span', {}, texto, idAyuda ? ayuda(datos.glosario, idAyuda) : null), control);
 
+    if (!borrador.sinMaterial) {
     formulario.append(campo('Material', selector(materiales.materiales.map((m) => ({ valor: m.id, texto: m.nombre })), borrador.materialId, {
       onchange: (e) => {
         borrador.materialId = e.target.value;
@@ -445,9 +446,12 @@ export function abrirAsistente(opciones) {
           onclick: () => { borrador.colorId = c.id; dibujarPaso(); },
         }, h('span', { class: 'cuadradito', style: `background:${c.hex}` }), c.nombre)))));
       formulario.append(campo('Lado de la pintura', h('div', { class: 'opciones-radio' },
-        ['afuera', 'adentro'].map((lado) => h('label', { class: 'casilla' },
-          h('input', { type: 'radio', name: 'lado-pintura', value: lado, checked: borrador.ladoPintura === lado, onchange: () => { borrador.ladoPintura = lado; actualizar(); } }),
-          ` Pintura ${lado}`))), 'lado_pintura'));
+        datos.config.ladosPintura.map((opcion) => h('label', { class: 'casilla' },
+          h('input', { type: 'radio', name: 'lado-pintura', value: opcion.valor, checked: borrador.ladoPintura === opcion.valor, onchange: () => { borrador.ladoPintura = opcion.valor; actualizar(); } }),
+          ` ${opcion.texto}`))), 'lado_pintura'));
+    }
+    } else {
+      formulario.append(h('p', { class: 'texto-chico' }, 'Artículo de catálogo: no lleva material, calibre ni color.'));
     }
 
     formulario.append(campo('Cantidad', h('input', {
@@ -508,7 +512,8 @@ export function abrirAsistente(opciones) {
     partes.push(h('span', { class: 'resultado-dato' }, 'Código ',
       h('strong', { class: r.codigo.encontrado ? 'codigo-ok' : 'codigo-falta' },
         r.codigo.encontrado ? r.codigo.codigo : (borrador.codigoPendiente ? 'PENDIENTE' : 'no encontrado')),
-      r.codigo.generico ? h('span', { class: 'texto-chico' }, ' (genérico)') : null));
+      r.codigo.generico ? h('span', { class: 'texto-chico' }, ' (genérico)') : null,
+      ...r.codigosAdicionales.map((c) => h('span', { class: 'texto-chico codigo-extra' }, ` + ${c.codigo} x${c.cantidad} (${c.descripcion})`))));
     const mensajes = [
       ...r.errores.map((m) => h('li', { class: 'error' }, h('strong', {}, 'Error: '), m)),
       ...r.avisos.filter((m) => !m.startsWith('Código genérico')).map((m) => h('li', { class: 'aviso' }, h('strong', {}, 'Aviso: '), m)),

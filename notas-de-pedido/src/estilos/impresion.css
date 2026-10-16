@@ -30,12 +30,14 @@
 .fila-principal td { font-size: 12pt; font-weight: 700; }
 .numero-en-hoja { font-weight: 900; }
 .hoja-renglon { break-inside: avoid; page-break-inside: avoid; }
-.hoja-dibujos { display: grid; grid-template-columns: 1fr 45mm; grid-template-areas: "dos tres" "dos detalles"; gap: 2mm 4mm; }
+.hoja-dibujos { display: grid; grid-template-columns: 1fr 1fr; grid-template-areas: "dos tres" "detalles detalles"; gap: 3mm 4mm; align-items: start; }
 .hoja-2d { grid-area: dos; }
 .hoja-2d svg { width: 100%; height: auto; max-height: 85mm; }
 .hoja-3d { grid-area: tres; text-align: center; }
 .hoja-3d img { width: 100%; height: auto; border: 1px solid #999; }
-.hoja-detalles { grid-area: detalles; margin: 0; padding-left: 4mm; font-size: 9.5pt; }
+.hoja-detalles { grid-area: detalles; margin: 0; padding-left: 4mm; font-size: 9.5pt; columns: 2; column-gap: 6mm; }
+.fila-adicional td { font-size: 10.5pt; font-weight: 600; padding-left: 6mm; background: #f6f6f6; }
+.hoja-3d img { max-height: 75mm; object-fit: contain; }
 .hoja-detalles li { margin-bottom: 1mm; }
 .hoja-laser .planta-svg { max-height: 50mm; border: none; border-top: 1px dashed #000; border-radius: 0; }
 .hoja-laser svg { width: 100%; height: auto; max-height: 45mm; border-top: 1px dashed #000; margin-top: 2mm; }
@@ -57,7 +59,7 @@
   .no-imprimir, .menu, #avisos-flotantes { display: none !important; }
   .principal { max-width: none; padding: 0; margin: 0; }
   .hoja-a4 { box-shadow: none; padding: 0; max-width: none; width: auto; margin: 0; }
-  .hoja-dibujos { grid-template-columns: 1fr 45mm; grid-template-areas: "dos tres" "dos detalles"; }
+  .hoja-dibujos { grid-template-columns: 1fr 1fr; grid-template-areas: "dos tres" "detalles detalles"; }
   /* El encabezado de la tabla se repite en cada hoja. */
   .hoja-tabla thead { display: table-header-group; }
   /* Las cotas en negro puro. */

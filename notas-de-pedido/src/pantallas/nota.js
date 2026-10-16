@@ -141,6 +141,7 @@ export async function pantallaNota(contenedor, notaId) {
           h('div', { class: 'descripcion-renglon' }, r.descripcion),
           h('div', {}, 'Código: ', h('strong', {}, r.codigo.encontrado ? r.codigo.codigo : (renglon.codigoPendiente ? 'PENDIENTE' : 'no encontrado')),
             r.codigo.generico ? ' (genérico)' : '',
+            r.codigosAdicionales.map((c) => h('span', { class: 'codigo-extra' }, ` + ${c.codigo} x${c.cantidad}`)),
             ' · Cantidad: ', h('strong', {}, String(renglon.cantidad))),
           r.errores.length ? h('div', { class: 'error' }, h('strong', {}, 'Error: '), `${r.errores.length} problema(s): ${r.errores[0]}`) : null,
           r.avisos.length ? h('div', { class: 'aviso' }, h('strong', {}, 'Aviso: '), r.avisos.join(' · ')) : null),
@@ -245,6 +246,7 @@ export async function pantallaNota(contenedor, notaId) {
         porUnidad: resultados[i].porUnidad,
         avisos: resultados[i].avisos,
         codigoGenerico: resultados[i].codigo.generico,
+        codigosAdicionales: resultados[i].codigosAdicionales,
       },
     }));
     delete nota.piezaEnCurso;
