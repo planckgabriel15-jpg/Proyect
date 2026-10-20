@@ -4,7 +4,8 @@ Programa web que reemplaza la nota de pedido en papel. El vendedor:
 
 1. completa el encabezado casi sin escribir (origen, fecha y número salen solos; la factura se pega);
 2. elige la pieza de una galería con los productos que fabrica la empresa (canaletas con sus tapas y boquetas, babetas, cumbreras, limahoya, cenefas, chapa lisa, boquetas, troneras, caños, curvas, codos, ramales, tapas y sombreros circulares o rectangulares), o dibuja una a mano;
-3. carga las medidas en una tabla y ve **al mismo tiempo** el dibujo 2D acotado y la pieza en 3D;
+3. carga las medidas en una tabla y ve **al mismo tiempo** el dibujo 2D acotado y la pieza en 3D **con todas sus cotas**; si prefiere, abre el **editor 3D** a pantalla completa (también en el celular) y cambia las medidas tocando las cotas, agrega tramos con "+" o borra la parte que elija;
+   los plegados pueden ser **con pendiente**: se cargan las medidas de las dos puntas y el 3D muestra cómo cambia la pieza a lo largo;
 4. obtiene solo el **desarrollo**, la **banda** y el **código** (de la tabla de facturación o, si el producto no está, un código genérico como CL1010N);
 5. elige material, calibre, color y cantidad;
 6. emite e imprime (o guarda en PDF) una nota prolija para producción.
@@ -34,6 +35,12 @@ Programa web que reemplaza la nota de pedido en papel. El vendedor:
 | Tabla de tramos | Alt+J / Alt+M | Espejar / dibujar a mano |
 | Canaleta | Alt+Q | Agregar boqueta |
 | Vista 3D | Alt+0 / Alt+7 / Alt+8 / Alt+9 | Vista inicial / frente / lateral / isométrica |
+| Vista 3D | Alt+C | Mostrar u ocultar las cotas |
+| Vista 3D | Alt+G | Abrir el editor 3D a pantalla completa (Alt+G o Esc lo cierran) |
+| Plegados | Alt+L | Con pendiente sí / no |
+| Editor 3D | Supr | Borrar el tramo, la tapa o la boqueta elegida |
+| Editor 3D | Alt+flecha derecha / Alt+flecha izquierda | Elegir el tramo siguiente / anterior |
+| Cota en el 3D | Enter / Esc | Confirmar la medida nueva / dejarla como estaba |
 | Todas | Enter | Pasar al campo siguiente |
 
 No se usaron Alt+F, Alt+E ni Alt+D porque Chrome y Edge los usan para sus menús.
@@ -82,7 +89,7 @@ cd notas-de-pedido
 npm test          # es lo mismo que:  node --test
 ```
 
-Tiene que terminar con `# fail 0`. Hay 77 pruebas; los **16 casos obligatorios** de la especificación están en `tests/casos-obligatorios.test.js`. Las pruebas no usan el navegador: prueban la lógica (`src/logica/`), el almacenamiento (con un "navegador falso" en memoria) y los dibujos 2D.
+Tiene que terminar con `# fail 0`. Hay 101 pruebas; los **16 casos obligatorios** de la especificación están en `tests/casos-obligatorios.test.js`. Las pruebas no usan el navegador: prueban la lógica (`src/logica/`), el almacenamiento (con un "navegador falso" en memoria) y los dibujos 2D.
 
 ---
 
@@ -94,7 +101,7 @@ Sin frameworks y sin "paso de compilación": HTML + CSS + JavaScript moderno (m�
 
 | Capa | Carpeta | Qué hace | Regla |
 |---|---|---|---|
-| Lógica | `src/logica/` | Cálculos puros: desarrollo, banda, código, geometría, corte láser, descripción, validaciones, numeración | No usa el navegador ni Three.js. Todo se prueba con `node --test` |
+| Lógica | `src/logica/` | Cálculos puros: desarrollo, banda, código, geometría, cotas, pendiente, corte láser, descripción, validaciones, numeración | No usa el navegador ni Three.js. Todo se prueba con `node --test` |
 | Datos | `src/datos/almacenamiento.js` | **Única puerta** para guardar y leer | Nadie más usa `localStorage`. Todas sus funciones son `async` |
 | Interfaz | `src/pantallas/`, `src/vistas2d/`, `src/vistas3d/`, `src/estilos/` | Pantallas, dibujos 2D (SVG) y 3D (Three.js) | Llama a la lógica y al almacenamiento; no calcula reglas de negocio |
 
@@ -110,7 +117,8 @@ src/pantallas/
   inicio.js                    ingreso (elegir vendedor) e inicio (lista de notas de la sucursal)
   nota.js                      nota de pedido: encabezado, renglones, autoguardado, emisión
   asistente.js                 "Agregar pieza" en 3 pasos (galería → medidas y dibujo → material)
-  editorTramos.js              tabla de tramos (Enter, deshacer/rehacer, atajos, corte láser)
+  editorTramos.js              tabla de tramos (Enter, deshacer/rehacer, atajos, corte láser, columnas de la punta final)
+  editor3d.js                  editor 3D a pantalla completa: herramientas, propiedades de la parte elegida, resumen
   impresion.js                 hoja A4 para imprimir o guardar en PDF
   produccion.js                lista de notas emitidas para el taller
   configuracion.js             sucursales, último número, importar códigos, copias de seguridad
@@ -120,11 +128,13 @@ src/vistas2d/
   corteLaserSvg.js             vista de frente de la cara con corte láser
   especialSvg.js               esquemas acotados de boquetas, caños, codos, sombreros…
   plantaCanaletaSvg.js         vista desde arriba de la canaleta con tapas y boquetas acotadas
+  pendienteSvg.js              vista de costado de un plegado con pendiente (alturas exageradas)
   dibujoAMano.js               cuadrícula con imán para dibujar el perfil
 src/vistas3d/
   cargar3d.js                  carga el 3D solo si hay internet (si no, el programa sigue igual)
-  escena.js                    visor 3D (girar, zoom, vistas, resaltar tramo, foto)
-  extrusion.js                 piezas plegadas: cada tramo es una chapa estirada a lo largo
+  escena.js                    visor 3D (girar, zoom, vistas, resaltar, cotas que se editan en el lugar, foto)
+  cotas3d.js                   líneas de cota y textos del 3D (perfil, ángulos, largo, boquetas, piezas especiales)
+  extrusion.js                 piezas plegadas: cada tramo es una chapa estirada a lo largo (o, con pendiente, de un perfil al otro)
   piezasEspeciales3d.js        caños, boquetas, codos, ramales, sombreros, troneras, tapas
   modelo.js                    junta pieza + tapas y boquetas puestas + regla del largo
   capturas.js                  fotos 3D para tarjetas e impresión (un solo dibujador)
@@ -138,7 +148,7 @@ docs/ESPECIFICACION.md         la especificación original
 
 ### Cómo fluye un cálculo
 
-`calcularRenglon(renglon, datos)` (en `src/logica/calculoRenglon.js`) hace todo en orden: **desarrollo** (suma de tramos, o fórmula en piezas especiales) → **banda** (`banda.js`) → **código** (lo **busca** en la tabla, `codigos.js`) → **descripción** (`descripcion.js`) → **errores y avisos** (`validaciones.js`, `corteLaser.js`). El panel de resultados del asistente, las tarjetas de la nota y la impresión usan esa misma función.
+`calcularRenglon(renglon, datos)` (en `src/logica/calculoRenglon.js`) hace todo en orden: **desarrollo** (suma de tramos; con pendiente, el mayor de las dos puntas; o fórmula en piezas especiales) → **banda** (`banda.js`) → **código** (lo **busca** en la tabla, `codigos.js`) → **descripción** (`descripcion.js`) → **errores y avisos** (`validaciones.js`, `corteLaser.js`). El panel de resultados del asistente, las tarjetas de la nota y la impresión usan esa misma función.
 
 ---
 
@@ -219,4 +229,6 @@ Todas las fuentes están en la sección 14 de `docs/ESPECIFICACION.md` y cada pl
 - Tiendas de zinguería en Mercado Libre, con calibres, babetas, cumbreras, canaletas y venturi: [Rapimetal](https://www.mercadolibre.com.ar/tienda/rapimetal), [GEA Zinguería](https://www.mercadolibre.com.ar/pagina/geazingueria), [grampas en pulgadas](https://www.mercadolibre.com.ar/tienda/zingueriagea/clips) y [listado de cenefas](https://listado.mercadolibre.com.ar/cenefa).
 - [Tapa de canaleta izquierda (Easy)](https://www.easy.com.ar/tapa-moldura-d-embut-ch-gv-nº30-15-cm-iz/p).
 - [Guía Leroy Merlin de canalones](https://biblioteca.org.ar/libros/210136.pdf) y [tabla de chapas de la UNCuyo](https://aulaabierta.ingenieria.uncuyo.edu.ar/mod/resource/view.php?id=6819).
-- Documentación de Three.js: [ExtrudeGeometry](https://threejs.org/docs/pages/ExtrudeGeometry.html) y [OrbitControls](https://threejs.org/docs/#examples/en/controls/OrbitControls).
+- Documentación de Three.js: [ExtrudeGeometry](https://threejs.org/docs/pages/ExtrudeGeometry.html), [OrbitControls](https://threejs.org/docs/#examples/en/controls/OrbitControls) y [OrthographicCamera](https://threejs.org/docs/#api/en/cameras/OrthographicCamera) (vistas de frente y lateral sin perspectiva).
+- Editor 3D y plegados con pendiente (chapa entre dos perfiles): [Autodesk Inventor – Lofted Flange](https://help.autodesk.com/cloudhelp/2026/ENU/Inventor-Help/files/GUID-B6271A15-FD68-4672-9461-C86F8D55DA87.htm), [Inventor – lofted flange de plegadora](https://help.autodesk.com/cloudhelp/2014/ENU/Inventor/files/GUID-85FE3FCA-16B6-4310-B900-925291A73FA1.htm), [Onshape – Sheet Metal Loft](https://cad.onshape.com/help/es/Content/PartStudio/sheet_metal_loft.htm) y [Onshape – Loft (misma cantidad de vértices en los dos perfiles)](https://cad.onshape.com/help/Content/loft.htm?cshid=loft).
+- Pendientes de canaletas como referencia (no se aplicó ningún mínimo): [Victorian Building Authority – Box Gutters (1:200 a 1:40)](https://www.bpc.vic.gov.au/__data/assets/pdf_file/0009/22005/Plumbing_RP-02_Box-Gutters_CURRENT_01-Aug-2023.pdf) y [BRANZ – Internal gutter design](https://prod.branz.co.nz/documents/3986/BU556-Internal-gutter-design.pdf).

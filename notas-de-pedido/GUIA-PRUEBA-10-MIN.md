@@ -47,6 +47,13 @@ Objetivo: cargar la nota real de la empresa en el programa, con tapas y boqueta 
 24. Tocá **Imprimir / Guardar PDF** y elegí **Guardar como PDF**. Abajo de cada hoja tiene que decir tu usuario, la hora y "Página 1 de …".
 25. Andá a **Producción** (menú de arriba), escribí el nombre del cliente en el buscador y tocá **Abrir e imprimir**.
 
+## Extra: editor 3D y pendiente
+
+- **Cotas en el 3D:** en una canaleta, tocá la cota **32** del 3D, escribí **33** y Enter: el desarrollo pasa a **61** y la tabla también. **Ctrl+Z** lo deshace.
+- **Editor 3D:** tocá **Editar en 3D** (**Alt+G**). Tocá una cara de la pieza: a la derecha aparecen sus datos. Tocá el **+** de una punta para agregar un tramo, escribí la medida y Enter. Elegí un tramo y apretá **Supr** para borrarlo. **Frente** (**Alt+7**) muestra el perfil como un plano. **Listo** (**Esc**) vuelve al asistente.
+- **Con pendiente:** en la canaleta tocá **Con pendiente** (**Alt+L**). En la tabla aparecen las columnas **Final**: poné **25** en el tramo 2. Tiene que decir **D = 65**, la descripción "… con pendiente D60 a D65", y en el 2D se ven las dos puntas y la **vista de costado** con "baja 5 cm en 2,44 m (20,5 mm/m · 1:49)". En el 3D la canaleta se va haciendo más honda.
+- **En el celular:** abrí la pestaña **3D** y tocá **Editar en 3D**. Girá con un dedo, hacé zoom con dos y tocá una cota para cambiarla. El panel **Propiedades** de abajo se abre y se cierra tocándolo.
+
 ## Extra (si sobra tiempo)
 
 - **Dibujar a mano** (**Alt+M**) en una **Pieza especial libre**: marcá 3 o 4 puntos y tocá **Usar este dibujo**.
