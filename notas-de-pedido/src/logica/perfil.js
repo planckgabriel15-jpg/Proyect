@@ -127,3 +127,33 @@ export function espejarPerfil(perfil) {
   }
   return nuevo;
 }
+
+/** Inserta un tramo DESPUÉS del tramo número `indice` (si es el último, va al final). */
+export function insertarTramoDespues(perfil, indice, datosTramo = {}) {
+  if (indice >= perfil.tramos.length - 1) {
+    return agregarTramoAlFinal(perfil, datosTramo);
+  }
+  return insertarTramoAntes(perfil, indice + 1, datosTramo);
+}
+
+/**
+ * Cambia uno o varios datos de un tramo (medida, ángulo, sentido, tipo…).
+ * Ej.: cambiarTramo(perfil, 2, { medidaCm: 25 })
+ */
+export function cambiarTramo(perfil, indice, cambios) {
+  const nuevo = copiarPerfil(perfil);
+  if (indice >= 0 && indice < nuevo.tramos.length) {
+    Object.assign(nuevo.tramos[indice], cambios);
+  }
+  return nuevo;
+}
+
+/**
+ * Agrega un tramo en una punta libre del perfil (el "+" del editor 3D).
+ * @param {'inicio'|'fin'} extremo
+ */
+export function agregarTramoEnExtremo(perfil, extremo, datosTramo = {}) {
+  return extremo === 'inicio'
+    ? agregarTramoAlInicio(perfil, datosTramo)
+    : agregarTramoAlFinal(perfil, datosTramo);
+}

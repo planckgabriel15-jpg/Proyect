@@ -1014,7 +1014,6 @@
           "id": "gajos",
           "etiqueta": "Cantidad de gajos",
           "tipo": "numero",
-          "unidad": "cm",
           "valorPorDefecto": 4,
           "minimo": 2,
           "ayuda": ""

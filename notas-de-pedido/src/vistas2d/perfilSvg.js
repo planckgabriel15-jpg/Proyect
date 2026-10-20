@@ -13,6 +13,7 @@
 
 import { calcularGeometria, calcularLimites, ladoPintadoDelPerfil } from '../logica/geometria.js';
 import { leerNumero, formatearCorto } from '../logica/numeros.js';
+import { textoCotaTramo } from '../logica/cotas.js';
 
 /** Escapa texto para meterlo dentro del SVG sin romperlo. */
 export function escaparTexto(texto) {
@@ -134,12 +135,7 @@ function cotasDeTramos(geometria, aPantalla, opciones) {
     const x = r1(medio.x + normal.x * separacion);
     const y = r1(medio.y + normal.y * separacion + 5);
 
-    const medida = leerNumero(segmento.tramo.medidaCm);
-    let texto = Number.isFinite(medida) ? formatearCorto(medida) : '?';
-    if (segmento.tramo.tipo === 'dobladillo') texto += ' dobl.';
-    if (segmento.tramo.tipo === 'dobladillo_aplastado') texto += ' dobl. aplast.';
-    if (segmento.tramo.tipo === 'pestana_engrafe') texto += ' engrafe';
-    if (segmento.tramo.corteLaser) texto += ` · láser ${segmento.tramo.corteLaser.tipo === 'sinusoidal' ? 'sinus.' : 'trap.'}`;
+    const texto = textoCotaTramo(segmento.tramo);
 
     const clase = opciones.resaltado === segmento.indice ? 'perfil-cota resaltado' : 'perfil-cota';
     partes.push(`<text class="${clase}" data-tramo="${segmento.indice}" x="${x}" y="${y}" text-anchor="middle">${escaparTexto(texto)}</text>`);
