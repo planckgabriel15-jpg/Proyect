@@ -22,6 +22,11 @@ import { parametrosVisibles } from '../logica/piezasEspeciales.js';
 import { crearBoqueta, FORMAS_BOQUETA } from '../logica/accesoriosCanaleta.js';
 import { svgPlantaCanaleta } from '../vistas2d/plantaCanaletaSvg.js';
 import { registrarAtajos, etiquetaAtajo } from './atajos.js';
+import { abrirEditor3d } from './editor3d.js';
+import { leerValorDeCota } from '../logica/cotas.js';
+import { cambiarTramo, agregarTramoEnExtremo } from '../logica/perfil.js';
+import { tienePendiente, perfilFinal, activarPendiente } from '../logica/pendiente.js';
+import { svgPendienteLateral } from '../vistas2d/pendienteSvg.js';
 
 const NOMBRES_PASOS = ['¿Qué pieza?', 'Medidas y dibujo', 'Material y cantidad'];
 
@@ -48,6 +53,9 @@ export function abrirAsistente(opciones) {
   let visor = null;
   let quitarAtajosEditor = null;
   let pestanaCelular = 'medidas';
+  let editor3d = null;          // editor 3D a pantalla completa (si está abierto)
+  let campoLargo = null;        // campos del paso 2 que el editor 3D puede cambiar
+  let formularioActual = null;
 
   // ---------- estructura fija ----------
   const contenido = h('div', { class: 'asistente-contenido' });
@@ -56,9 +64,13 @@ export function abrirAsistente(opciones) {
   const botonAtras = h('button', { type: 'button', class: 'boton', onclick: () => irAPaso(paso - 1) }, 'Atrás', etiquetaAtajo('Alt+ArrowLeft'));
   const botonSiguiente = h('button', { type: 'button', class: 'boton principal', onclick: () => siguiente() }, 'Siguiente', etiquetaAtajo('Alt+ArrowRight'));
   const contenedor3d = h('div', { class: 'contenedor-3d' }, h('p', { class: 'texto-chico' }, 'Cargando 3D…'));
+  const botonCotas = h('button', { type: 'button', class: 'boton chico', 'aria-pressed': 'true', onclick: () => alternarCotas() }, 'Cotas', etiquetaAtajo('Alt+C'));
+  const botonEditor3d = h('button', { type: 'button', class: 'boton chico principal', onclick: () => abrirEdicion3d() }, 'Editar en 3D', etiquetaAtajo('Alt+G'));
   const botones3d = h('div', { class: 'barra-botones vistas-3d' },
     ...[['inicial', 'Vista inicial', 'Alt+0'], ['frente', 'Frente', 'Alt+7'], ['lateral', 'Lateral', 'Alt+8'], ['iso', 'Isométrica', 'Alt+9']].map(([vista, texto, teclas]) =>
-      h('button', { type: 'button', class: 'boton chico', onclick: () => visor?.vista(vista) }, texto, etiquetaAtajo(teclas))));
+      h('button', { type: 'button', class: 'boton chico', onclick: () => visor?.vista(vista) }, texto, etiquetaAtajo(teclas))),
+    botonCotas,
+    botonEditor3d);
 
   const raiz = h('div', { class: 'asistente', role: 'dialog', 'aria-modal': 'true', 'aria-label': 'Agregar pieza' },
     h('header', { class: 'asistente-encabezado' },
@@ -80,6 +92,9 @@ export function abrirAsistente(opciones) {
     { teclas: 'Alt+7', descripcion: 'Vista 3D de frente', accion: () => visor?.vista('frente') },
     { teclas: 'Alt+8', descripcion: 'Vista 3D lateral', accion: () => visor?.vista('lateral') },
     { teclas: 'Alt+9', descripcion: 'Vista 3D isométrica', accion: () => visor?.vista('iso') },
+    { teclas: 'Alt+C', descripcion: 'Mostrar u ocultar las cotas del 3D', accion: () => alternarCotas() },
+    { teclas: 'Alt+G', descripcion: 'Editar en 3D (pantalla completa)', accion: () => abrirEdicion3d() },
+    { teclas: 'Alt+L', descripcion: 'Plegado con pendiente (sí / no)', accion: () => alternarPendiente() },
   ]);
 
   // El 3D se carga una sola vez y se reutiliza en los pasos 2 y 3.
@@ -90,8 +105,14 @@ export function abrirAsistente(opciones) {
     }
     contenedor3d.replaceChildren();
     visor = modulo.crearVisor3d(contenedor3d, {
-      alTocarTramo: (indice) => { resaltar(indice); editor?.resaltarFila(indice); },
-      alPasarSobreTramo: (indice) => { if (indice !== null) resaltar(indice); },
+      alTocarTramo: (indice) => seleccionarParte({ tipo: 'tramo', indice }),
+      alTocarAccesorio: (clave) => {
+        const [tipo, dato] = clave.split(':');
+        seleccionarParte(tipo === 'boqueta' ? { tipo, indice: Number(dato) } : { tipo: 'tapa', lado: dato });
+      },
+      alTocarVacio: () => { if (editor3d) seleccionarParte(null); },
+      alPasarSobreTramo: (indice) => { if (indice !== null && !editor3d) resaltar(indice); },
+      alUsarCota: (editar, valor) => usarCota(editar, valor),
     });
     actualizar3d(true);
   });
@@ -127,6 +148,7 @@ export function abrirAsistente(opciones) {
   }
 
   function terminar() {
+    editor3d?.cerrar();
     quitarAtajos();
     quitarAtajosEditor?.();
     visor?.destruir();
@@ -146,6 +168,9 @@ export function abrirAsistente(opciones) {
     editor = null;
     quitarAtajosEditor?.();
     quitarAtajosEditor = null;
+    campoLargo = null;
+    formularioActual = null;
+    botonEditor3d.hidden = paso !== 2;
     if (paso === 1) dibujarPaso1();
     if (paso === 2) dibujarPaso2();
     if (paso === 3) dibujarPaso3();
@@ -216,28 +241,8 @@ export function abrirAsistente(opciones) {
       if (indice !== undefined) resaltar(Number(indice));
     });
 
-    // --- Encabezado del paso: nombre y largo ---
-    const encabezado = h('div', { class: 'paso2-encabezado' },
-      h('div', {}, h('strong', {}, plantilla?.nombre || 'Pieza'),
-        plantilla?.ayuda ? h('div', { class: 'texto-chico' }, plantilla.ayuda) : null),
-      usaPerfil ? h('div', { class: 'recordatorio-exteriores', role: 'note' }, 'Cargá medidas EXTERIORES ', ayuda(datos.glosario, 'medida_exterior')) : null);
-
-    const campos = h('div', { class: 'fila-campos' });
-    if (borrador.usaLargo) {
-      campos.append(h('label', {}, 'Largo de la pieza (m) ',
-        h('input', {
-          type: 'text', inputmode: 'decimal', class: 'campo-largo',
-          value: leerNumero(borrador.largoCm) > 0 ? formatearNumero(borrador.largoCm / 100, 2) : '',
-          'aria-label': 'Largo de la pieza en metros',
-          oninput: (e) => {
-            const metros = leerNumero(e.target.value);
-            borrador.largoCm = Number.isFinite(metros) ? Math.round(metros * 10000) / 100 : null;
-            actualizar();
-          },
-        })));
-    }
-    if (borrador.usaPerfil) campos.append(selectorCopiarPerfil());
-    encabezado.append(campos);
+    // --- Encabezado del paso: nombre, largo y "con pendiente" ---
+    const encabezado = encabezadoPaso2(plantilla);
 
     // --- Medidas: tabla de tramos o formulario de parámetros ---
     if (usaPerfil) {
@@ -250,12 +255,14 @@ export function abrirAsistente(opciones) {
         alCambiar: (perfil) => { borrador.perfil = perfil; actualizar(); },
         alResaltar: (indice) => resaltar(indice),
         alDibujarAMano: () => abrirDibujoAMano(panelMedidas),
+        conPendiente: esPlegada && borrador.conPendiente,
       });
       panelMedidas.append(editor.elemento);
       quitarAtajosEditor = registrarAtajos('Tabla de tramos', editor.listaAtajos);
     }
     if (!esPlegada) {
-      panelMedidas.append(formularioParametros(plantilla));
+      formularioActual = formularioParametros(plantilla);
+      panelMedidas.append(formularioActual);
     }
     if (borrador.accesorios) {
       panelMedidas.append(panelAccesorios());
@@ -276,6 +283,47 @@ export function abrirAsistente(opciones) {
     const grilla = h('div', { class: 'paso2-grilla', 'data-pestana': pestanaCelular }, panelMedidas, panel2d, panel3d);
     contenido.append(encabezado, pestanas, grilla);
     dibujar2d();
+  }
+
+  /** Encabezado del paso 2. Se puede rehacer solo (al prender la pendiente) sin perder la tabla. */
+  function encabezadoPaso2(plantilla) {
+    const esPlegada = borrador.tipoPieza === 'plegada';
+    const usaPerfil = esPlegada || borrador.usaPerfil;
+    const encabezado = h('div', { class: 'paso2-encabezado' },
+      h('div', {}, h('strong', {}, plantilla?.nombre || 'Pieza'),
+        plantilla?.ayuda ? h('div', { class: 'texto-chico' }, plantilla.ayuda) : null),
+      usaPerfil ? h('div', { class: 'recordatorio-exteriores', role: 'note' }, 'Cargá medidas EXTERIORES ', ayuda(datos.glosario, 'medida_exterior')) : null);
+
+    const campos = h('div', { class: 'fila-campos' });
+    if (borrador.usaLargo) {
+      campoLargo = h('input', {
+        type: 'text', inputmode: 'decimal', class: 'campo-largo',
+        value: leerNumero(borrador.largoCm) > 0 ? formatearNumero(borrador.largoCm / 100, 2) : '',
+        'aria-label': 'Largo de la pieza en metros',
+        oninput: (e) => {
+          const metros = leerNumero(e.target.value);
+          borrador.largoCm = Number.isFinite(metros) ? Math.round(metros * 10000) / 100 : null;
+          actualizar();
+        },
+      });
+      campos.append(h('label', {}, 'Largo de la pieza (m) ', campoLargo));
+    }
+    if (borrador.usaPerfil) campos.append(selectorCopiarPerfil());
+    if (esPlegada) {
+      // Plegado con pendiente: el perfil cambia de una punta a la otra.
+      campos.append(h('button', {
+        type: 'button', class: `boton boton-pendiente${borrador.conPendiente ? ' activo' : ''}`, 'aria-pressed': String(Boolean(borrador.conPendiente)),
+        title: 'La pieza cambia de perfil de una punta a la otra (por ejemplo, una canaleta más honda hacia la bajada)',
+        onclick: () => alternarPendiente(),
+      }, borrador.conPendiente ? 'Con pendiente: sí' : 'Con pendiente', etiquetaAtajo('Alt+L')));
+    }
+    encabezado.append(campos);
+    if (esPlegada && borrador.conPendiente) {
+      encabezado.append(h('p', { class: 'aviso-caja nota-pendiente', role: 'note' },
+        'Con pendiente: en la tabla cargá cada tramo en la punta IZQUIERDA (inicio) y en la DERECHA (final). ',
+        'Los dos perfiles tienen los mismos tramos, en el mismo orden. Se cotiza por el desarrollo mayor.'));
+    }
+    return encabezado;
   }
 
   /** Tapa suelta: copiar el perfil de una canaleta de esta nota o de una plantilla. */
@@ -342,11 +390,15 @@ export function abrirAsistente(opciones) {
     return zona;
   }
 
+  /** @returns {number|null} el número de la boqueta nueva (empieza en 0) */
   function agregarBoqueta() {
-    if (paso !== 2 || !borrador?.accesorios) return;
+    if (paso !== 2 || !borrador?.accesorios) return null;
     borrador.accesorios.boquetas.push(crearBoqueta(datos.config));
     contenido.querySelector('.panel-accesorios')?.replaceWith(panelAccesorios());
     actualizar();
+    const indice = borrador.accesorios.boquetas.length - 1;
+    if (editor3d) editor3d.seleccionar({ tipo: 'boqueta', indice });
+    return indice;
   }
 
   function formularioParametros(plantilla) {
@@ -359,7 +411,8 @@ export function abrirAsistente(opciones) {
           onchange: (e) => {
             borrador.parametros[definicion.id] = leerNumero(e.target.value) || e.target.value;
             // Si cambió la forma, cambian las medidas que se piden.
-            if (definicion.id === 'forma') dibujarPaso(); else actualizar();
+            if (definicion.id === 'forma') refrescarCamposPaso2();
+            actualizar();
           },
         });
       } else {
@@ -499,6 +552,7 @@ export function abrirAsistente(opciones) {
     dibujarZonaPendiente();
     clearTimeout(temporizador3d);
     temporizador3d = setTimeout(() => actualizar3d(false), 120);
+    editor3d?.refrescar();
     opciones.alCambiarBorrador?.(borrador, paso);
   }
 
@@ -537,18 +591,26 @@ export function abrirAsistente(opciones) {
 
   function dibujar2d() {
     if (!borrador) return;
+    const conPendiente = tienePendiente(borrador);
     for (const zonaSvg of contenido.querySelectorAll('.zona-svg')) {
       const usaPerfil = borrador.tipoPieza === 'plegada' || borrador.usaPerfil;
-      zonaSvg.innerHTML = usaPerfil
-        ? svgDelPerfil(borrador.perfil, {
-          config: datos.config, resaltado, interactivo: true,
-          ladoPintura: borrador.terminacion === 'P' ? borrador.ladoPintura : null,
-        })
-        : svgDeEspecial(borrador);
+      const opcionesSvg = {
+        config: datos.config, resaltado, interactivo: true,
+        ladoPintura: borrador.terminacion === 'P' ? borrador.ladoPintura : null,
+      };
+      zonaSvg.classList.toggle('dos-perfiles', conPendiente);
+      if (conPendiente) {
+        // Los dos perfiles, uno al lado del otro: punta izquierda (inicio) y derecha (final).
+        zonaSvg.innerHTML = `<figure><figcaption>Punta izquierda (inicio)</figcaption>${svgDelPerfil(borrador.perfil, opcionesSvg)}</figure>`
+          + `<figure><figcaption>Punta derecha (final)</figcaption>${svgDelPerfil(perfilFinal(borrador.perfil), opcionesSvg)}</figure>`;
+      } else {
+        zonaSvg.innerHTML = usaPerfil ? svgDelPerfil(borrador.perfil, opcionesSvg) : svgDeEspecial(borrador);
+      }
     }
     for (const zonaLaser of contenido.querySelectorAll('.zona-laser')) {
       const conLaser = (borrador.perfil?.tramos || []).map((t, i) => ({ t, i })).filter(({ t }) => t.corteLaser);
-      zonaLaser.innerHTML = conLaser.map(({ t, i }) => svgCorteLaser(t, i + 1, borrador.largoCm, datos.config)).join('')
+      zonaLaser.innerHTML = (conPendiente && resultado?.pendiente ? svgPendienteLateral(borrador, resultado.pendiente, { config: datos.config }) : '')
+        + conLaser.map(({ t, i }) => svgCorteLaser(t, i + 1, borrador.largoCm, datos.config)).join('')
         + svgPlantaCanaleta(borrador);
     }
   }
@@ -568,6 +630,169 @@ export function abrirAsistente(opciones) {
     resaltado = indice;
     dibujar2d();
     visor?.resaltarTramo(indice);
+  }
+
+  // ---------- cotas y editor 3D ----------
+
+  function alternarCotas() {
+    if (!visor) return;
+    visor.mostrarCotas(!visor.cotasVisibles());
+    botonCotas.setAttribute('aria-pressed', String(visor.cotasVisibles()));
+  }
+
+  /** Cambia el perfil pasando por la tabla de tramos (así se puede deshacer). */
+  function modificarPerfil(cambio, nuevoSeleccionado) {
+    if (editor) {
+      editor.modificarPerfil(cambio, nuevoSeleccionado);
+    } else {
+      borrador.perfil = cambio(copiarPerfil(borrador.perfil));
+      resaltado = nuevoSeleccionado ?? resaltado;
+      actualizar();
+    }
+  }
+
+  /** Cambios del editor 3D que no son del perfil: largo, parámetros, tapas y boquetas. */
+  function cambiarBorrador(cambio) {
+    cambio(borrador);
+    refrescarCamposPaso2();
+    actualizar();
+  }
+
+  /** Pone al día los campos del paso 2 que se pueden cambiar desde el 3D. */
+  function refrescarCamposPaso2() {
+    if (campoLargo && document.activeElement !== campoLargo) {
+      campoLargo.value = leerNumero(borrador.largoCm) > 0 ? formatearNumero(borrador.largoCm / 100, 2) : '';
+    }
+    if (formularioActual) {
+      const nuevo = formularioParametros(buscarPlantilla(datos.catalogo, borrador.plantillaId));
+      formularioActual.replaceWith(nuevo);
+      formularioActual = nuevo;
+    }
+    contenido.querySelector('.panel-accesorios')?.replaceWith(panelAccesorios());
+    editor3d?.refrescar({ forzar: true });
+  }
+
+  /** Elegir un tramo, una tapa o una boqueta (tocándola en el 3D, en su cartel o en la tabla). */
+  function seleccionarParte(seleccion) {
+    if (seleccion?.tipo === 'tramo') {
+      resaltar(seleccion.indice);
+      editor?.resaltarFila(seleccion.indice);
+    }
+    resaltarParte(seleccion);
+    editor3d?.seleccionar(seleccion);
+  }
+
+  function resaltarParte(seleccion) {
+    if (!seleccion || seleccion.tipo === 'tramo') visor?.resaltarAccesorio(null);
+    if (seleccion?.tipo === 'tramo') resaltar(seleccion.indice);
+    if (seleccion?.tipo === 'boqueta') { resaltar(null); visor?.resaltarAccesorio(`boqueta:${seleccion.indice}`); }
+    if (seleccion?.tipo === 'tapa') { resaltar(null); visor?.resaltarAccesorio(`tapa:${seleccion.lado}`); }
+  }
+
+  /**
+   * El vendedor tocó una cota del 3D: agregar un tramo, elegir una parte o cambiar una medida.
+   * @returns {{ok: boolean, mensaje?: string}|undefined}
+   */
+  function usarCota(editar, texto) {
+    if (!borrador) return undefined;
+    if (editar.tipo === 'agregar') {
+      const extremo = editar.extremo;
+      modificarPerfil((perfil) => agregarTramoEnExtremo(perfil, extremo, { medidaCm: 10, anguloPliegue: datos.config.anguloPorDefecto, sentido: 'izquierda' }),
+        extremo === 'inicio' ? 0 : borrador.perfil.tramos.length);
+      const indice = extremo === 'inicio' ? 0 : borrador.perfil.tramos.length - 1;
+      seleccionarParte({ tipo: 'tramo', indice });
+      editor3d?.enfocarMedida();
+      return { ok: true };
+    }
+    if (editar.tipo === 'seleccionar') {
+      seleccionarParte(editar.seleccion);
+      if (!editor3d && editar.seleccion.tipo !== 'tramo') {
+        contenido.querySelector('.panel-accesorios')?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+      }
+      return { ok: true };
+    }
+    if (editar.tipo === 'parametro') {
+      const plantilla = buscarPlantilla(datos.catalogo, borrador.plantillaId);
+      const definicion = (plantilla?.parametros || []).find((d) => d.id === editar.id);
+      if (definicion?.tipo === 'opciones') {
+        borrador.parametros[editar.id] = leerNumero(texto) || texto;
+        refrescarCamposPaso2();
+        actualizar();
+        return { ok: true };
+      }
+    }
+    const tipoValor = editar.tipo === 'angulo' ? 'angulo' : (editar.tipo === 'boqueta-posicion' ? 'posicion' : 'medida');
+    const lectura = leerValorDeCota(texto, tipoValor, datos.config);
+    if (!lectura.ok) {
+      mostrarAviso(lectura.mensaje, 'error');
+      return lectura;
+    }
+    const valor = lectura.valor;
+    // En un plegado con pendiente, las cotas de la punta final cambian los valores finales.
+    if (editar.tipo === 'medida') modificarPerfil((perfil) => cambiarTramo(perfil, editar.indice, editar.final ? { medidaFinalCm: valor } : { medidaCm: valor }), editar.indice);
+    if (editar.tipo === 'angulo') modificarPerfil((perfil) => cambiarTramo(perfil, editar.indice, editar.final ? { anguloPliegueFinal: valor } : { anguloPliegue: valor }), editar.indice);
+    if (editar.tipo === 'largo') cambiarBorrador((b) => { b.largoCm = Math.round(valor * 10000) / 100; });
+    if (editar.tipo === 'parametro') cambiarBorrador((b) => { b.parametros[editar.id] = valor; });
+    if (editar.tipo === 'boqueta-posicion') cambiarBorrador((b) => { b.accesorios.boquetas[editar.indice].posicionCm = valor; });
+    if (editar.tipo === 'medida' || editar.tipo === 'angulo') editor3d?.seleccionar({ tipo: 'tramo', indice: editar.indice });
+    return { ok: true };
+  }
+
+  /** Prende o apaga "con pendiente" (solo plegados). */
+  function alternarPendiente() {
+    if (paso !== 2 || borrador?.tipoPieza !== 'plegada') return;
+    borrador.conPendiente = !borrador.conPendiente;
+    if (borrador.conPendiente) {
+      // La punta final arranca igual al inicio: el vendedor cambia solo lo que difiere.
+      modificarPerfil((perfil) => activarPendiente(perfil), resaltado ?? 0);
+      mostrarAviso('Con pendiente: cargá en la tabla las medidas de la punta final (columnas "Final").', 'info', 6);
+    }
+    editor?.establecerPendiente(borrador.conPendiente);
+    // Se redibuja el encabezado (botón y explicación) sin perder la tabla ni su historial.
+    contenido.querySelector('.paso2-encabezado')?.replaceWith(encabezadoPaso2(buscarPlantilla(datos.catalogo, borrador.plantillaId)));
+    actualizar();
+    actualizar3d(true);
+    editor3d?.refrescar({ forzar: true });
+  }
+
+  function abrirEdicion3d() {
+    if (editor3d || paso !== 2 || !borrador) return;
+    if (!visor) {
+      mostrarAviso('El 3D todavía no cargó (o no está disponible sin internet).', 'info');
+      return;
+    }
+    const plantilla = buscarPlantilla(datos.catalogo, borrador.plantillaId);
+    editor3d = abrirEditor3d({
+      titulo: plantilla?.nombre || 'Pieza',
+      contenedor3d,
+      visor,
+      datos,
+      obtenerBorrador: () => borrador,
+      obtenerResultado: () => resultado,
+      tieneHistorial: Boolean(editor),
+      acciones: {
+        modificarPerfil,
+        cambiarBorrador,
+        accionPerfil: (nombre) => {
+          if (!editor) return;
+          const antes = borrador.perfil.tramos.length;
+          editor.acciones[nombre]();
+          // Si se agregó un tramo, queda elegido para cargarle la medida.
+          if (borrador.perfil.tramos.length > antes) seleccionarParte({ tipo: 'tramo', indice: editor.obtenerSeleccionado() ?? 0 });
+        },
+        agregarBoqueta,
+        alternarPendiente,
+        formularioParametros: () => (borrador.tipoPieza === 'plegada' ? null : formularioParametros(plantilla)),
+        resaltarParte,
+      },
+      alCerrar: () => {
+        editor3d = null;
+        refrescarCamposPaso2();
+        actualizar3d(false);
+      },
+    });
+    // Si había un tramo marcado, arranca elegido.
+    if (resaltado !== null && (borrador.tipoPieza === 'plegada' || borrador.usaPerfil)) editor3d.seleccionar({ tipo: 'tramo', indice: resaltado });
   }
 
   dibujarPaso();

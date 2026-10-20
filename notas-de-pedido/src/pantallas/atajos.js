@@ -29,6 +29,11 @@ function combinacionDe(evento) {
   return partes.join('+');
 }
 
+/** ¿El foco está en un lugar donde se escribe? */
+function esCampoDeTexto(elemento) {
+  return Boolean(elemento && (elemento.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(elemento.tagName)));
+}
+
 document.addEventListener('keydown', (evento) => {
   const combinacion = combinacionDe(evento);
   if (combinacion === 'F1') {
@@ -37,8 +42,10 @@ document.addEventListener('keydown', (evento) => {
     return;
   }
   // Se busca desde la capa más nueva (la de arriba) hacia la más vieja.
+  const enCampo = esCampoDeTexto(evento.target);
   for (let i = capas.length - 1; i >= 0; i--) {
-    const atajo = capas[i].atajos.find((a) => a.teclas === combinacion);
+    // "soloFueraDeCampos": por ejemplo Supr, que dentro de un campo tiene que borrar texto y no el tramo.
+    const atajo = capas[i].atajos.find((a) => a.teclas === combinacion && !(a.soloFueraDeCampos && enCampo));
     if (atajo) {
       evento.preventDefault();
       atajo.accion(evento);
@@ -50,7 +57,7 @@ document.addEventListener('keydown', (evento) => {
 /**
  * Registra una lista de atajos.
  * @param {string} nombre  para la ayuda (ej. "Nota de pedido")
- * @param {Array<{teclas: string, descripcion: string, accion: Function}>} atajos
+ * @param {Array<{teclas: string, descripcion: string, accion: Function, soloFueraDeCampos?: boolean}>} atajos
  * @returns {() => void} función para quitarlos
  */
 export function registrarAtajos(nombre, atajos) {
@@ -67,7 +74,8 @@ export function textoTeclas(teclas) {
   return teclas
     .replace('ArrowRight', 'flecha derecha')
     .replace('ArrowLeft', 'flecha izquierda')
-    .replace('Escape', 'Esc');
+    .replace('Escape', 'Esc')
+    .replace('Delete', 'Supr');
 }
 
 /** Etiqueta chiquita con el atajo, para poner adentro de un botón. */

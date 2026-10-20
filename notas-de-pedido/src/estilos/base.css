@@ -338,3 +338,96 @@ kbd.atajo { display: inline-block; margin-left: .45rem; padding: 0 .35rem; borde
 .planta-svg .pieza-ancha { stroke: #000; stroke-width: 8; }
 .lista-mensajes li { list-style: none; border-left: 4px solid currentColor; padding-left: .4rem; margin-bottom: .15rem; }
 .lista-mensajes { padding-left: 0; }
+
+/* ---------- cotas del 3D (etiquetas encima del dibujo) ---------- */
+.contenedor-3d { position: relative; }
+.capa-cotas { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+.etiqueta-cota {
+  position: absolute; left: 0; top: 0; pointer-events: auto; white-space: nowrap;
+  font: 700 .82rem/1.2 system-ui, sans-serif; color: #0b2a66; background: rgba(255,255,255,.92);
+  border: 1.5px solid #0b3d91; border-radius: 4px; padding: .05rem .3rem; cursor: pointer;
+  box-shadow: 0 1px 2px rgba(0,0,0,.2);
+}
+.etiqueta-cota[hidden] { display: none; }
+.etiqueta-cota:hover, .etiqueta-cota:focus-visible { background: #fff6e8; border-color: var(--resaltado); outline: none; }
+.etiqueta-cota.resaltada { background: var(--resaltado); border-color: #8a4b00; color: #000; }
+.etiqueta-cota.cota-angulo { font-style: italic; font-weight: 600; border-style: dashed; }
+.etiqueta-cota.cota-largo { border-width: 2px; }
+.etiqueta-cota.cota-dato { font-weight: 600; color: #333; border-color: #777; background: rgba(255,255,255,.85); }
+.etiqueta-cota.cota-mas {
+  width: 30px; height: 30px; padding: 0; border-radius: 50%; font-size: 1.2rem; line-height: 1;
+  background: var(--principal); color: #fff; border-color: #fff; display: inline-flex; align-items: center; justify-content: center;
+}
+.etiqueta-cota.cota-mas[hidden] { display: none; }
+.etiqueta-cota.editando { z-index: 5; background: #fff; border-color: var(--resaltado); padding: .1rem .25rem; visibility: visible !important; }
+.etiqueta-cota.con-error { border-color: var(--peligro); }
+.campo-cota { font: 700 .95rem system-ui, sans-serif; min-height: 30px; padding: 0 .3rem; border: 1px solid #555; border-radius: 3px; }
+.ficha-cotas { position: absolute; top: .4rem; right: .4rem; display: flex; flex-direction: column; align-items: flex-end; gap: .25rem; pointer-events: none; max-width: 60%; }
+.ficha-cotas[hidden] { display: none; }
+.etiqueta-cota.cota-ficha { position: static; }
+
+/* ---------- editor 3D a pantalla completa ---------- */
+.editor-3d { position: fixed; inset: 0; z-index: 600; background: var(--fondo-suave); display: flex; flex-direction: column; height: 100dvh; }
+.editor-3d-barra { display: flex; align-items: center; gap: .5rem .75rem; padding: .4rem .75rem; background: var(--fondo); border-bottom: 3px solid var(--acento); }
+.editor-3d-titulo { display: flex; flex-direction: column; line-height: 1.15; min-width: 0; }
+.editor-3d-titulo .texto-chico { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 16rem; }
+.editor-3d-herramientas { display: flex; gap: .5rem; flex: 1; min-width: 0; overflow-x: auto; padding: .15rem 0; scrollbar-width: thin; }
+.grupo-herramientas { display: flex; gap: .25rem; padding-right: .5rem; border-right: 1px solid var(--borde-suave); flex-shrink: 0; }
+.grupo-herramientas[hidden] { display: none; }
+.grupo-herramientas .boton { white-space: nowrap; }
+.grupo-herramientas .boton[aria-pressed="true"] { background: var(--principal); color: #fff; }
+.editor-3d-salida { display: flex; gap: .4rem; flex-shrink: 0; }
+.editor-3d-cuerpo { flex: 1; min-height: 0; display: flex; }
+.editor-3d-lienzo { flex: 1; min-width: 0; position: relative; }
+.editor-3d .contenedor-3d, .editor-3d .paso2-grilla .contenedor-3d { height: 100%; min-height: 0; border-radius: 0; }
+.ayuda-gestos { position: absolute; left: .5rem; bottom: .4rem; margin: 0; font-size: .78rem; color: #333; background: rgba(255,255,255,.8); padding: .1rem .4rem; border-radius: 4px; pointer-events: none; }
+.gestos-dedo { display: none; }
+@media (hover: none) and (pointer: coarse) { .gestos-mouse { display: none; } .gestos-dedo { display: inline; } }
+.editor-3d-propiedades { width: 330px; flex-shrink: 0; background: var(--fondo); border-left: 2px solid var(--borde-suave); display: flex; flex-direction: column; min-height: 0; }
+.editor-3d-manija { display: none; }
+.editor-3d-contenido { overflow: auto; padding: .6rem .8rem 1rem; display: flex; flex-direction: column; gap: .55rem; }
+.editor-3d-contenido h3 { margin: 0; }
+.editor-3d-contenido .campo-parametro input, .editor-3d-contenido .campo-parametro select { min-height: 42px; width: 100%; }
+.titulo-tramo { display: flex; align-items: center; justify-content: space-between; gap: .5rem; }
+.botones-sentido { display: flex; gap: .3rem; }
+.botones-sentido .boton { flex: 1; }
+.botones-sentido .boton.elegido { background: var(--principal); color: #fff; border-color: var(--principal); }
+.lista-ayuda { margin: 0; padding-left: 1.1rem; }
+.lista-ayuda li { margin-bottom: .2rem; }
+.editor-3d-resumen { display: flex; flex-wrap: wrap; gap: .2rem 1.2rem; align-items: center; padding: .4rem .8rem; background: var(--fondo); border-top: 2px solid var(--borde); font-size: .95rem; }
+.resumen-error { color: var(--peligro); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+.contenedor-3d.en-edicion { background: #e9eef3; }
+
+@media (max-width: 860px) {
+  /* Celular y tablet: herramientas en una fila que se desliza y el panel abajo, plegable. */
+  .editor-3d-barra { flex-wrap: wrap; padding: .3rem .4rem; gap: .3rem; }
+  .editor-3d-titulo { flex: 1; }
+  .editor-3d-herramientas { order: 3; flex-basis: 100%; }
+  .editor-3d-herramientas .boton { min-height: 44px; }
+  .editor-3d-herramientas kbd.atajo { display: none; }
+  .editor-3d-salida .boton { min-height: 44px; }
+  .editor-3d-cuerpo { flex-direction: column; }
+  .editor-3d-propiedades { width: auto; max-height: 46dvh; border-left: none; border-top: 2px solid var(--borde); }
+  .editor-3d-propiedades.plegado .editor-3d-contenido { display: none; }
+  .editor-3d-manija { display: block; width: 100%; min-height: 40px; border: none; background: var(--fondo-suave); font: 700 .95rem system-ui, sans-serif; cursor: pointer; }
+  .editor-3d-manija::after { content: " ▾"; }
+  .editor-3d-propiedades.plegado .editor-3d-manija::after { content: " ▴"; }
+  .editor-3d-resumen { font-size: .82rem; padding: .3rem .5rem; gap: 0 .8rem; }
+  .etiqueta-cota { font-size: .9rem; padding: .15rem .4rem; }
+  .etiqueta-cota.cota-mas { width: 38px; height: 38px; font-size: 1.4rem; }
+}
+
+/* ---------- plegado con pendiente ---------- */
+.tabla-tramos:not(.con-pendiente) .col-final,
+.tabla-tramos:not(.con-pendiente) .titulo-con-pendiente { display: none; }
+.tabla-tramos .col-final { background: #eef5ff; }
+.tabla-tramos th.col-final { color: #0b3d91; }
+.boton-pendiente.activo, .boton-pendiente[aria-pressed="true"] { background: var(--principal); color: #fff; border-color: var(--principal); }
+.nota-pendiente { margin: .4rem 0 0; flex-basis: 100%; font-size: .9rem; }
+.zona-svg.dos-perfiles { display: grid; grid-template-columns: 1fr 1fr; gap: .4rem; }
+.zona-svg.dos-perfiles figure { margin: 0; }
+.zona-svg.dos-perfiles figcaption { font-weight: 700; font-size: .85rem; margin-bottom: .15rem; }
+.pendiente-svg { width: 100%; height: auto; margin-top: .4rem; background: #fff; border: 1px solid var(--borde-suave); border-radius: 6px; }
+.pendiente-svg .pieza { fill: #e9edf1; stroke: #000; stroke-width: 2.5; }
+.etiqueta-cota.cota-final { border-color: #7a3db8; color: #4a1f7a; }
+@media (max-width: 480px) { .zona-svg.dos-perfiles { grid-template-columns: 1fr; } }

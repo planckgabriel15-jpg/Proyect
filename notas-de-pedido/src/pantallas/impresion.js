@@ -22,6 +22,8 @@ import { detalleDeAccesorios } from '../logica/accesoriosCanaleta.js';
 import { svgPlantaCanaleta } from '../vistas2d/plantaCanaletaSvg.js';
 import { svgDelPerfil } from '../vistas2d/perfilSvg.js';
 import { svgCorteLaser } from '../vistas2d/corteLaserSvg.js';
+import { svgPendienteLateral } from '../vistas2d/pendienteSvg.js';
+import { tienePendiente, perfilFinal } from '../logica/pendiente.js';
 import { svgDeEspecial } from '../vistas2d/especialSvg.js';
 import { cargar3d } from '../vistas3d/cargar3d.js';
 
@@ -85,12 +87,25 @@ export async function pantallaImpresion(contenedor, notaId) {
       codigosAdicionales: vivo.codigosAdicionales,
     };
     const usaPerfil = renglon.tipoPieza === 'plegada' || renglon.usaPerfil;
-    const dibujo2d = usaPerfil
-      ? svgDelPerfil(renglon.perfil, { config: datos.config, ancho: 560, alto: 340, ladoPintura: renglon.terminacion === 'P' ? renglon.ladoPintura : null })
-      : svgDeEspecial(renglon, 560, 360);
+    const conPendiente = tienePendiente(renglon) && vivo.pendiente;
+    const opcionesPerfil = { config: datos.config, ancho: 560, alto: conPendiente ? 250 : 340, ladoPintura: renglon.terminacion === 'P' ? renglon.ladoPintura : null };
+    let dibujo2d;
+    if (conPendiente) {
+      // Con pendiente: los dos perfiles (punta izquierda arriba, derecha abajo).
+      dibujo2d = `<p class="titulo-perfil">Punta izquierda (inicio)</p>${svgDelPerfil(renglon.perfil, opcionesPerfil)}`
+        + `<p class="titulo-perfil">Punta derecha (final)</p>${svgDelPerfil(perfilFinal(renglon.perfil), opcionesPerfil)}`;
+    } else {
+      dibujo2d = usaPerfil ? svgDelPerfil(renglon.perfil, opcionesPerfil) : svgDeEspecial(renglon, 560, 360);
+    }
 
     const detalles = [];
-    if (usaPerfil && renglon.perfil?.tramos?.length) detalles.push(h('li', {}, h('strong', {}, 'Tramos: '), textoDeTramos(renglon.perfil.tramos)));
+    if (conPendiente) {
+      detalles.push(h('li', {}, h('strong', {}, 'Tramos punta izquierda: '), textoDeTramos(renglon.perfil.tramos)));
+      detalles.push(h('li', {}, h('strong', {}, 'Tramos punta derecha: '), textoDeTramos(perfilFinal(renglon.perfil).tramos)));
+      detalles.push(h('li', {}, h('strong', {}, 'Pendiente: '), vivo.pendiente.texto));
+    } else if (usaPerfil && renglon.perfil?.tramos?.length) {
+      detalles.push(h('li', {}, h('strong', {}, 'Tramos: '), textoDeTramos(renglon.perfil.tramos)));
+    }
     if (!c.porUnidad && c.desarrolloCm) detalles.push(h('li', {}, h('strong', {}, 'Desarrollo: '), `${formatearCorto(c.desarrolloCm, 1)} cm${c.desarrolloEsManual ? ' (corregido a mano)' : ''}`));
     if (renglon.terminacion === 'P' && !renglon.sinMaterial) detalles.push(h('li', {}, h('strong', {}, 'Pintura: '), renglon.ladoPintura === 'ambos' ? 'DE LOS DOS LADOS' : (renglon.ladoPintura || '—').toUpperCase()));
     for (const linea of detalleDeAccesorios(renglon.accesorios)) detalles.push(h('li', {}, h('strong', {}, `${linea.split(':')[0]}: `), linea.split(':').slice(1).join(':').trim()));
@@ -105,7 +120,7 @@ export async function pantallaImpresion(contenedor, notaId) {
     for (const aviso of (c.avisos || []).filter((a) => !a.startsWith('Código pendiente') && !a.startsWith('Código genérico'))) detalles.push(h('li', {}, h('strong', {}, 'Aviso: '), aviso));
     if (renglon.observaciones) detalles.push(h('li', {}, h('strong', {}, 'Observaciones: '), renglon.observaciones));
 
-    const laseres = (usaPerfil
+    const laseres = (conPendiente ? svgPendienteLateral(renglon, vivo.pendiente, { config: datos.config, ancho: 640, alto: 210 }) : '') + (usaPerfil
       ? renglon.perfil.tramos.map((t, n) => (t.corteLaser ? svgCorteLaser(t, n + 1, renglon.largoCm, datos.config, 560, 190) : '')).join('')
       : '') + svgPlantaCanaleta(renglon, 640, 170 + 22 * (renglon.accesorios?.boquetas?.length || 0));
 

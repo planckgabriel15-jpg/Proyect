@@ -65,3 +65,4 @@
   /* Las cotas en negro puro. */
   .perfil-cota, .cota-texto { stroke: #fff; }
 }
+.hoja-2d .titulo-perfil { margin: .1rem 0; font-weight: 700; font-size: 9pt; }

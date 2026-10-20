@@ -16,6 +16,7 @@ import {
   agregarDobladillo, agregarAleta, espejarPerfil,
 } from '../logica/perfil.js';
 import { crearCorteLaser } from '../logica/corteLaser.js';
+import { medidaFinal, anguloFinal } from '../logica/pendiente.js';
 
 const NOMBRES_TIPO = [
   { valor: 'normal', texto: 'normal' },
@@ -36,12 +37,14 @@ function valorNumerico(texto) {
  *   alCambiar: (perfil) => void,        // cada vez que cambia algo
  *   alResaltar: (indice|null) => void,  // al pasar por una fila
  *   alDibujarAMano: () => void,
+ *   conPendiente?: boolean,             // muestra las columnas de la punta final
  * }} opciones
  */
 export function crearEditorTramos(opciones) {
   const { datos } = opciones;
   const config = datos.config;
   let perfil = copiarPerfil(opciones.perfil);
+  let conPendiente = Boolean(opciones.conPendiente);
   let seleccionado = perfil.tramos.length ? 0 : null;
   let problemas = [];
 
@@ -120,8 +123,9 @@ export function crearEditorTramos(opciones) {
       if (tramo.corteLaser) cuerpoTabla.append(filaDeCorteLaser(tramo, indice));
     });
     if (perfil.tramos.length === 0) {
-      cuerpoTabla.append(h('tr', {}, h('td', { colspan: 7, class: 'vacio' }, 'Sin tramos: tocá "Agregar tramo" o "Dibujar a mano".')));
+      cuerpoTabla.append(h('tr', {}, h('td', { colspan: 9, class: 'vacio' }, 'Sin tramos: tocá "Agregar tramo" o "Dibujar a mano".')));
     }
+    tabla.classList.toggle('con-pendiente', conPendiente);
     selectorDireccion.value = typeof perfil.direccionInicial === 'string' && perfil.direccionInicial in DIRECCIONES
       ? perfil.direccionInicial : 'grados';
     campoGrados.hidden = selectorDireccion.value !== 'grados';
@@ -145,6 +149,20 @@ export function crearEditorTramos(opciones) {
       disabled: anguloFijo,
       title: indice === 0 ? 'El primer tramo no tiene ángulo: usá "Arranca hacia"' : (giro.esVuelta ? 'Dobladillo: siempre 180°' : 'Ángulo interior (90 = escuadra)'),
       oninput: (e) => { tramo.anguloPliegue = valorNumerico(e.target.value); cambioDeValor(); },
+      onchange: () => guardarEnHistorial(),
+    });
+    // Punta final (solo con pendiente): si el tramo no tiene valor final, se ve el del inicio.
+    const campoMedidaFinal = h('input', {
+      type: 'text', inputmode: 'decimal', class: 'campo-medida', 'aria-label': `Medida del tramo ${indice + 1} en la punta final, en cm`,
+      value: String(medidaFinal(tramo) ?? '').replace('.', ','),
+      oninput: (e) => { tramo.medidaFinalCm = valorNumerico(e.target.value); cambioDeValor(); },
+      onchange: () => guardarEnHistorial(),
+    });
+    const campoAnguloFinal = h('input', {
+      type: 'text', inputmode: 'decimal', class: 'campo-angulo', 'aria-label': `Ángulo del tramo ${indice + 1} en la punta final`,
+      value: anguloFijo ? (indice === 0 ? '—' : '180') : String(anguloFinal(tramo) ?? '').replace('.', ','),
+      disabled: anguloFijo,
+      oninput: (e) => { tramo.anguloPliegueFinal = valorNumerico(e.target.value); cambioDeValor(); },
       onchange: () => guardarEnHistorial(),
     });
     const campoSentido = selector(
@@ -188,6 +206,8 @@ export function crearEditorTramos(opciones) {
     h('td', { class: 'numero-tramo' }, String(indice + 1)),
     h('td', {}, campoMedida),
     h('td', {}, campoAngulo),
+    h('td', { class: 'col-final' }, campoMedidaFinal),
+    h('td', { class: 'col-final' }, campoAnguloFinal),
     h('td', {}, campoSentido),
     h('td', {}, campoTipo),
     h('td', {}, campoLaser),
@@ -199,7 +219,7 @@ export function crearEditorTramos(opciones) {
     const corte = tramo.corteLaser;
     return h('tr', { class: 'fila-laser', 'data-tramo': indice },
       h('td', {}, ''),
-      h('td', { colspan: 6 },
+      h('td', { colspan: 8 },
         h('div', { class: 'detalle-laser' },
           h('span', {}, `Corte láser (tercerizado) del tramo ${indice + 1}:`),
           h('label', {}, 'Altura de onda (cm) ',
@@ -333,8 +353,10 @@ export function crearEditorTramos(opciones) {
   const tabla = h('table', { class: 'tabla-tramos' },
     h('thead', {}, h('tr', {},
       h('th', {}, 'N°'),
-      h('th', {}, 'Medida (cm) ', ayuda(datos.glosario, 'medida_exterior')),
+      h('th', {}, h('span', { class: 'titulo-con-pendiente' }, 'Inicio: '), 'Medida (cm) ', ayuda(datos.glosario, 'medida_exterior')),
       h('th', {}, 'Ángulo ', ayuda(datos.glosario, 'angulo_interior')),
+      h('th', { class: 'col-final' }, 'Final: medida (cm)'),
+      h('th', { class: 'col-final' }, 'Final: ángulo'),
       h('th', {}, 'Sentido ', ayuda(datos.glosario, 'sentido')),
       h('th', {}, 'Tipo ', ayuda(datos.glosario, 'dobladillo')),
       h('th', {}, 'Láser ', ayuda(datos.glosario, 'corte_laser')),
@@ -369,6 +391,24 @@ export function crearEditorTramos(opciones) {
     reemplazarPerfil(nuevo) {
       cambioEstructural(copiarPerfil(nuevo), 0);
     },
+    /**
+     * Cambia el perfil desde afuera (lo usa el editor 3D) y lo guarda en el historial,
+     * así Deshacer también deshace lo que se hizo en el 3D.
+     * @param {(perfil) => object} cambio  recibe una copia y devuelve el perfil nuevo
+     */
+    modificarPerfil(cambio, nuevoSeleccionado = seleccionado) {
+      const nuevo = cambio(copiarPerfil(perfil));
+      const elegido = nuevo.tramos.length ? Math.min(Math.max(nuevoSeleccionado ?? 0, 0), nuevo.tramos.length - 1) : null;
+      cambioEstructural(nuevo, elegido);
+      opciones.alResaltar(elegido);
+    },
+    perfilActual: () => copiarPerfil(perfil),
+    /** Muestra u oculta las columnas de la punta final (plegado con pendiente). */
+    establecerPendiente(activada) {
+      conPendiente = activada;
+      dibujarTabla();
+    },
+    acciones,
     obtenerSeleccionado: () => seleccionado,
   };
 }
