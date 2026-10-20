@@ -12,6 +12,7 @@
 
 import { leerNumero, formatearNumero, formatearCorto } from './numeros.js';
 import { describirAccesorios } from './accesoriosCanaleta.js';
+import { textoPendienteDescripcion } from './pendiente.js';
 
 /**
  * Reemplaza {nombreParametro} en el texto por el valor cargado.
@@ -43,7 +44,7 @@ export function textoMedidasSegunForma(parametros = {}) {
 /**
  * @param {object} renglon      el renglón de la nota
  * @param {object} materiales   datos/materiales.json
- * @param {{desarrolloCm: number|null, porUnidad: boolean}} resultado
+ * @param {{desarrolloCm: number|null, porUnidad: boolean, pendiente?: object|null}} resultado
  * @returns {string}
  */
 export function armarDescripcion(renglon, materiales, resultado) {
@@ -86,6 +87,11 @@ export function armarDescripcion(renglon, materiales, resultado) {
   const calibre = materiales.calibres.find((c) => c.id === renglon.calibreId);
   if (calibre && !renglon.sinMaterial) {
     partes.push(`CH ${calibre.numero}`);
+  }
+
+  // 6b) Pieza con pendiente: los dos desarrollos (SUPUESTO de formato, ver PENDIENTES.md)
+  if (resultado.pendiente) {
+    partes.push(textoPendienteDescripcion(resultado.pendiente));
   }
 
   // 7) Tapas y boquetas puestas en la canaleta (al final, para no cambiar el formato del papel)

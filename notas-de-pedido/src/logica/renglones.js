@@ -77,6 +77,8 @@ export function crearRenglonDesdePlantilla(plantilla, config) {
     codigoPendiente: false,
     // Tapas y boquetas puestas en la canaleta (solo canaletas).
     accesorios: plantilla.admiteAccesorios ? accesoriosVacios() : null,
+    // Plegado con pendiente: el perfil cambia de una punta a la otra (ver pendiente.js).
+    conPendiente: false,
   };
 }
 

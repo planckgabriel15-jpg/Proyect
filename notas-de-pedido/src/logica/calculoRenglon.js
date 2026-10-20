@@ -15,6 +15,7 @@ import { armarDescripcion } from './descripcion.js';
 import { buscarPlantilla } from './renglones.js';
 import { armarCodigoGenerico } from './codigoGenerico.js';
 import { validarAccesorios, medidaDeBoqueta } from './accesoriosCanaleta.js';
+import { tienePendiente, calcularPendiente, validarPendiente, perfilFinal } from './pendiente.js';
 
 export const AVISO_CODIGO_GENERICO = 'Código genérico: no está en la tabla de facturación, confirmarlo con administración';
 
@@ -25,7 +26,7 @@ export const AVISO_CODIGO_GENERICO = 'Código genérico: no está en la tabla de
  *   desarrolloCm: number|null, desarrolloEsManual: boolean, formulaDesarrollo: string, porUnidad: boolean,
  *   banda: object, codigo: {encontrado: boolean, codigo: string|null, aviso: string|null},
  *   descripcion: string, errores: string[], avisos: string[], puedeEmitirse: boolean,
- *   problemasTramos: Array
+ *   problemasTramos: Array, pendiente: object|null  (ver pendiente.js → calcularPendiente)
  * }}
  */
 export function calcularRenglon(renglon, datos) {
@@ -45,10 +46,18 @@ export function calcularRenglon(renglon, datos) {
   let desarrolloEsManual = false;
   let problemasTramos = [];
 
+  let pendiente = null;
   if (renglon.tipoPieza === 'plegada') {
     problemasTramos = validarTramos(renglon.perfil?.tramos, config);
-    agregar(problemasTramos);
     desarrolloCm = calcularDesarrollo(renglon.perfil?.tramos);
+    if (tienePendiente(renglon)) {
+      // Con pendiente: se cotiza por el MAYOR de los dos desarrollos (SUPUESTO, ver PENDIENTES.md).
+      problemasTramos = problemasTramos.concat(validarPendiente(renglon, config));
+      pendiente = calcularPendiente(renglon, config);
+      desarrolloCm = pendiente.desarrolloCm;
+      formulaDesarrollo = 'el mayor de los dos perfiles (inicio y final)';
+    }
+    agregar(problemasTramos);
   } else {
     const calculo = calcularDesarrolloEspecial(renglon.calculoDesarrollo, renglon.parametros, config);
     desarrolloCm = calculo.desarrolloCm;
@@ -142,7 +151,7 @@ export function calcularRenglon(renglon, datos) {
   const codigosAdicionales = renglon.accesorios ? codigosDeAccesorios(renglon, datos) : [];
 
   // ---- 6) Descripción ----
-  const descripcion = armarDescripcion(renglon, materiales, { desarrolloCm, porUnidad });
+  const descripcion = armarDescripcion(renglon, materiales, { desarrolloCm, porUnidad, pendiente });
 
   return {
     desarrolloCm,
@@ -157,6 +166,7 @@ export function calcularRenglon(renglon, datos) {
     avisos,
     puedeEmitirse: errores.length === 0,
     problemasTramos,
+    pendiente,
   };
 }
 
@@ -183,12 +193,17 @@ export function codigosDeAccesorios(renglon, datos) {
   };
 
   const defTapa = definicionDe(catalogo, 'tapa_suelta', { siglas: 'TS', medidas: ['desarrolloPerfil'] });
-  const tapas = [['izq.', acc.tapaIzquierda], ['der.', acc.tapaDerecha]].filter(([, tipo]) => tipo && tipo !== 'ninguna');
-  if (tapas.length) {
-    // Las dos tapas de una canaleta tienen el mismo perfil → el mismo código: van juntas en una línea.
-    const codigo = armarCodigoGenerico(defTapa, { ...renglon, parametros: {} }, materiales);
-    const detalle = tapas.map(([lado, tipo]) => `${lado} ${tipo}`).join(', ');
-    sumar(codigo, tapas.length > 1 ? `2 tapas (${detalle})` : `tapa ${detalle}`, tapas.length * cantidadCanaletas);
+  // Cada tapa lleva el perfil de su punta. Sin pendiente las dos son iguales → el mismo código, en una línea.
+  // Con pendiente la derecha tiene el perfil final (otro desarrollo → otro código).
+  const conPendiente = tienePendiente(renglon);
+  const perfilDe = (lado) => (lado === 'der.' && conPendiente ? perfilFinal(renglon.perfil) : renglon.perfil);
+  const tapas = [['izq.', acc.tapaIzquierda], ['der.', acc.tapaDerecha]]
+    .filter(([, tipo]) => tipo && tipo !== 'ninguna')
+    .map(([lado, tipo]) => ({ lado, tipo, codigo: armarCodigoGenerico(defTapa, { ...renglon, perfil: perfilDe(lado), parametros: {} }, materiales) }));
+  for (const codigo of [...new Set(tapas.map((t) => t.codigo))]) {
+    const iguales = tapas.filter((t) => t.codigo === codigo);
+    const detalle = iguales.map((t) => `${t.lado} ${t.tipo}`).join(', ');
+    sumar(codigo, iguales.length > 1 ? `2 tapas (${detalle})` : `tapa ${detalle}`, iguales.length * cantidadCanaletas);
   }
 
   const defBoqueta = definicionDe(catalogo, 'boqueta_suelta', {
