@@ -9,13 +9,15 @@ import { leerNumero, formatearNumero } from '../logica/numeros.js';
 import { materialesDelRenglon } from './materiales3d.js';
 import { construirPlegada } from './extrusion.js';
 import { GENERADORES, construirTapa } from './piezasEspeciales3d.js';
+import { tienePendiente, perfilFinal } from '../logica/pendiente.js';
 
 /**
  * @param {object} renglon
  * @param {{config, materiales}} datos
+ * @param {{regla?: boolean}} opciones  regla: false cuando el visor ya muestra las cotas (traen el largo)
  * @returns {THREE.Group}
  */
-export function construirModelo(renglon, datos) {
+export function construirModelo(renglon, datos, opciones = {}) {
   const { config, materiales } = datos;
   const grupo = new THREE.Group();
   const mats = materialesDelRenglon(renglon, materiales);
@@ -23,7 +25,7 @@ export function construirModelo(renglon, datos) {
 
   let pieza;
   if (renglon.tipoPieza === 'plegada') {
-    pieza = construirPlegada(renglon.perfil, largoCm, mats, renglon.ladoPintura, config);
+    pieza = construirPlegada(renglon.perfil, largoCm, mats, renglon.ladoPintura, config, tienePendiente(renglon) ? perfilFinal(renglon.perfil) : null);
   } else {
     const generador = GENERADORES[renglon.generador3d];
     pieza = generador ? generador(renglon.parametros || {}, renglon, mats, config) : new THREE.Group();
@@ -37,7 +39,7 @@ export function construirModelo(renglon, datos) {
   }
 
   // Regla del largo.
-  if (renglon.usaLargo !== false) {
+  if (renglon.usaLargo !== false && opciones.regla !== false) {
     const eje = renglon.tipoPieza === 'plegada' || renglon.generador3d === 'mediaCana' ? 'z' : 'y';
     grupo.add(crearRegla(pieza, largoCm, eje));
   }
@@ -53,24 +55,42 @@ function montarAccesorios(canaleta, pieza, largoCm, mats, datos) {
   const grupo = new THREE.Group();
   const acc = canaleta.accesorios;
   const tapaComoRenglon = { perfil: canaleta.perfil, parametros: { pestanaApoyoCm: 1.5 }, ladoPintura: canaleta.ladoPintura };
+  // Con pendiente, la tapa derecha lleva el perfil de la punta final.
+  const tapaDerecha = tienePendiente(canaleta) ? { ...tapaComoRenglon, perfil: perfilFinal(canaleta.perfil) } : tapaComoRenglon;
   if (acc.tapaIzquierda !== 'ninguna') {
-    grupo.add(construirTapa(tapaComoRenglon, mats, datos.config, 0, acc.tapaIzquierda === 'soldada' ? 1 : -1));
+    grupo.add(marcarAccesorio(construirTapa(tapaComoRenglon, mats, datos.config, 0, acc.tapaIzquierda === 'soldada' ? 1 : -1), 'tapa:izquierda'));
   }
   if (acc.tapaDerecha !== 'ninguna') {
-    grupo.add(construirTapa(tapaComoRenglon, mats, datos.config, largoCm, acc.tapaDerecha === 'soldada' ? -1 : 1));
+    grupo.add(marcarAccesorio(construirTapa(tapaDerecha, mats, datos.config, largoCm, acc.tapaDerecha === 'soldada' ? -1 : 1), 'tapa:derecha'));
   }
-  const fondo = buscarFondo(pieza.userData.geometria2d);
-  for (const b of acc.boquetas || []) {
+  (acc.boquetas || []).forEach((b, i) => {
     const boqueta = GENERADORES.boquetaSuelta({ pestanaCm: 2, ...b }, canaleta, mats, datos.config);
     const posicion = Math.min(Math.max(leerNumero(b.posicionCm) || 0, 0), largoCm);
+    const fondo = fondoEn(pieza, posicion / largoCm);
     boqueta.position.set(fondo.x, fondo.y, posicion);
-    grupo.add(boqueta);
-  }
+    grupo.add(marcarAccesorio(boqueta, `boqueta:${i}`));
+  });
   return grupo;
 }
 
+/** Marca todas las partes de una tapa o boqueta (para elegirla con un toque en el editor 3D). */
+function marcarAccesorio(objeto, clave) {
+  objeto.traverse((o) => { o.userData.accesorio = clave; });
+  return objeto;
+}
+
+/**
+ * Fondo de la canaleta a una altura del largo (t = 0 punta izquierda, t = 1 punta derecha).
+ * Sin pendiente es siempre el mismo; con pendiente se interpola entre las dos puntas.
+ */
+export function fondoEn(pieza, t) {
+  const inicio = buscarFondo(pieza?.userData.geometria2d);
+  const final = pieza?.userData.geometria2dFinal ? buscarFondo(pieza.userData.geometria2dFinal) : inicio;
+  return { x: inicio.x + (final.x - inicio.x) * t, y: inicio.y + (final.y - inicio.y) * t };
+}
+
 /** Punto medio del tramo más bajo y más horizontal del perfil (el fondo de la canaleta). */
-function buscarFondo(geometria2d) {
+export function buscarFondo(geometria2d) {
   let mejor = null;
   for (const s of geometria2d?.segmentos || []) {
     const dx = Math.abs(s.fin.x - s.inicio.x);

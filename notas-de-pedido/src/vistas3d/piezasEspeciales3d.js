@@ -12,7 +12,7 @@ import { leerNumero } from '../logica/numeros.js';
 import { calcularGeometria, ladoPintadoDelPerfil } from '../logica/geometria.js';
 import { construirDesdeSegmentos } from './extrusion.js';
 
-const num = (valor, porDefecto) => {
+export const num = (valor, porDefecto) => {
   const n = leerNumero(valor);
   return Number.isFinite(n) && n > 0 ? n : porDefecto;
 };
@@ -129,7 +129,7 @@ function techoSegunForma(p, factor, alto, m, lado, haciaArriba = true) {
 }
 
 /** Medida de referencia del sombrero (para las proporciones). */
-function medidaReferencia(p) {
+export function medidaReferencia(p) {
   return p.forma === 'rectangular' ? Math.max(num(p.ladoACm, 20), num(p.ladoBCm, 10)) / 2 : num(p.diametroCm, 15) / 2;
 }
 

@@ -98,14 +98,24 @@ export function construirDesdeSegmentos(segmentos, largoCm, materialesPorLado, c
   return grupo;
 }
 
+/** Materiales de la cara izquierda y derecha del recorrido según el lado pintado. */
+function materialesSegunLado(perfil, materiales, ladoPintura, config) {
+  const ladoPintado = materiales.esPrepintada ? ladoPintadoDelPerfil(perfil, ladoPintura || 'afuera', config) : 'izquierda';
+  if (ladoPintado === 'ambos') return { izquierda: materiales.pintado, derecha: materiales.pintado };
+  if (ladoPintado === 'izquierda') return { izquierda: materiales.pintado, derecha: materiales.sinPintar };
+  return { izquierda: materiales.sinPintar, derecha: materiales.pintado };
+}
+
 /**
  * Pieza plegada completa (perfil por tramos extruido al largo).
  * @param {object} perfil
  * @param {number} largoCm
  * @param {{pintado, sinPintar, esPrepintada}} materiales  de materiales3d.js
  * @param {string|null} ladoPintura 'afuera' | 'adentro'
+ * @param {object|null} perfilFin  con pendiente: el perfil de la punta final (Z = largo)
  */
-export function construirPlegada(perfil, largoCm, materiales, ladoPintura, config) {
+export function construirPlegada(perfil, largoCm, materiales, ladoPintura, config, perfilFin = null) {
+  if (perfilFin) return construirConPendiente(perfil, perfilFin, largoCm, materiales, ladoPintura, config);
   const geometria = calcularGeometria(perfil, config);
   const ultimo = geometria.segmentos.length - 1;
   const segmentos = geometria.segmentos.map((s) => ({
@@ -117,13 +127,83 @@ export function construirPlegada(perfil, largoCm, materiales, ladoPintura, confi
     bordeLibre: s.indice === 0 ? 'inicio' : (s.indice === ultimo ? 'fin' : null),
   }));
 
-  const ladoPintado = materiales.esPrepintada ? ladoPintadoDelPerfil(perfil, ladoPintura || 'afuera', config) : 'izquierda';
-  let materialesPorLado;
-  if (ladoPintado === 'ambos') materialesPorLado = { izquierda: materiales.pintado, derecha: materiales.pintado };
-  else if (ladoPintado === 'izquierda') materialesPorLado = { izquierda: materiales.pintado, derecha: materiales.sinPintar };
-  else materialesPorLado = { izquierda: materiales.sinPintar, derecha: materiales.pintado };
-
-  const grupo = construirDesdeSegmentos(segmentos, largoCm, materialesPorLado, config);
+  const grupo = construirDesdeSegmentos(segmentos, largoCm, materialesSegunLado(perfil, materiales, ladoPintura, config), config);
   grupo.userData.geometria2d = geometria;
+  return grupo;
+}
+
+/**
+ * Plegado con pendiente: cada tramo es una chapa que va del tramo del perfil inicial
+ * (Z = 0) al mismo tramo del perfil final (Z = largo), como el "lofted flange" de los
+ * programas de CAD. Los dos perfiles tienen los mismos tramos (ver logica/pendiente.js).
+ * La chapa se arma en fajas a lo largo, así se ve bien aunque el tramo quede alabeado.
+ * El corte láser no se dibuja ondulado en estas piezas (queda marcado en el 2D).
+ */
+export function construirConPendiente(perfil, perfilFin, largoCm, materiales, ladoPintura, config) {
+  const inicio = calcularGeometria(perfil, config);
+  const fin = calcularGeometria(perfilFin, config);
+  const materialesPorLado = materialesSegunLado(perfil, materiales, ladoPintura, config);
+  const grupo = new THREE.Group();
+  const fajas = 12;
+
+  inicio.segmentos.forEach((s0, i) => {
+    const s1 = fin.segmentos[i];
+    if (!s1) return;
+    const grupoTramo = new THREE.Group();
+    grupoTramo.userData.tramo = s0.indice;
+    // Normal "a la derecha del recorrido" de cada punta (para separar las dos caras).
+    const normal = (s) => {
+      const dx = s.fin.x - s.inicio.x;
+      const dy = s.fin.y - s.inicio.y;
+      const largo = Math.hypot(dx, dy) || 1;
+      return { x: dy / largo, y: -dx / largo };
+    };
+    const n0 = normal(s0);
+    const n1 = normal(s1);
+
+    for (const lado of ['izquierda', 'derecha']) {
+      const signo = (lado === 'derecha' ? 1 : -1) * ESPESOR_VISUAL_CM / 2;
+      const posiciones = [];
+      const punto = (t, enFin) => {
+        // t = 0 → Z = 0 (inicio), t = 1 → Z = largo (final)
+        const a = enFin ? s0.fin : s0.inicio;
+        const b = enFin ? s1.fin : s1.inicio;
+        const nx = n0.x + (n1.x - n0.x) * t;
+        const ny = n0.y + (n1.y - n0.y) * t;
+        return [a.x + (b.x - a.x) * t + nx * signo, a.y + (b.y - a.y) * t + ny * signo, largoCm * t];
+      };
+      for (let k = 0; k < fajas; k++) {
+        const t0 = k / fajas;
+        const t1 = (k + 1) / fajas;
+        const p00 = punto(t0, false);
+        const p01 = punto(t0, true);
+        const p10 = punto(t1, false);
+        const p11 = punto(t1, true);
+        posiciones.push(...p00, ...p01, ...p11, ...p00, ...p11, ...p10);
+      }
+      const geometria = new THREE.BufferGeometry();
+      geometria.setAttribute('position', new THREE.Float32BufferAttribute(posiciones, 3));
+      geometria.computeVertexNormals();
+      const malla = new THREE.Mesh(geometria, materialesPorLado[lado].clone());
+      malla.userData.tramo = s0.indice;
+      grupoTramo.add(malla);
+    }
+
+    // Contorno: los dos bordes de las puntas y los dos pliegues a lo largo.
+    const v = (p, z) => new THREE.Vector3(p.x, p.y, z);
+    const bordes = new THREE.LineSegments(
+      new THREE.BufferGeometry().setFromPoints([
+        v(s0.inicio, 0), v(s0.fin, 0), v(s1.inicio, largoCm), v(s1.fin, largoCm),
+        v(s0.inicio, 0), v(s1.inicio, largoCm), v(s0.fin, 0), v(s1.fin, largoCm),
+      ]),
+      new THREE.LineBasicMaterial({ color: 0x333333, transparent: true, opacity: 0.55 }),
+    );
+    bordes.userData.esBorde = true;
+    grupoTramo.add(bordes);
+    grupo.add(grupoTramo);
+  });
+
+  grupo.userData.geometria2d = inicio;
+  grupo.userData.geometria2dFinal = fin;
   return grupo;
 }
