@@ -68,7 +68,27 @@ test('catálogo: cada plantilla da un renglón sin errores y con código (de la 
 test('buscador de plantillas', () => {
   assert.ok(filtrarPlantillas(catalogo, 'CAÑO').some((p) => p.id === 'cano'));
   assert.ok(filtrarPlantillas(catalogo, 'salamandra').some((p) => p.id === 'sombrero_canadiense'));
-  assert.equal(agruparPlantillas(catalogo)[0].nombre, 'Canaletas');
+  // Primero los productos estándar de la plegadora, después las canaletas.
+  assert.equal(agruparPlantillas(catalogo)[0].nombre, 'Productos estándar de la empresa (plegadora)');
+  assert.equal(agruparPlantillas(catalogo)[1].nombre, 'Canaletas');
+});
+
+test('productos estándar de la plegadora: el desarrollo coincide con el de la pantalla de la plegadora', () => {
+  // Totales de las fotos de la plegadora Delem (en mm → cm).
+  const esperados = {
+    std_cumbrera_d30: 30, std_media_cumbrera_d33: 33, std_limahoya_ch30: 33, std_canaleta_hiper: 32.9,
+    std_esquinero_americana: 30.48, std_babeta_t101_sinus: 21.1, std_cumbrera_articulada_t101_macho: 19.45,
+  };
+  for (const [id, desarrollo] of Object.entries(esperados)) {
+    const renglon = nuevo(id);
+    const resultado = calcularRenglon(renglon, datos);
+    assert.equal(resultado.desarrolloCm, desarrollo, id);
+    assert.deepEqual(resultado.errores, [], id);
+  }
+  assert.equal(nuevo('std_cumbrera_d30').largoCm, 200);
+  assert.equal(nuevo('std_babeta_t101_sinus').largoCm, 122);
+  assert.ok(nuevo('std_canaleta_hiper').accesorios);
+  assert.ok(filtrarPlantillas(catalogo, 'hiper').some((p) => p.id === 'std_canaleta_hiper'));
 });
 
 // ---------- código genérico ----------
@@ -121,7 +141,7 @@ test('canaleta con tapas y boquetas: descripción, detalle y validación', () =>
   assert.deepEqual(r.errores, []);
   assert.deepEqual(detalleDeAccesorios(canaleta.accesorios), [
     'Tapa izquierda: soldada', 'Tapa derecha: soldada',
-    'Boqueta 1: rectangular 10x5, boca 10 cm, centro a 60 cm de la punta izquierda',
+    'Boqueta 1: boqueta rectangular 10x5, boca 10 cm, centro a 60 cm de la punta izquierda',
   ]);
   assert.equal(describirAccesorios({ tapaIzquierda: 'soldada', tapaDerecha: 'engrampada', boquetas: [] }), 'c/ tapa izq. soldada y tapa der. engrampada');
   assert.equal(describirAccesorios({ tapaIzquierda: 'soldada', tapaDerecha: 'engrampada', boquetas: [{}, {}] }), 'c/ tapa izq. soldada, tapa der. engrampada y 2 boquetas');

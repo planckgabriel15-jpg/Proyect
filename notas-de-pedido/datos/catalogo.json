@@ -2,6 +2,10 @@
   "_leeme": "Plantillas de piezas: solo lo que fabrica Abasto Soluciones según su catálogo online (plegados y cortes, zinguería para techos, caños codos y curvas, sombreros). Las medidas con supuesto: true son de ejemplo y las tiene que validar producción. 'codigoGenerico' = cómo se arma el código cuando el producto no está en la tabla de facturación.",
   "grupos": [
     {
+      "id": "estandar",
+      "nombre": "Productos estándar de la empresa (plegadora)"
+    },
+    {
       "id": "canaletas",
       "nombre": "Canaletas"
     },
@@ -47,6 +51,516 @@
     }
   ],
   "plantillas": [
+    {
+      "id": "std_cumbrera_d30",
+      "nombre": "Cumbrera D30 CH30 (estándar)",
+      "grupo": "estandar",
+      "tipoPieza": "plegada",
+      "elemento": "cumbrera",
+      "textoDescripcion": "cumbrera",
+      "usaLargo": true,
+      "generador3d": "extrusion",
+      "perfil": {
+        "direccionInicial": "derecha",
+        "tramos": [
+          {
+            "medidaCm": 1.0,
+            "anguloPliegue": 90,
+            "sentido": "izquierda",
+            "tipo": "normal",
+            "observacion": "",
+            "corteLaser": null
+          },
+          {
+            "medidaCm": 1.5,
+            "anguloPliegue": 135,
+            "sentido": "derecha",
+            "tipo": "normal",
+            "observacion": "",
+            "corteLaser": null
+          },
+          {
+            "medidaCm": 12.5,
+            "anguloPliegue": 135,
+            "sentido": "izquierda",
+            "tipo": "normal",
+            "observacion": "",
+            "corteLaser": null
+          },
+          {
+            "medidaCm": 12.5,
+            "anguloPliegue": 140,
+            "sentido": "izquierda",
+            "tipo": "normal",
+            "observacion": "",
+            "corteLaser": null
+          },
+          {
+            "medidaCm": 1.5,
+            "anguloPliegue": 135,
+            "sentido": "izquierda",
+            "tipo": "normal",
+            "observacion": "",
+            "corteLaser": null
+          },
+          {
+            "medidaCm": 1.0,
+            "anguloPliegue": 135,
+            "sentido": "derecha",
+            "tipo": "normal",
+            "observacion": "",
+            "corteLaser": null
+          }
+        ]
+      },
+      "largoPorDefectoCm": 200,
+      "supuesto": false,
+      "referencia": "Programa de la plegadora Delem DA-66T de la empresa (fotos de pantalla del 15/04/2026). Medidas de la plegadora en mm, pasadas a cm.",
+      "palabrasClave": [
+        "cumbrera",
+        "d30",
+        "estandar"
+      ],
+      "ayuda": "Producto estándar de la plegadora: CUMBRERA D30 CH30 · 0,30 mm · medidas interiores · 10 + 15 + 125 + 125 + 15 + 10 = 300 mm · largo 2000 mm."
+    },
+    {
+      "id": "std_media_cumbrera_d33",
+      "nombre": "Media cumbrera D33 (estándar)",
+      "grupo": "estandar",
+      "tipoPieza": "plegada",
+      "elemento": "cumbrera",
+      "textoDescripcion": "1/2 cumbrera",
+      "usaLargo": true,
+      "generador3d": "extrusion",
+      "perfil": {
+        "direccionInicial": 135,
+        "tramos": [
+          {
+            "medidaCm": 1.0,
+            "anguloPliegue": 90,
+            "sentido": "izquierda",
+            "tipo": "normal",
+            "observacion": "",
+            "corteLaser": null
+          },
+          {
+            "medidaCm": 15.0,
+            "anguloPliegue": 135,
+            "sentido": "derecha",
+            "tipo": "normal",
+            "observacion": "",
+            "corteLaser": null
+          },
+          {
+            "medidaCm": 15.0,
+            "anguloPliegue": 90,
+            "sentido": "izquierda",
+            "tipo": "normal",
+            "observacion": "",
+            "corteLaser": null
+          },
+          {
+            "medidaCm": 2.0,
+            "anguloPliegue": 135,
+            "sentido": "izquierda",
+            "tipo": "normal",
+            "observacion": "",
+            "corteLaser": null
+          }
+        ]
+      },
+      "largoPorDefectoCm": 200,
+      "supuesto": false,
+      "referencia": "Programa de la plegadora Delem DA-66T de la empresa (fotos de pantalla del 15/04/2026). Medidas de la plegadora en mm, pasadas a cm.",
+      "palabrasClave": [
+        "media",
+        "cumbrera",
+        "d33",
+        "estandar"
+      ],
+      "ayuda": "Producto estándar de la plegadora: MEDIA CUMBRERA D33 · 0,30 mm · medidas interiores · 10 + 150 + 150 + 20 = 330 mm · largo 2000 mm."
+    },
+    {
+      "id": "std_limahoya_ch30",
+      "nombre": "Limahoya CH30 (estándar)",
+      "grupo": "estandar",
+      "tipoPieza": "plegada",
+      "elemento": "limahoya",
+      "textoDescripcion": "limahoya",
+      "usaLargo": true,
+      "generador3d": "extrusion",
+      "perfil": {
+        "direccionInicial": "abajo",
+        "tramos": [
+          {
+            "medidaCm": 1.0,
+            "anguloPliegue": 90,
+            "sentido": "izquierda",
+            "tipo": "normal",
+            "observacion": "",
+            "corteLaser": null
+          },
+          {
+            "medidaCm": 9.5,
+            "anguloPliegue": 100,
+            "sentido": "izquierda",
+            "tipo": "normal",
+            "observacion": "",
+            "corteLaser": null
+          },
+          {
+            "medidaCm": 2.0,
+            "anguloPliegue": 100,
+            "sentido": "derecha",
+            "tipo": "normal",
+            "observacion": "",
+            "corteLaser": null
+          },
+          {
+            "medidaCm": 8.0,
+            "anguloPliegue": 90,
+            "sentido": "izquierda",
+            "tipo": "normal",
+            "observacion": "",
+            "corteLaser": null
+          },
+          {
+            "medidaCm": 2.0,
+            "anguloPliegue": 90,
+            "sentido": "izquierda",
+            "tipo": "normal",
+            "observacion": "",
+            "corteLaser": null
+          },
+          {
+            "medidaCm": 9.5,
+            "anguloPliegue": 100,
+            "sentido": "derecha",
+            "tipo": "normal",
+            "observacion": "",
+            "corteLaser": null
+          },
+          {
+            "medidaCm": 1.0,
+            "anguloPliegue": 100,
+            "sentido": "izquierda",
+            "tipo": "normal",
+            "observacion": "",
+            "corteLaser": null
+          }
+        ]
+      },
+      "largoPorDefectoCm": 200,
+      "supuesto": false,
+      "referencia": "Programa de la plegadora Delem DA-66T de la empresa (fotos de pantalla del 15/04/2026). Medidas de la plegadora en mm, pasadas a cm.",
+      "palabrasClave": [
+        "limahoya",
+        "valle",
+        "estandar"
+      ],
+      "ayuda": "Producto estándar de la plegadora: LIMAHOYA CH30 · 0,30 mm · medidas interiores · 10 + 95 + 20 + 80 + 20 + 95 + 10 = 330 mm · largo 2000 mm."
+    },
+    {
+      "id": "std_canaleta_hiper",
+      "nombre": "Canaleta Hiper (estándar)",
+      "grupo": "estandar",
+      "tipoPieza": "plegada",
+      "elemento": "canaleta",
+      "textoDescripcion": "canaleta hiper",
+      "usaLargo": true,
+      "generador3d": "extrusion",
+      "perfil": {
+        "direccionInicial": "derecha",
+        "tramos": [
+          {
+            "medidaCm": 1.0,
+            "anguloPliegue": 90,
+            "sentido": "izquierda",
+            "tipo": "normal",
+            "observacion": "",
+            "corteLaser": null
+          },
+          {
+            "medidaCm": 1.9,
+            "anguloPliegue": 90,
+            "sentido": "derecha",
+            "tipo": "normal",
+            "observacion": "",
+            "corteLaser": null
+          },
+          {
+            "medidaCm": 2.0,
+            "anguloPliegue": 90,
+            "sentido": "derecha",
+            "tipo": "normal",
+            "observacion": "",
+            "corteLaser": null
+          },
+          {
+            "medidaCm": 2.0,
+            "anguloPliegue": 90,
+            "sentido": "izquierda",
+            "tipo": "normal",
+            "observacion": "",
+            "corteLaser": null
+          },
+          {
+            "medidaCm": 5.9,
+            "anguloPliegue": 135,
+            "sentido": "derecha",
+            "tipo": "normal",
+            "observacion": "",
+            "corteLaser": null
+          },
+          {
+            "medidaCm": 2.0,
+            "anguloPliegue": 135,
+            "sentido": "izquierda",
+            "tipo": "normal",
+            "observacion": "",
+            "corteLaser": null
+          },
+          {
+            "medidaCm": 9.8,
+            "anguloPliegue": 90,
+            "sentido": "derecha",
+            "tipo": "normal",
+            "observacion": "",
+            "corteLaser": null
+          },
+          {
+            "medidaCm": 7.3,
+            "anguloPliegue": 90,
+            "sentido": "derecha",
+            "tipo": "normal",
+            "observacion": "",
+            "corteLaser": null
+          },
+          {
+            "medidaCm": 1.0,
+            "anguloPliegue": 135,
+            "sentido": "derecha",
+            "tipo": "normal",
+            "observacion": "",
+            "corteLaser": null
+          }
+        ]
+      },
+      "largoPorDefectoCm": 200,
+      "supuesto": false,
+      "referencia": "Programa de la plegadora Delem DA-66T de la empresa (fotos de pantalla del 15/04/2026). Medidas de la plegadora en mm, pasadas a cm.",
+      "palabrasClave": [
+        "canaleta",
+        "hiper",
+        "estandar"
+      ],
+      "ayuda": "Producto estándar de la plegadora: CANALETA HIPER · 0,30 mm · medidas exteriores · 10 + 19 + 20 + 20 + 59 + 20 + 98 + 73 + 10 = 329 mm · largo 2000 mm.",
+      "admiteAccesorios": true
+    },
+    {
+      "id": "std_esquinero_americana",
+      "nombre": "Esquinero canaleta americana CH30 (estándar)",
+      "grupo": "estandar",
+      "tipoPieza": "plegada",
+      "elemento": "esquinero",
+      "textoDescripcion": "esquinero americana",
+      "usaLargo": true,
+      "generador3d": "extrusion",
+      "perfil": {
+        "direccionInicial": "derecha",
+        "tramos": [
+          {
+            "medidaCm": 1.0,
+            "anguloPliegue": 90,
+            "sentido": "izquierda",
+            "tipo": "normal",
+            "observacion": "",
+            "corteLaser": null
+          },
+          {
+            "medidaCm": 2.0,
+            "anguloPliegue": 90,
+            "sentido": "derecha",
+            "tipo": "normal",
+            "observacion": "",
+            "corteLaser": null
+          },
+          {
+            "medidaCm": 2.0,
+            "anguloPliegue": 90,
+            "sentido": "derecha",
+            "tipo": "normal",
+            "observacion": "",
+            "corteLaser": null
+          },
+          {
+            "medidaCm": 1.98,
+            "anguloPliegue": 90,
+            "sentido": "izquierda",
+            "tipo": "normal",
+            "observacion": "",
+            "corteLaser": null
+          },
+          {
+            "medidaCm": 6.5,
+            "anguloPliegue": 135,
+            "sentido": "derecha",
+            "tipo": "normal",
+            "observacion": "",
+            "corteLaser": null
+          },
+          {
+            "medidaCm": 10.1,
+            "anguloPliegue": 135,
+            "sentido": "derecha",
+            "tipo": "normal",
+            "observacion": "",
+            "corteLaser": null
+          },
+          {
+            "medidaCm": 5.9,
+            "anguloPliegue": 90,
+            "sentido": "derecha",
+            "tipo": "normal",
+            "observacion": "",
+            "corteLaser": null
+          },
+          {
+            "medidaCm": 1.0,
+            "anguloPliegue": 135,
+            "sentido": "derecha",
+            "tipo": "normal",
+            "observacion": "",
+            "corteLaser": null
+          }
+        ]
+      },
+      "largoPorDefectoCm": 30,
+      "supuesto": false,
+      "referencia": "Programa de la plegadora Delem DA-66T de la empresa (fotos de pantalla del 15/04/2026). Medidas de la plegadora en mm, pasadas a cm.",
+      "palabrasClave": [
+        "esquinero",
+        "esquina",
+        "americana",
+        "estandar"
+      ],
+      "ayuda": "Producto estándar de la plegadora: ESQ AMER CH30 · 0,30 mm · medidas exteriores · 10 + 20 + 20 + 19,8 + 65 + 101 + 59 + 10 = 304,8 mm · largo 300 mm."
+    },
+    {
+      "id": "std_babeta_t101_sinus",
+      "nombre": "Babeta T101 sinusoidal (estándar)",
+      "grupo": "estandar",
+      "tipoPieza": "plegada",
+      "elemento": "babeta",
+      "textoDescripcion": "babeta T101 sinus",
+      "usaLargo": true,
+      "generador3d": "extrusion",
+      "perfil": {
+        "direccionInicial": 20,
+        "tramos": [
+          {
+            "medidaCm": 1.0,
+            "anguloPliegue": 90,
+            "sentido": "izquierda",
+            "tipo": "normal",
+            "observacion": "",
+            "corteLaser": null
+          },
+          {
+            "medidaCm": 3.5,
+            "anguloPliegue": 90,
+            "sentido": "derecha",
+            "tipo": "normal",
+            "observacion": "",
+            "corteLaser": null
+          },
+          {
+            "medidaCm": 13.0,
+            "anguloPliegue": 110,
+            "sentido": "izquierda",
+            "tipo": "normal",
+            "observacion": "",
+            "corteLaser": null
+          },
+          {
+            "medidaCm": 3.6,
+            "anguloPliegue": 135,
+            "sentido": "derecha",
+            "tipo": "normal",
+            "observacion": "",
+            "corteLaser": null
+          }
+        ]
+      },
+      "largoPorDefectoCm": 122,
+      "supuesto": false,
+      "referencia": "Programa de la plegadora Delem DA-66T de la empresa (fotos de pantalla del 15/04/2026). Medidas de la plegadora en mm, pasadas a cm.",
+      "palabrasClave": [
+        "babeta",
+        "t101",
+        "sinusoidal",
+        "estandar"
+      ],
+      "ayuda": "Producto estándar de la plegadora: BABETA T101~SINUS · 0,50 mm · medidas interiores · 10 + 35 + 130 + 36 = 211 mm · largo 1220 mm."
+    },
+    {
+      "id": "std_cumbrera_articulada_t101_macho",
+      "nombre": "Cumbrera articulada T101 macho (estándar)",
+      "grupo": "estandar",
+      "tipoPieza": "plegada",
+      "elemento": "cumbrera",
+      "textoDescripcion": "cumbrera articulada T101 macho",
+      "usaLargo": true,
+      "generador3d": "extrusion",
+      "perfil": {
+        "direccionInicial": 20,
+        "tramos": [
+          {
+            "medidaCm": 1.0,
+            "anguloPliegue": 90,
+            "sentido": "izquierda",
+            "tipo": "normal",
+            "observacion": "",
+            "corteLaser": null
+          },
+          {
+            "medidaCm": 1.5,
+            "anguloPliegue": 90,
+            "sentido": "derecha",
+            "tipo": "normal",
+            "observacion": "",
+            "corteLaser": null
+          },
+          {
+            "medidaCm": 13.3,
+            "anguloPliegue": 110,
+            "sentido": "izquierda",
+            "tipo": "normal",
+            "observacion": "",
+            "corteLaser": null
+          },
+          {
+            "medidaCm": 3.65,
+            "anguloPliegue": 135,
+            "sentido": "derecha",
+            "tipo": "normal",
+            "observacion": "",
+            "corteLaser": null
+          }
+        ]
+      },
+      "largoPorDefectoCm": 122,
+      "supuesto": false,
+      "referencia": "Programa de la plegadora Delem DA-66T de la empresa (fotos de pantalla del 15/04/2026). Medidas de la plegadora en mm, pasadas a cm.",
+      "palabrasClave": [
+        "cumbrera",
+        "articulada",
+        "t101",
+        "macho",
+        "estandar"
+      ],
+      "ayuda": "Producto estándar de la plegadora: CUM ART T101 PREP MACHO · 0,60 mm · medidas interiores · 10 + 15 + 133 + 36,5 = 194,5 mm · largo 1220 mm (en la plegadora es prepintada)."
+    },
     {
       "id": "canaleta_nota_real",
       "nombre": "Canaleta (ejemplo de nota real)",
@@ -1017,6 +1531,16 @@
           "valorPorDefecto": 4,
           "minimo": 2,
           "ayuda": ""
+        },
+        {
+          "id": "radioCurvaCm",
+          "etiqueta": "Radio de la curva",
+          "tipo": "numero",
+          "unidad": "cm",
+          "valorPorDefecto": 15,
+          "minimo": 0,
+          "ayuda": "Al centro del caño",
+          "opcional": true
         }
       ],
       "codigoGenerico": {
@@ -1079,6 +1603,16 @@
               "etiqueta": "90°"
             }
           ]
+        },
+        {
+          "id": "radioCurvaCm",
+          "etiqueta": "Radio del codo",
+          "tipo": "numero",
+          "unidad": "cm",
+          "valorPorDefecto": 16,
+          "minimo": 0,
+          "ayuda": "Al centro del caño",
+          "opcional": true
         }
       ],
       "codigoGenerico": {
@@ -1140,6 +1674,26 @@
               "etiqueta": "90°"
             }
           ]
+        },
+        {
+          "id": "largoPrincipalCm",
+          "etiqueta": "Largo del caño principal",
+          "tipo": "numero",
+          "unidad": "cm",
+          "valorPorDefecto": 40,
+          "minimo": 0,
+          "ayuda": "",
+          "opcional": true
+        },
+        {
+          "id": "largoRamalCm",
+          "etiqueta": "Largo del ramal",
+          "tipo": "numero",
+          "unidad": "cm",
+          "valorPorDefecto": 25,
+          "minimo": 0,
+          "ayuda": "",
+          "opcional": true
         }
       ],
       "codigoGenerico": {
@@ -1310,6 +1864,46 @@
           "soloSiForma": [
             "rectangular"
           ]
+        },
+        {
+          "id": "altoCanoCm",
+          "etiqueta": "Alto del caño",
+          "tipo": "numero",
+          "unidad": "cm",
+          "valorPorDefecto": 25,
+          "minimo": 0,
+          "ayuda": "Desde abajo hasta donde empieza el sombrero",
+          "opcional": true
+        },
+        {
+          "id": "separacionCm",
+          "etiqueta": "Luz entre caño y sombrero",
+          "tipo": "numero",
+          "unidad": "cm",
+          "valorPorDefecto": 6,
+          "minimo": 0,
+          "ayuda": "",
+          "opcional": true
+        },
+        {
+          "id": "alaCm",
+          "etiqueta": "Ala (cuánto sobresale el sombrero del caño)",
+          "tipo": "numero",
+          "unidad": "cm",
+          "valorPorDefecto": 7,
+          "minimo": 0,
+          "ayuda": "",
+          "opcional": true
+        },
+        {
+          "id": "altoTechoCm",
+          "etiqueta": "Alto del sombrero",
+          "tipo": "numero",
+          "unidad": "cm",
+          "valorPorDefecto": 9,
+          "minimo": 0,
+          "ayuda": "",
+          "opcional": true
         }
       ],
       "codigoGenerico": {
@@ -1399,6 +1993,36 @@
           "soloSiForma": [
             "rectangular"
           ]
+        },
+        {
+          "id": "altoCanoCm",
+          "etiqueta": "Alto del caño",
+          "tipo": "numero",
+          "unidad": "cm",
+          "valorPorDefecto": 30,
+          "minimo": 0,
+          "ayuda": "",
+          "opcional": true
+        },
+        {
+          "id": "separacionCm",
+          "etiqueta": "Separación entre los caños de la H",
+          "tipo": "numero",
+          "unidad": "cm",
+          "valorPorDefecto": 50,
+          "minimo": 0,
+          "ayuda": "De centro a centro",
+          "opcional": true
+        },
+        {
+          "id": "altoPatasCm",
+          "etiqueta": "Alto de los caños de la H",
+          "tipo": "numero",
+          "unidad": "cm",
+          "valorPorDefecto": 24,
+          "minimo": 0,
+          "ayuda": "",
+          "opcional": true
         }
       ],
       "codigoGenerico": {
@@ -1488,6 +2112,46 @@
           "soloSiForma": [
             "rectangular"
           ]
+        },
+        {
+          "id": "altoCanoCm",
+          "etiqueta": "Alto del caño",
+          "tipo": "numero",
+          "unidad": "cm",
+          "valorPorDefecto": 25,
+          "minimo": 0,
+          "ayuda": "",
+          "opcional": true
+        },
+        {
+          "id": "altoFaldonCm",
+          "etiqueta": "Alto del faldón",
+          "tipo": "numero",
+          "unidad": "cm",
+          "valorPorDefecto": 7,
+          "minimo": 0,
+          "ayuda": "",
+          "opcional": true
+        },
+        {
+          "id": "alaCm",
+          "etiqueta": "Ala (cuánto sobresale el techo del caño)",
+          "tipo": "numero",
+          "unidad": "cm",
+          "valorPorDefecto": 8,
+          "minimo": 0,
+          "ayuda": "",
+          "opcional": true
+        },
+        {
+          "id": "altoTechoCm",
+          "etiqueta": "Alto del techo",
+          "tipo": "numero",
+          "unidad": "cm",
+          "valorPorDefecto": 9,
+          "minimo": 0,
+          "ayuda": "",
+          "opcional": true
         }
       ],
       "codigoGenerico": {
@@ -1577,6 +2241,36 @@
           "soloSiForma": [
             "rectangular"
           ]
+        },
+        {
+          "id": "altoCanoCm",
+          "etiqueta": "Alto del caño",
+          "tipo": "numero",
+          "unidad": "cm",
+          "valorPorDefecto": 25,
+          "minimo": 0,
+          "ayuda": "",
+          "opcional": true
+        },
+        {
+          "id": "alaCm",
+          "etiqueta": "Ala (cuánto sobresale el techo del caño)",
+          "tipo": "numero",
+          "unidad": "cm",
+          "valorPorDefecto": 7,
+          "minimo": 0,
+          "ayuda": "",
+          "opcional": true
+        },
+        {
+          "id": "altoTechoCm",
+          "etiqueta": "Alto del techo",
+          "tipo": "numero",
+          "unidad": "cm",
+          "valorPorDefecto": 8,
+          "minimo": 0,
+          "ayuda": "",
+          "opcional": true
         }
       ],
       "codigoGenerico": {

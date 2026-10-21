@@ -97,13 +97,24 @@
       "engrampada"
     ],
     "boquetaPorDefecto": {
+      "tipo": "boqueta",
       "forma": "redonda",
       "diametroCm": 10,
       "ladoACm": 10,
       "ladoBCm": 5,
       "largoBocaCm": 10,
-      "posicionCm": 30
-    }
+      "posicionCm": 30,
+      "ubicacion": "fondo",
+      "alturaCm": 7,
+      "desplazamientoCm": 0,
+      "bocaACm": 20,
+      "bocaBCm": 10,
+      "diametroSalidaCm": 10,
+      "altoCm": 12
+    },
+    "_boquetaPorDefecto": "SUPUESTO: medidas con que arranca una boqueta nueva. alturaCm y desplazamientoCm son para la boqueta puesta en una tapa (centro sobre el fondo y corrimiento desde el medio). bocaA/bocaB/salida/alto son para la tronera.",
+    "pestanaTapaCm": 1.5,
+    "_pestanaTapaCm": "SUPUESTO: pestaña de apoyo de la tapa (la que se suelda o engrampa)."
   },
   "ladosPintura": [
     {
@@ -118,5 +129,23 @@
       "valor": "ambos",
       "texto": "Pintura de los dos lados"
     }
-  ]
+  ],
+  "cortes": {
+    "_leeme": "Cortes (agujeros) en una cara de un plegado, con pared o aletas opcionales alrededor. SUPUESTO: valores con que arranca un corte nuevo.",
+    "porDefecto": {
+      "forma": "redonda",
+      "diametroCm": 10,
+      "ladoACm": 10,
+      "ladoBCm": 5,
+      "paredAlturaCm": 0,
+      "paredLado": "afuera"
+    },
+    "margenMinimoCm": 0.5,
+    "_margenMinimoCm": "SUPUESTO: lo mínimo de chapa que tiene que quedar entre el corte y el borde (o el pliegue) de la cara."
+  },
+  "empalme": {
+    "_leeme": "Piezas más largas que la chapa: se arman con varios tramos de chapa. SUPUESTO: sin solape (2,44 + 0,56 = 3,00 m, como el ejemplo del área comercial).",
+    "solapeCm": 0,
+    "toleranciaCm": 0.5
+  }
 }
