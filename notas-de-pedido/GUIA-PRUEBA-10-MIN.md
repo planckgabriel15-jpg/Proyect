@@ -54,6 +54,15 @@ Objetivo: cargar la nota real de la empresa en el programa, con tapas y boqueta 
 - **Con pendiente:** en la canaleta tocá **Con pendiente** (**Alt+L**). En la tabla aparecen las columnas **Final**: poné **25** en el tramo 2. Tiene que decir **D = 65**, la descripción "… con pendiente D60 a D65", y en el 2D se ven las dos puntas y la **vista de costado** con "baja 5 cm en 2,44 m (20,5 mm/m · 1:49)". En el 3D la canaleta se va haciendo más honda.
 - **En el celular:** abrí la pestaña **3D** y tocá **Editar en 3D**. Girá con un dedo, hacé zoom con dos y tocá una cota para cambiarla. El panel **Propiedades** de abajo se abre y se cierra tocándolo.
 
+## Extra: productos estándar, cortes, boquetas, tapas y empalme
+
+- **Estándar de la plegadora:** en la galería, el primer grupo es "Productos estándar de la empresa (plegadora)". La **Canaleta Hiper** tiene que dar **D = 32,9** y la **Cumbrera D30 CH30**, **D = 30**.
+- **Boqueta que corta la chapa:** en una canaleta agregá una boqueta (**Alt+Q**). En el 3D, girando para mirar desde abajo, se ve el agujero en el fondo. En **Tipo** probá **tronera**: el código extra pasa a ser TR…
+- **Boqueta en la tapa:** poné **Tapa derecha: soldada** y en la boqueta elegí **Dónde va: en la tapa derecha**. Si no entra, el programa lo avisa: bajá la **altura del centro**.
+- **Tapa a medida:** en la tapa izquierda marcá **Tapa a medida** y cambiá el frente de 20 a **12**: dice "La tapa entra en la canaleta" y el código de esa tapa pasa a **TS52**. Si ponés un fondo de **40**, avisa que no entra.
+- **Corte con pared:** **Alt+R** agrega un corte en el fondo. Poné la posición y una pared de **3 cm**: la descripción dice "c/ corte Ø10 c/ pared 3 cm" y en el 2D aparece la cara con el corte acotado.
+- **Empalme:** poné el largo en **3**: aparece el panel **Empalme** con **2,44 + 0,56**. Tocá **Partes iguales** (**1,50 + 1,50**). En el editor 3D tocá la cota "chapa 1" y escribí **2**: la otra pasa sola a **1,00**.
+
 ## Extra (si sobra tiempo)
 
 - **Dibujar a mano** (**Alt+M**) en una **Pieza especial libre**: marcá 3 o 4 puntos y tocá **Usar este dibujo**.

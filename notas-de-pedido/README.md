@@ -3,9 +3,10 @@
 Programa web que reemplaza la nota de pedido en papel. El vendedor:
 
 1. completa el encabezado casi sin escribir (origen, fecha y número salen solos; la factura se pega);
-2. elige la pieza de una galería con los productos que fabrica la empresa (canaletas con sus tapas y boquetas, babetas, cumbreras, limahoya, cenefas, chapa lisa, boquetas, troneras, caños, curvas, codos, ramales, tapas y sombreros circulares o rectangulares), o dibuja una a mano;
+2. elige la pieza de una galería con los productos que fabrica la empresa (primero los **estándar de la plegadora**: cumbrera D30, media cumbrera D33, limahoya, canaleta Hiper, esquinero americano, babeta y cumbrera articulada T101; después canaletas con sus tapas y boquetas, babetas, cumbreras, limahoya, cenefas, chapa lisa, boquetas, troneras, caños, curvas, codos, ramales, tapas y sombreros circulares o rectangulares), o dibuja una a mano;
 3. carga las medidas en una tabla y ve **al mismo tiempo** el dibujo 2D acotado y la pieza en 3D **con todas sus cotas**; si prefiere, abre el **editor 3D** a pantalla completa (también en el celular) y cambia las medidas tocando las cotas, agrega tramos con "+" o borra la parte que elija;
    los plegados pueden ser **con pendiente**: se cargan las medidas de las dos puntas y el 3D muestra cómo cambia la pieza a lo largo;
+   a cualquier plegado se le pueden hacer **cortes** (con pared o aletas alrededor); las canaletas llevan **tapas** (también a medida) y **boquetas** de cualquier tipo, en el fondo o en una tapa, y la chapa queda cortada donde van; si la pieza mide más que la chapa, se arma el **empalme** (2,44 + resto, partes iguales o a mano);
 4. obtiene solo el **desarrollo**, la **banda** y el **código** (de la tabla de facturación o, si el producto no está, un código genérico como CL1010N);
 5. elige material, calibre, color y cantidad;
 6. emite e imprime (o guarda en PDF) una nota prolija para producción.
@@ -34,11 +35,12 @@ Programa web que reemplaza la nota de pedido en papel. El vendedor:
 | Tabla de tramos | Alt+3 / Alt+4 | Dobladillo al inicio / dobladillo al final |
 | Tabla de tramos | Alt+J / Alt+M | Espejar / dibujar a mano |
 | Canaleta | Alt+Q | Agregar boqueta |
+| Plegados | Alt+R | Agregar un corte en la chapa |
 | Vista 3D | Alt+0 / Alt+7 / Alt+8 / Alt+9 | Vista inicial / frente / lateral / isométrica |
 | Vista 3D | Alt+C | Mostrar u ocultar las cotas |
 | Vista 3D | Alt+G | Abrir el editor 3D a pantalla completa (Alt+G o Esc lo cierran) |
 | Plegados | Alt+L | Con pendiente sí / no |
-| Editor 3D | Supr | Borrar el tramo, la tapa o la boqueta elegida |
+| Editor 3D | Supr | Borrar el tramo, la tapa, la boqueta o el corte elegido |
 | Editor 3D | Alt+flecha derecha / Alt+flecha izquierda | Elegir el tramo siguiente / anterior |
 | Cota en el 3D | Enter / Esc | Confirmar la medida nueva / dejarla como estaba |
 | Todas | Enter | Pasar al campo siguiente |
@@ -89,7 +91,7 @@ cd notas-de-pedido
 npm test          # es lo mismo que:  node --test
 ```
 
-Tiene que terminar con `# fail 0`. Hay 101 pruebas; los **16 casos obligatorios** de la especificación están en `tests/casos-obligatorios.test.js`. Las pruebas no usan el navegador: prueban la lógica (`src/logica/`), el almacenamiento (con un "navegador falso" en memoria) y los dibujos 2D.
+Tiene que terminar con `# fail 0`. Hay 117 pruebas; los **16 casos obligatorios** de la especificación están en `tests/casos-obligatorios.test.js`. Las pruebas no usan el navegador: prueban la lógica (`src/logica/`), el almacenamiento (con un "navegador falso" en memoria) y los dibujos 2D.
 
 ---
 
@@ -101,7 +103,7 @@ Sin frameworks y sin "paso de compilación": HTML + CSS + JavaScript moderno (m�
 
 | Capa | Carpeta | Qué hace | Regla |
 |---|---|---|---|
-| Lógica | `src/logica/` | Cálculos puros: desarrollo, banda, código, geometría, cotas, pendiente, corte láser, descripción, validaciones, numeración | No usa el navegador ni Three.js. Todo se prueba con `node --test` |
+| Lógica | `src/logica/` | Cálculos puros: desarrollo, banda, código, geometría, cotas, pendiente, cortes, accesorios de canaleta, empalme, corte láser, descripción, validaciones, numeración | No usa el navegador ni Three.js. Todo se prueba con `node --test` |
 | Datos | `src/datos/almacenamiento.js` | **Única puerta** para guardar y leer | Nadie más usa `localStorage`. Todas sus funciones son `async` |
 | Interfaz | `src/pantallas/`, `src/vistas2d/`, `src/vistas3d/`, `src/estilos/` | Pantallas, dibujos 2D (SVG) y 3D (Three.js) | Llama a la lógica y al almacenamiento; no calcula reglas de negocio |
 
@@ -119,6 +121,7 @@ src/pantallas/
   asistente.js                 "Agregar pieza" en 3 pasos (galería → medidas y dibujo → material)
   editorTramos.js              tabla de tramos (Enter, deshacer/rehacer, atajos, corte láser, columnas de la punta final)
   editor3d.js                  editor 3D a pantalla completa: herramientas, propiedades de la parte elegida, resumen
+  panelesPieza.js              paneles de tapas (también a medida), boquetas, cortes y empalme (paso 2 y editor 3D)
   impresion.js                 hoja A4 para imprimir o guardar en PDF
   produccion.js                lista de notas emitidas para el taller
   configuracion.js             sucursales, último número, importar códigos, copias de seguridad
@@ -129,11 +132,13 @@ src/vistas2d/
   especialSvg.js               esquemas acotados de boquetas, caños, codos, sombreros…
   plantaCanaletaSvg.js         vista desde arriba de la canaleta con tapas y boquetas acotadas
   pendienteSvg.js              vista de costado de un plegado con pendiente (alturas exageradas)
+  carasSvg.js                  cara con sus cortes acotados y tapa a medida dentro del perfil de la canaleta
   dibujoAMano.js               cuadrícula con imán para dibujar el perfil
 src/vistas3d/
   cargar3d.js                  carga el 3D solo si hay internet (si no, el programa sigue igual)
   escena.js                    visor 3D (girar, zoom, vistas, resaltar, cotas que se editan en el lugar, foto)
-  cotas3d.js                   líneas de cota y textos del 3D (perfil, ángulos, largo, boquetas, piezas especiales)
+  cotas3d.js                   líneas de cota y textos del 3D (perfil, ángulos, largo, empalme, boquetas, cortes, piezas especiales)
+  huecos3d.js                  contorno de los agujeros que se recortan de la chapa
   extrusion.js                 piezas plegadas: cada tramo es una chapa estirada a lo largo (o, con pendiente, de un perfil al otro)
   piezasEspeciales3d.js        caños, boquetas, codos, ramales, sombreros, troneras, tapas
   modelo.js                    junta pieza + tapas y boquetas puestas + regla del largo
@@ -160,6 +165,9 @@ docs/ESPECIFICACION.md         la especificación original
 | Cambiar el largo máximo (aviso de empalme) | `config.json` | `largoMaximoChapaCm` |
 | Cambiar los mínimos del corte láser (3,6 cm) | `config.json` | `corteLaser.anchoMinimoCaraCm`, `corteLaser.alturaMinimaOndaCm` |
 | Cambiar el solape de caños y boquetas | `config.json` | `solapeEngrafeCm` |
+| Cambiar el solape entre tramos de un empalme | `config.json` | `empalme.solapeCm` (hoy 0: 2,44 + 0,56 = 3,00) |
+| Cambiar lo mínimo de chapa alrededor de un corte | `config.json` | `cortes.margenMinimoCm` |
+| Cambiar la pestaña de apoyo de las tapas o la boqueta nueva | `config.json` | `accesoriosCanaleta.pestanaTapaCm`, `accesoriosCanaleta.boquetaPorDefecto` |
 | Cambiar la clave de Configuración | `config.json` | `claveConfiguracion` |
 | Agregar un color de prepintado | `materiales.json` | copiar una línea de `colores` y cambiar `id`, `nombre` y `hex` |
 | Cambiar el código de espesor de un calibre | `materiales.json` | `calibres` → `codigoEspesor` |
@@ -231,4 +239,5 @@ Todas las fuentes están en la sección 14 de `docs/ESPECIFICACION.md` y cada pl
 - [Guía Leroy Merlin de canalones](https://biblioteca.org.ar/libros/210136.pdf) y [tabla de chapas de la UNCuyo](https://aulaabierta.ingenieria.uncuyo.edu.ar/mod/resource/view.php?id=6819).
 - Documentación de Three.js: [ExtrudeGeometry](https://threejs.org/docs/pages/ExtrudeGeometry.html), [OrbitControls](https://threejs.org/docs/#examples/en/controls/OrbitControls) y [OrthographicCamera](https://threejs.org/docs/#api/en/cameras/OrthographicCamera) (vistas de frente y lateral sin perspectiva).
 - Editor 3D y plegados con pendiente (chapa entre dos perfiles): [Autodesk Inventor – Lofted Flange](https://help.autodesk.com/cloudhelp/2026/ENU/Inventor-Help/files/GUID-B6271A15-FD68-4672-9461-C86F8D55DA87.htm), [Inventor – lofted flange de plegadora](https://help.autodesk.com/cloudhelp/2014/ENU/Inventor/files/GUID-85FE3FCA-16B6-4310-B900-925291A73FA1.htm), [Onshape – Sheet Metal Loft](https://cad.onshape.com/help/es/Content/PartStudio/sheet_metal_loft.htm) y [Onshape – Loft (misma cantidad de vértices en los dos perfiles)](https://cad.onshape.com/help/Content/loft.htm?cshid=loft).
+- Productos estándar: fotos de la pantalla de la plegadora Delem DA-66T de la empresa (15/04/2026): CUMBRERA D30 CH30, MEDIA CUMBRERA D33, LIMAHOYA CH30, CANALETA HIPER, ESQ AMER CH30, BABETA T101~SINUS y CUM ART T101 PREP MACHO. Pasadas de mm a cm.
 - Pendientes de canaletas como referencia (no se aplicó ningún mínimo): [Victorian Building Authority – Box Gutters (1:200 a 1:40)](https://www.bpc.vic.gov.au/__data/assets/pdf_file/0009/22005/Plumbing_RP-02_Box-Gutters_CURRENT_01-Aug-2023.pdf) y [BRANZ – Internal gutter design](https://prod.branz.co.nz/documents/3986/BU556-Internal-gutter-design.pdf).
