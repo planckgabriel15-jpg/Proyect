@@ -40,6 +40,13 @@ function cotaV(x, y1, y2, contenido) {
   ${texto(x - 8, (y1 + y2) / 2 + 4, contenido, 'end')}`;
 }
 
+/** Lista de medidas extra (las que el vendedor puede ajustar) escrita a la derecha del esquema. */
+function medidasExtra(p, lista) {
+  const lineas = lista.filter(([id]) => p[id] !== undefined && p[id] !== null && p[id] !== '')
+    .map(([id, etiqueta]) => `${etiqueta}: ${f(p[id])} cm`);
+  return lineas.map((linea, i) => texto(632, 120 + i * 20, linea, 'end', 'nota')).join('');
+}
+
 /** Cada generador devuelve el contenido del SVG (viewBox 0 0 640 420). */
 const DIBUJOS = {
   canoRedondo: (p, r) => `
@@ -95,13 +102,15 @@ const DIBUJOS = {
     }).join('');
     return `<polygon class="pieza" points="${[...exterior, ...interior].join(' ')}"/>${uniones}
       ${texto(150, 80, `Ø ${f(p.diametroCm)}`, 'start')}
-      ${texto(420, 380, `ángulo ${f(angulo)}° · ${gajos} gajos`, 'middle')}`;
+      ${texto(420, 380, `ángulo ${f(angulo)}° · ${gajos} gajos`, 'middle')}
+      ${medidasExtra(p, [['radioCurvaCm', 'radio']])}`;
   },
 
   codoRectangular: (p) => `
     <polygon class="pieza" points="120,340 120,180 280,80 420,80 420,180 300,220 240,260 240,340"/>
     ${texto(330, 60, `${f(p.ladoACm)} × ${f(p.ladoBCm)}`, 'middle')}
-    ${texto(330, 380, `ángulo ${f(p.anguloGrados)}°`, 'middle')}`,
+    ${texto(330, 380, `ángulo ${f(p.anguloGrados)}°`, 'middle')}
+    ${medidasExtra(p, [['radioCurvaCm', 'radio']])}`,
 
   ramal: (p) => {
     const angulo = leerNumero(p.anguloGrados) || 45;
@@ -112,7 +121,8 @@ const DIBUJOS = {
       <line class="pieza-ancha" x1="320" y1="250" x2="${x2}" y2="${y2}"/>
       ${texto(260, 30, `Ø ${f(p.diametroCm)}`, 'end')}
       ${texto(x2 + 10, y2, `ramal Ø ${f(p.diametroRamalCm)}`, 'start')}
-      ${texto(470, 380, `ángulo ${f(angulo)}°`, 'middle')}`;
+      ${texto(470, 380, `ángulo ${f(angulo)}°`, 'middle')}
+      ${medidasExtra(p, [['largoPrincipalCm', 'largo caño'], ['largoRamalCm', 'largo ramal']])}`;
   },
 
   reduccion: (p) => `
@@ -133,7 +143,8 @@ const DIBUJOS = {
     <line class="pieza-linea" x1="250" y1="170" x2="250" y2="230"/><line class="pieza-linea" x1="390" y1="170" x2="390" y2="230"/>
     <rect class="pieza" x="250" y="230" width="140" height="140"/>
     ${cotaH(250, 390, 395, `caño ${medidaCano(p)}`)}
-    ${texto(320, 40, `sombrero chino ${p.forma || ''}`, 'middle', 'nota')}`,
+    ${texto(320, 40, `sombrero chino ${p.forma || ''}`, 'middle', 'nota')}
+    ${medidasExtra(p, [['altoCanoCm', 'alto caño'], ['separacionCm', 'luz'], ['alaCm', 'ala'], ['altoTechoCm', 'alto sombrero']])}`,
 
   sombreroVenturi: (p) => `
     <polygon class="pieza" points="170,120 320,60 470,120"/>
@@ -148,14 +159,16 @@ const DIBUJOS = {
     <polygon class="pieza" points="160,180 480,180 320,250"/>
     <rect class="pieza" x="260" y="250" width="120" height="120"/>
     ${cotaH(260, 380, 395, `caño ${medidaCano(p)}`)}
-    ${texto(320, 40, `sombrero canadiense / salamandra ${p.forma || ''}`, 'middle', 'nota')}`,
+    ${texto(320, 40, `sombrero canadiense / salamandra ${p.forma || ''}`, 'middle', 'nota')}
+    ${medidasExtra(p, [['altoCanoCm', 'alto caño'], ['altoFaldonCm', 'faldón'], ['alaCm', 'ala'], ['altoTechoCm', 'alto techo']])}`,
 
   sombreroH: (p) => `
     <rect class="pieza" x="120" y="90" width="400" height="80"/>
     <rect class="pieza" x="270" y="170" width="100" height="200"/>
     <line class="pieza-linea" x1="270" y1="130" x2="370" y2="130"/>
     ${cotaH(270, 370, 395, `caño ${medidaCano(p)}`)}
-    ${texto(320, 60, `sombrero H ${p.forma || ''}`, 'middle', 'nota')}`,
+    ${texto(320, 60, `sombrero H ${p.forma || ''}`, 'middle', 'nota')}
+    ${medidasExtra(p, [['altoCanoCm', 'alto caño'], ['separacionCm', 'separación'], ['altoPatasCm', 'alto H']])}`,
 
   sombreroSpiro: (p) => `
     <polygon class="pieza" points="170,150 320,70 470,150"/>
@@ -163,7 +176,8 @@ const DIBUJOS = {
     <polygon class="pieza" points="190,205 450,205 410,235 230,235"/>
     <rect class="pieza" x="260" y="240" width="120" height="130"/>
     ${cotaH(260, 380, 395, `caño ${medidaCano(p)}`)}
-    ${texto(320, 40, `sombrero tipo Spiro ${p.forma || ''}`, 'middle', 'nota')}`,
+    ${texto(320, 40, `sombrero tipo Spiro ${p.forma || ''}`, 'middle', 'nota')}
+    ${medidasExtra(p, [['altoCanoCm', 'alto caño'], ['alaCm', 'ala'], ['altoTechoCm', 'alto techo']])}`,
 
   boquetaSuelta: (p) => `
     <polygon class="pieza" points="140,90 500,90 470,120 170,120"/>

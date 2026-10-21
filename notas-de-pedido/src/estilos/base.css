@@ -431,3 +431,19 @@ kbd.atajo { display: inline-block; margin-left: .45rem; padding: 0 .35rem; borde
 .pendiente-svg .pieza { fill: #e9edf1; stroke: #000; stroke-width: 2.5; }
 .etiqueta-cota.cota-final { border-color: #7a3db8; color: #4a1f7a; }
 @media (max-width: 480px) { .zona-svg.dos-perfiles { grid-template-columns: 1fr; } }
+
+/* ---------- cortes, tapas a medida y empalme ---------- */
+.panel-cortes, .panel-empalme { margin-top: 1rem; border-top: 2px solid var(--borde-suave); padding-top: .5rem; }
+.campos-tapa { margin-bottom: .5rem; }
+.tapa-a-medida { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: .6rem; background: var(--fondo-suave); border-radius: 6px; padding: .5rem; margin-top: .3rem; }
+.vista-tapa svg, .tapa-svg, .caras-svg { width: 100%; height: auto; background: #fff; border: 1px solid var(--borde-suave); border-radius: 6px; margin-top: .4rem; }
+.tapa-svg .tapa-canaleta { fill: #eceff2; stroke: #8a8f95; stroke-width: 1.5; stroke-dasharray: 5 3; }
+.tapa-svg .tapa-chapa { fill: #c9d3de; stroke: #000; stroke-width: 2; }
+.caras-svg .pieza, .tapa-svg .pieza { fill: #e9edf1; stroke: #000; stroke-width: 2; }
+.caras-svg .pieza-boqueta, .tapa-svg .pieza-boqueta { fill: #fff; stroke: #000; stroke-width: 2; }
+.error-texto { color: var(--peligro); font-weight: 600; }
+.boton.elegido { background: var(--principal); color: #fff; border-color: var(--principal); }
+.etiqueta-cota.cota-empalme { border-color: #b00020; color: #7a0016; }
+.editor-3d-contenido .tapa-a-medida { grid-template-columns: 1fr; }
+.editor-3d-contenido .fila-campos { flex-direction: column; align-items: stretch; }
+@media (max-width: 860px) { .tapa-a-medida { grid-template-columns: 1fr; } }

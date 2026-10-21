@@ -19,7 +19,10 @@ import { leerNumero, formatearNumero, formatearCorto } from '../logica/numeros.j
 import { crearRenglonDesdePlantilla, buscarPlantilla, filtrarPlantillas, agruparPlantillas } from '../logica/renglones.js';
 import { copiarPerfil } from '../logica/perfil.js';
 import { parametrosVisibles } from '../logica/piezasEspeciales.js';
-import { crearBoqueta, FORMAS_BOQUETA } from '../logica/accesoriosCanaleta.js';
+import { crearBoqueta } from '../logica/accesoriosCanaleta.js';
+import { seccionAccesorios, seccionCortes, seccionEmpalme, agregarCorteA } from './panelesPieza.js';
+import { svgCaras, svgTapasConDetalle } from '../vistas2d/carasSvg.js';
+import { ajustarTramoDeChapa, tramosDeChapa } from '../logica/empalme.js';
 import { svgPlantaCanaleta } from '../vistas2d/plantaCanaletaSvg.js';
 import { registrarAtajos, etiquetaAtajo } from './atajos.js';
 import { abrirEditor3d } from './editor3d.js';
@@ -56,6 +59,16 @@ export function abrirAsistente(opciones) {
   let editor3d = null;          // editor 3D a pantalla completa (si está abierto)
   let campoLargo = null;        // campos del paso 2 que el editor 3D puede cambiar
   let formularioActual = null;
+  // Contexto de los paneles de tapas, boquetas, cortes y empalme (ver panelesPieza.js).
+  const contextoPieza = {
+    datos,
+    renglon: () => borrador,
+    alCambiar: (redibujar) => {
+      if (redibujar) refrescarSecciones();
+      actualizar();
+      if (redibujar) editor3d?.refrescar({ forzar: true });
+    },
+  };
 
   // ---------- estructura fija ----------
   const contenido = h('div', { class: 'asistente-contenido' });
@@ -88,6 +101,7 @@ export function abrirAsistente(opciones) {
     { teclas: 'Alt+ArrowRight', descripcion: 'Siguiente paso / agregar a la nota', accion: () => siguiente() },
     { teclas: 'Alt+ArrowLeft', descripcion: 'Paso anterior', accion: () => { if (paso > 1) irAPaso(paso - 1); } },
     { teclas: 'Alt+Q', descripcion: 'Agregar boqueta a la canaleta', accion: () => agregarBoqueta() },
+    { teclas: 'Alt+R', descripcion: 'Agregar un corte en la chapa', accion: () => agregarCorte() },
     { teclas: 'Alt+0', descripcion: 'Vista 3D inicial', accion: () => visor?.vista('inicial') },
     { teclas: 'Alt+7', descripcion: 'Vista 3D de frente', accion: () => visor?.vista('frente') },
     { teclas: 'Alt+8', descripcion: 'Vista 3D lateral', accion: () => visor?.vista('lateral') },
@@ -108,7 +122,7 @@ export function abrirAsistente(opciones) {
       alTocarTramo: (indice) => seleccionarParte({ tipo: 'tramo', indice }),
       alTocarAccesorio: (clave) => {
         const [tipo, dato] = clave.split(':');
-        seleccionarParte(tipo === 'boqueta' ? { tipo, indice: Number(dato) } : { tipo: 'tapa', lado: dato });
+        seleccionarParte(tipo === 'tapa' ? { tipo: 'tapa', lado: dato } : { tipo, indice: Number(dato) });
       },
       alTocarVacio: () => { if (editor3d) seleccionarParte(null); },
       alPasarSobreTramo: (indice) => { if (indice !== null && !editor3d) resaltar(indice); },
@@ -264,8 +278,15 @@ export function abrirAsistente(opciones) {
       formularioActual = formularioParametros(plantilla);
       panelMedidas.append(formularioActual);
     }
+    if (esPlegada) {
+      // Empalme (aparece solo si la pieza es más larga que la chapa).
+      panelMedidas.append(h('div', { 'data-contenedor': 'empalme' }, seccionEmpalme(contextoPieza)));
+    }
     if (borrador.accesorios) {
       panelMedidas.append(panelAccesorios());
+    }
+    if (esPlegada) {
+      panelMedidas.append(seccionCortes(contextoPieza, { agregarCorte }));
     }
 
     // --- Pestañas para celular ---
@@ -304,6 +325,7 @@ export function abrirAsistente(opciones) {
           const metros = leerNumero(e.target.value);
           borrador.largoCm = Number.isFinite(metros) ? Math.round(metros * 10000) / 100 : null;
           actualizar();
+          contenido.querySelector('[data-contenedor="empalme"]')?.replaceChildren(...[seccionEmpalme(contextoPieza)].filter(Boolean));
         },
       });
       campos.append(h('label', {}, 'Largo de la pieza (m) ', campoLargo));
@@ -349,52 +371,34 @@ export function abrirAsistente(opciones) {
       }));
   }
 
-  /** Canaletas: tapas (ninguna, soldada o engrampada) y boquetas puestas, con su forma, medida y posición. */
+  /** Canaletas: tapas (tipo, pestaña, a medida) y boquetas de cualquier tipo, en el fondo o en una tapa. */
   function panelAccesorios() {
-    const acc = borrador.accesorios;
-    const opcionesTapa = datos.config.accesoriosCanaleta.tiposDeTapa.map((t) => ({ valor: t, texto: t }));
-    const zona = h('section', { class: 'panel-accesorios' }, h('h3', {}, 'Tapas y boquetas de la canaleta'));
-    zona.append(h('div', { class: 'fila-campos' },
-      h('label', { class: 'campo-parametro' }, h('span', {}, 'Tapa izquierda'),
-        selector(opcionesTapa, acc.tapaIzquierda, { onchange: (e) => { acc.tapaIzquierda = e.target.value; actualizar(); } })),
-      h('label', { class: 'campo-parametro' }, h('span', {}, 'Tapa derecha'),
-        selector(opcionesTapa, acc.tapaDerecha, { onchange: (e) => { acc.tapaDerecha = e.target.value; actualizar(); } }))));
+    return seccionAccesorios(contextoPieza, { agregarBoqueta });
+  }
 
-    const numero = (objeto, campo, etiqueta) => h('label', { class: 'campo-parametro' }, h('span', {}, `${etiqueta} (cm)`),
-      h('input', {
-        type: 'text', inputmode: 'decimal', class: 'campo-medida', value: String(objeto[campo] ?? '').replace('.', ','),
-        oninput: (e) => { const n = leerNumero(e.target.value); objeto[campo] = Number.isFinite(n) ? n : e.target.value; actualizar(); },
-      }));
+  /** Vuelve a armar los paneles de tapas, boquetas, cortes y empalme del paso 2. */
+  function refrescarSecciones() {
+    if (paso !== 2 || !borrador) return;
+    contenido.querySelector('[data-seccion="accesorios"]')?.replaceWith(panelAccesorios());
+    contenido.querySelector('[data-seccion="cortes"]')?.replaceWith(seccionCortes(contextoPieza, { agregarCorte }));
+    contenido.querySelector('[data-contenedor="empalme"]')?.replaceChildren(...[seccionEmpalme(contextoPieza)].filter(Boolean));
+  }
 
-    acc.boquetas.forEach((b, i) => {
-      const campos = [
-        h('strong', { class: 'numero-boqueta' }, `Boqueta ${i + 1}`),
-        h('label', { class: 'campo-parametro' }, h('span', {}, 'Forma'),
-          selector(FORMAS_BOQUETA.map((f) => ({ valor: f, texto: f })), b.forma, {
-            onchange: (e) => { b.forma = e.target.value; zona.replaceWith(panelAccesorios()); actualizar(); },
-          })),
-      ];
-      if (b.forma === 'redonda') campos.push(numero(b, 'diametroCm', 'Diámetro'));
-      else if (b.forma === 'cuadrada') campos.push(numero(b, 'ladoACm', 'Lado'));
-      else campos.push(numero(b, 'ladoACm', 'Lado a'), numero(b, 'ladoBCm', 'Lado b'));
-      campos.push(numero(b, 'largoBocaCm', 'Largo de la boca'), numero(b, 'posicionCm', 'Posición desde la punta izq.'),
-        h('button', {
-          type: 'button', class: 'boton chico peligro',
-          onclick: () => { acc.boquetas.splice(i, 1); zona.replaceWith(panelAccesorios()); actualizar(); },
-        }, 'Quitar'));
-      zona.append(h('div', { class: 'fila-campos fila-boqueta' }, campos));
-    });
-    zona.append(h('button', { type: 'button', class: 'boton', onclick: () => agregarBoqueta() }, 'Agregar boqueta', etiquetaAtajo('Alt+Q')),
-      h('p', { class: 'texto-chico' }, 'La posición se mide desde la punta izquierda de la canaleta hasta el centro de la boqueta.'));
-    enterPasaAlSiguiente(zona);
-    return zona;
+  /** @returns {number|null} el número del corte nuevo (empieza en 0) */
+  function agregarCorte() {
+    if (paso !== 2 || borrador?.tipoPieza !== 'plegada') return null;
+    const indice = agregarCorteA(borrador, datos.config);
+    refrescarSecciones();
+    actualizar();
+    if (editor3d) editor3d.seleccionar({ tipo: 'corte', indice });
+    return indice;
   }
 
   /** @returns {number|null} el número de la boqueta nueva (empieza en 0) */
   function agregarBoqueta() {
     if (paso !== 2 || !borrador?.accesorios) return null;
     borrador.accesorios.boquetas.push(crearBoqueta(datos.config));
-    contenido.querySelector('.panel-accesorios')?.replaceWith(panelAccesorios());
+    refrescarSecciones();
     actualizar();
     const indice = borrador.accesorios.boquetas.length - 1;
     if (editor3d) editor3d.seleccionar({ tipo: 'boqueta', indice });
@@ -611,7 +615,9 @@ export function abrirAsistente(opciones) {
       const conLaser = (borrador.perfil?.tramos || []).map((t, i) => ({ t, i })).filter(({ t }) => t.corteLaser);
       zonaLaser.innerHTML = (conPendiente && resultado?.pendiente ? svgPendienteLateral(borrador, resultado.pendiente, { config: datos.config }) : '')
         + conLaser.map(({ t, i }) => svgCorteLaser(t, i + 1, borrador.largoCm, datos.config)).join('')
-        + svgPlantaCanaleta(borrador);
+        + svgPlantaCanaleta(borrador)
+        + svgCaras(borrador, datos.config)
+        + svgTapasConDetalle(borrador, datos.config);
     }
   }
 
@@ -668,7 +674,7 @@ export function abrirAsistente(opciones) {
       formularioActual.replaceWith(nuevo);
       formularioActual = nuevo;
     }
-    contenido.querySelector('.panel-accesorios')?.replaceWith(panelAccesorios());
+    refrescarSecciones();
     editor3d?.refrescar({ forzar: true });
   }
 
@@ -687,6 +693,7 @@ export function abrirAsistente(opciones) {
     if (seleccion?.tipo === 'tramo') resaltar(seleccion.indice);
     if (seleccion?.tipo === 'boqueta') { resaltar(null); visor?.resaltarAccesorio(`boqueta:${seleccion.indice}`); }
     if (seleccion?.tipo === 'tapa') { resaltar(null); visor?.resaltarAccesorio(`tapa:${seleccion.lado}`); }
+    if (seleccion?.tipo === 'corte') { resaltar(seleccion.indice !== undefined ? borrador.cortes?.[seleccion.indice]?.tramo ?? null : null); visor?.resaltarAccesorio(`corte:${seleccion.indice}`); }
   }
 
   /**
@@ -721,7 +728,7 @@ export function abrirAsistente(opciones) {
         return { ok: true };
       }
     }
-    const tipoValor = editar.tipo === 'angulo' ? 'angulo' : (editar.tipo === 'boqueta-posicion' ? 'posicion' : 'medida');
+    const tipoValor = editar.tipo === 'angulo' ? 'angulo' : (['boqueta-posicion', 'corte-posicion'].includes(editar.tipo) ? 'posicion' : 'medida');
     const lectura = leerValorDeCota(texto, tipoValor, datos.config);
     if (!lectura.ok) {
       mostrarAviso(lectura.mensaje, 'error');
@@ -734,6 +741,14 @@ export function abrirAsistente(opciones) {
     if (editar.tipo === 'largo') cambiarBorrador((b) => { b.largoCm = Math.round(valor * 10000) / 100; });
     if (editar.tipo === 'parametro') cambiarBorrador((b) => { b.parametros[editar.id] = valor; });
     if (editar.tipo === 'boqueta-posicion') cambiarBorrador((b) => { b.accesorios.boquetas[editar.indice].posicionCm = valor; });
+    if (editar.tipo === 'corte-posicion') cambiarBorrador((b) => { b.cortes[editar.indice].posicionCm = valor; });
+    if (editar.tipo === 'empalme-tramo') {
+      // Se cambia un tramo de chapa y el último se ajusta solo para que la suma dé el largo.
+      cambiarBorrador((b) => {
+        const tramos = tramosDeChapa(b, datos.config);
+        b.empalme = { modo: 'manual', tramosCm: ajustarTramoDeChapa(tramos, editar.indice, Math.round(valor * 10000) / 100, leerNumero(b.largoCm), datos.config.empalme?.solapeCm ?? 0) };
+      });
+    }
     if (editar.tipo === 'medida' || editar.tipo === 'angulo') editor3d?.seleccionar({ tipo: 'tramo', indice: editar.indice });
     return { ok: true };
   }
@@ -770,6 +785,7 @@ export function abrirAsistente(opciones) {
       obtenerBorrador: () => borrador,
       obtenerResultado: () => resultado,
       tieneHistorial: Boolean(editor),
+      contexto: contextoPieza,
       acciones: {
         modificarPerfil,
         cambiarBorrador,
@@ -781,6 +797,7 @@ export function abrirAsistente(opciones) {
           if (borrador.perfil.tramos.length > antes) seleccionarParte({ tipo: 'tramo', indice: editor.obtenerSeleccionado() ?? 0 });
         },
         agregarBoqueta,
+        agregarCorte,
         alternarPendiente,
         formularioParametros: () => (borrador.tipoPieza === 'plegada' ? null : formularioParametros(plantilla)),
         resaltarParte,

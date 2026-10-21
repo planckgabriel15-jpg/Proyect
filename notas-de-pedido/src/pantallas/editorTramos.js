@@ -38,6 +38,7 @@ function valorNumerico(texto) {
  *   alResaltar: (indice|null) => void,  // al pasar por una fila
  *   alDibujarAMano: () => void,
  *   conPendiente?: boolean,             // muestra las columnas de la punta final
+ *   compacto?: boolean,                 // sin "Agregar rápido" ni dibujo a mano (por ejemplo, para una tapa a medida)
  * }} opciones
  */
 export function crearEditorTramos(opciones) {
@@ -366,8 +367,8 @@ export function crearEditorTramos(opciones) {
   raiz.append(
     h('div', { class: 'fila-direccion' }, h('label', {}, 'El tramo 1 arranca hacia ', selectorDireccion, campoGrados)),
     h('div', { class: 'tabla-desplazable' }, tabla),
-    barra,
-    atajos);
+    barra);
+  if (!opciones.compacto) raiz.append(atajos);
   enterPasaAlSiguiente(raiz);
 
   dibujarTabla();

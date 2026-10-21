@@ -20,7 +20,7 @@ import { giroEnTramo } from '../logica/geometria.js';
 import { leerValorDeCota } from '../logica/cotas.js';
 import { cambiarTramo, insertarTramoAntes, insertarTramoDespues, borrarTramo } from '../logica/perfil.js';
 import { crearCorteLaser } from '../logica/corteLaser.js';
-import { FORMAS_BOQUETA } from '../logica/accesoriosCanaleta.js';
+import { camposDeBoqueta, camposDeTapa, camposDeCorte, seccionEmpalme } from './panelesPieza.js';
 import { medidaFinal, anguloFinal } from '../logica/pendiente.js';
 
 const TIPOS_DE_TRAMO = [
@@ -39,11 +39,13 @@ const TIPOS_DE_TRAMO = [
  *   obtenerBorrador: () => object,
  *   obtenerResultado: () => object,      // calcularRenglon() del borrador
  *   tieneHistorial: boolean,             // hay tabla de tramos (deshacer / rehacer)
+ *   contexto: object,                    // el de panelesPieza.js (tapas, boquetas, cortes, empalme)
  *   acciones: {
  *     modificarPerfil: (cambio, nuevoSeleccionado) => void,
  *     cambiarBorrador: (cambio: (borrador) => void) => void,
  *     accionPerfil: (nombre) => void,    // agregarTramo, aletaInicio… (las de la tabla de tramos)
  *     agregarBoqueta: () => number|null,
+ *     agregarCorte: () => number|null,
  *     alternarPendiente: () => void,     // plegado con pendiente sí / no
  *     formularioParametros: () => HTMLElement|null,
  *     resaltarParte: (seleccion|null) => void,
@@ -54,10 +56,18 @@ const TIPOS_DE_TRAMO = [
 export function abrirEditor3d(opciones) {
   const { contenedor3d, visor, datos, acciones } = opciones;
   const config = datos.config;
-  let seleccion = null; // {tipo:'tramo', indice} | {tipo:'boqueta', indice} | {tipo:'tapa', lado} | null
+  let seleccion = null; // {tipo:'tramo'|'boqueta'|'corte', indice} | {tipo:'tapa', lado} | null
   let panelPlegado = false;
 
   const borrador = () => opciones.obtenerBorrador();
+  // Los paneles de tapas, boquetas y cortes son los mismos del paso 2; si cambia algo que pide otros campos, se redibuja este panel.
+  const contexto = {
+    ...opciones.contexto,
+    alCambiar: (redibujar) => {
+      opciones.contexto.alCambiar(redibujar);
+      if (redibujar) dibujarPanel();
+    },
+  };
   const usaPerfil = () => borrador().tipoPieza === 'plegada' || borrador().usaPerfil;
 
   // ---------- estructura ----------
@@ -92,6 +102,7 @@ export function abrirEditor3d(opciones) {
     herramienta('Dobladillo al inicio', () => acciones.accionPerfil('dobladilloInicio'), 'Alt+3'),
     herramienta('Dobladillo al final', () => acciones.accionPerfil('dobladilloFinal'), 'Alt+4'),
     herramienta('Espejar', () => acciones.accionPerfil('espejar'), 'Alt+J'),
+    borrador().tipoPieza === 'plegada' ? herramienta('+ Corte', () => agregarCorte(), 'Alt+R') : null,
     herramienta('Borrar lo elegido', () => borrarSeleccion(), 'Delete', 'boton chico peligro'),
     opciones.tieneHistorial ? herramienta('Deshacer', () => acciones.accionPerfil('deshacer'), 'Ctrl+Z') : null,
     opciones.tieneHistorial ? herramienta('Rehacer', () => acciones.accionPerfil('rehacer'), 'Ctrl+Y') : null);
@@ -160,6 +171,11 @@ export function abrirEditor3d(opciones) {
     manija.setAttribute('aria-expanded', String(!plegar));
   }
 
+  function agregarCorte() {
+    const indice = acciones.agregarCorte();
+    if (indice !== null && indice !== undefined) seleccionar({ tipo: 'corte', indice });
+  }
+
   function agregarBoqueta() {
     const indice = acciones.agregarBoqueta();
     if (indice !== null && indice !== undefined) seleccionar({ tipo: 'boqueta', indice });
@@ -187,6 +203,11 @@ export function abrirEditor3d(opciones) {
       const { indice } = seleccion;
       if (!confirmar(`¿Quitar la boqueta ${indice + 1}?`)) return;
       acciones.cambiarBorrador((b) => { b.accesorios.boquetas.splice(indice, 1); });
+      seleccionar(null);
+    } else if (seleccion.tipo === 'corte') {
+      const { indice } = seleccion;
+      if (!confirmar(`¿Quitar el corte ${indice + 1}?`)) return;
+      acciones.cambiarBorrador((b) => { b.cortes.splice(indice, 1); });
       seleccionar(null);
     } else if (seleccion.tipo === 'tapa') {
       const { lado } = seleccion;
@@ -231,6 +252,9 @@ export function abrirEditor3d(opciones) {
       partes.push(...panelDeBoqueta(b, seleccion.indice));
     } else if (seleccion?.tipo === 'tapa' && b.accesorios) {
       partes.push(...panelDeTapa(b, seleccion.lado));
+    } else if (seleccion?.tipo === 'corte' && b.cortes?.[seleccion.indice]) {
+      partes.push(h('h3', {}, `Corte ${seleccion.indice + 1}`), ...camposDeCorte(contexto, seleccion.indice, { conQuitar: false }),
+        h('div', { class: 'barra-botones' }, h('button', { type: 'button', class: 'boton chico peligro', onclick: () => borrarSeleccion() }, 'Quitar corte', etiquetaAtajo('Delete'))));
     } else {
       seleccion = null;
       partes.push(...panelGeneral(b));
@@ -251,8 +275,11 @@ export function abrirEditor3d(opciones) {
         h('li', {}, 'Tocá una cara de la pieza para elegir ese tramo y cambiar sus datos.'),
         h('li', {}, 'Tocá una cota (el número) para escribir la medida o el ángulo nuevo. Enter confirma, Esc cancela.'),
         h('li', {}, 'Los botones "+" en las puntas agregan un tramo ahí.'),
-        b.accesorios ? h('li', {}, 'Tocá una tapa o una boqueta (o su cartel) para cambiarla o quitarla.') : null));
+        b.accesorios ? h('li', {}, 'Tocá una tapa o una boqueta (o su cartel) para cambiarla o quitarla.') : null,
+        h('li', {}, '"+ Corte" agrega un agujero en una cara (puede llevar pared alrededor).')));
     }
+    const empalme = seccionEmpalme(contexto);
+    if (empalme) partes.push(empalme);
     const formulario = acciones.formularioParametros();
     if (formulario) partes.push(formulario);
     return partes;
@@ -325,36 +352,18 @@ export function abrirEditor3d(opciones) {
   }
 
   function panelDeBoqueta(b, indice) {
-    const boqueta = b.accesorios.boquetas[indice];
-    const cambiar = (campo, estructural = false) => (valor) => {
-      acciones.cambiarBorrador((x) => { x.accesorios.boquetas[indice][campo] = valor; });
-      if (estructural) dibujarPanel();
-    };
-    const partes = [
+    return [
       h('h3', {}, `Boqueta ${indice + 1}`),
-      h('label', { class: 'campo-parametro' }, h('span', {}, 'Forma'),
-        selector(FORMAS_BOQUETA.map((f) => ({ valor: f, texto: f })), boqueta.forma, { onchange: (e) => cambiar('forma', true)(e.target.value) })),
+      ...camposDeBoqueta(contexto, indice, { conQuitar: false }),
+      h('div', { class: 'barra-botones' }, h('button', { type: 'button', class: 'boton chico peligro', onclick: () => borrarSeleccion() }, 'Quitar boqueta', etiquetaAtajo('Delete'))),
     ];
-    if (boqueta.forma === 'redonda') partes.push(campoNumero('Diámetro (cm)', boqueta.diametroCm, 'medida', cambiar('diametroCm')));
-    else if (boqueta.forma === 'cuadrada') partes.push(campoNumero('Lado (cm)', boqueta.ladoACm, 'medida', cambiar('ladoACm')));
-    else partes.push(campoNumero('Lado a (cm)', boqueta.ladoACm, 'medida', cambiar('ladoACm')), campoNumero('Lado b (cm)', boqueta.ladoBCm, 'medida', cambiar('ladoBCm')));
-    partes.push(
-      campoNumero('Largo de la boca (cm)', boqueta.largoBocaCm, 'medida', cambiar('largoBocaCm')),
-      campoNumero('Posición desde la punta izquierda (cm)', boqueta.posicionCm, 'posicion', cambiar('posicionCm')),
-      h('p', { class: 'texto-chico' }, 'La posición se mide hasta el centro de la boqueta.'),
-      h('div', { class: 'barra-botones' }, h('button', { type: 'button', class: 'boton chico peligro', onclick: () => borrarSeleccion() }, 'Quitar boqueta', etiquetaAtajo('Delete'))));
-    return partes;
   }
 
   function panelDeTapa(b, lado) {
-    const campo = lado === 'izquierda' ? 'tapaIzquierda' : 'tapaDerecha';
     return [
       h('h3', {}, `Tapa ${lado}`),
-      h('label', { class: 'campo-parametro' }, h('span', {}, 'Tipo de tapa'),
-        selector(config.accesoriosCanaleta.tiposDeTapa.map((t) => ({ valor: t, texto: t })), b.accesorios[campo], {
-          onchange: (e) => { acciones.cambiarBorrador((x) => { x.accesorios[campo] = e.target.value; }); dibujarPanel(); },
-        })),
-      h('p', { class: 'texto-chico' }, 'Soldada: la pestaña va hacia adentro. Engrampada: abraza la canaleta por afuera.'),
+      camposDeTapa(contexto, lado),
+      h('p', { class: 'texto-chico' }, 'Soldada: la pestaña va hacia adentro. Engrampada: abraza la canaleta por afuera. A medida: otra forma, que entre en la canaleta.'),
     ];
   }
 

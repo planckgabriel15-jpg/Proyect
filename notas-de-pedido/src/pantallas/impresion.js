@@ -23,6 +23,8 @@ import { svgPlantaCanaleta } from '../vistas2d/plantaCanaletaSvg.js';
 import { svgDelPerfil } from '../vistas2d/perfilSvg.js';
 import { svgCorteLaser } from '../vistas2d/corteLaserSvg.js';
 import { svgPendienteLateral } from '../vistas2d/pendienteSvg.js';
+import { svgCaras, svgTapasConDetalle } from '../vistas2d/carasSvg.js';
+import { detalleDeCortes } from '../logica/cortes.js';
 import { tienePendiente, perfilFinal } from '../logica/pendiente.js';
 import { svgDeEspecial } from '../vistas2d/especialSvg.js';
 import { cargar3d } from '../vistas3d/cargar3d.js';
@@ -108,7 +110,8 @@ export async function pantallaImpresion(contenedor, notaId) {
     }
     if (!c.porUnidad && c.desarrolloCm) detalles.push(h('li', {}, h('strong', {}, 'Desarrollo: '), `${formatearCorto(c.desarrolloCm, 1)} cm${c.desarrolloEsManual ? ' (corregido a mano)' : ''}`));
     if (renglon.terminacion === 'P' && !renglon.sinMaterial) detalles.push(h('li', {}, h('strong', {}, 'Pintura: '), renglon.ladoPintura === 'ambos' ? 'DE LOS DOS LADOS' : (renglon.ladoPintura || '—').toUpperCase()));
-    for (const linea of detalleDeAccesorios(renglon.accesorios)) detalles.push(h('li', {}, h('strong', {}, `${linea.split(':')[0]}: `), linea.split(':').slice(1).join(':').trim()));
+    if (vivo.empalme) detalles.push(h('li', {}, h('strong', {}, 'Empalme: '), vivo.empalme.texto));
+    for (const linea of [...detalleDeAccesorios(renglon.accesorios, renglon, datos.config), ...detalleDeCortes(renglon, datos.config)]) detalles.push(h('li', {}, h('strong', {}, `${linea.split(':')[0]}: `), linea.split(':').slice(1).join(':').trim()));
     for (const tramo of (usaPerfil ? renglon.perfil.tramos : []).filter((t) => t.corteLaser)) {
       detalles.push(h('li', {}, h('strong', {}, `Tramo ${renglon.perfil.tramos.indexOf(tramo) + 1}: `), describirCorteLaser(tramo.corteLaser)));
     }
@@ -122,7 +125,8 @@ export async function pantallaImpresion(contenedor, notaId) {
 
     const laseres = (conPendiente ? svgPendienteLateral(renglon, vivo.pendiente, { config: datos.config, ancho: 640, alto: 210 }) : '') + (usaPerfil
       ? renglon.perfil.tramos.map((t, n) => (t.corteLaser ? svgCorteLaser(t, n + 1, renglon.largoCm, datos.config, 560, 190) : '')).join('')
-      : '') + svgPlantaCanaleta(renglon, 640, 170 + 22 * (renglon.accesorios?.boquetas?.length || 0));
+      : '') + svgPlantaCanaleta(renglon, 640, 170 + 22 * (renglon.accesorios?.boquetas?.length || 0))
+      + svgCaras(renglon, datos.config) + svgTapasConDetalle(renglon, datos.config);
 
     tabla.append(h('tbody', { class: 'hoja-renglon' },
       h('tr', { class: 'fila-principal' },
