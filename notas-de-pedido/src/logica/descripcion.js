@@ -13,6 +13,7 @@
 import { leerNumero, formatearNumero, formatearCorto } from './numeros.js';
 import { describirAccesorios } from './accesoriosCanaleta.js';
 import { textoPendienteDescripcion } from './pendiente.js';
+import { describirCortes } from './cortes.js';
 
 /**
  * Reemplaza {nombreParametro} en el texto por el valor cargado.
@@ -96,6 +97,14 @@ export function armarDescripcion(renglon, materiales, resultado) {
 
   // 7) Tapas y boquetas puestas en la canaleta (al final, para no cambiar el formato del papel)
   partes.push(describirAccesorios(renglon.accesorios));
+
+  // 8) Cortes en la chapa
+  partes.push(describirCortes(renglon.cortes));
+
+  // 9) Empalme: en qué tramos de chapa se arma (SUPUESTO de formato, ver PENDIENTES.md)
+  if (resultado.empalme) {
+    partes.push(`empalme ${resultado.empalme.tramosCm.map((t) => formatearNumero(t / 100, 2)).join(' + ')}`);
+  }
 
   return partes.filter((parte) => parte !== '').join(' ');
 }

@@ -293,3 +293,27 @@ export function ladoPintadoDelPerfil(perfil, ladoPintura, config) {
   }
   return exterior;
 }
+
+/**
+ * El "fondo" del perfil: el tramo más bajo de los que están más horizontales que verticales
+ * (en una canaleta, la base). Ahí van las boquetas y, por defecto, los cortes.
+ * @param {Array} segmentos  los de calcularGeometria()
+ * @returns {{indice: number, punto: {x, y}}}  el tramo y su punto medio
+ */
+export function buscarFondo(segmentos) {
+  let mejor = null;
+  for (const s of segmentos || []) {
+    const dx = Math.abs(s.fin.x - s.inicio.x);
+    const dy = Math.abs(s.fin.y - s.inicio.y);
+    if (dx < dy) continue; // no es horizontal
+    const yMedio = (s.inicio.y + s.fin.y) / 2;
+    if (!mejor || yMedio < mejor.punto.y - 1e-9) {
+      mejor = { indice: s.indice, punto: { x: (s.inicio.x + s.fin.x) / 2, y: yMedio } };
+    }
+  }
+  if (mejor) return mejor;
+  const primero = segmentos?.[0];
+  return primero
+    ? { indice: 0, punto: { x: (primero.inicio.x + primero.fin.x) / 2, y: (primero.inicio.y + primero.fin.y) / 2 } }
+    : { indice: 0, punto: { x: 0, y: 0 } };
+}

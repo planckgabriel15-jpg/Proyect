@@ -81,6 +81,8 @@ export function validarParametros(plantilla, parametros) {
   const problemas = [];
   for (const definicion of parametrosVisibles(plantilla, parametros)) {
     const valor = parametros?.[definicion.id];
+    // Medida opcional (las agregadas después, con proporción por defecto): vacía no es error.
+    if (definicion.opcional && (valor === undefined || valor === null || valor === '')) continue;
     if (definicion.tipo === 'numero' || definicion.tipo === 'diametro') {
       const numero = leerNumero(valor);
       const minimo = definicion.minimo ?? 0;

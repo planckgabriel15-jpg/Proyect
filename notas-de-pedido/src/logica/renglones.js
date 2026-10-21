@@ -79,6 +79,10 @@ export function crearRenglonDesdePlantilla(plantilla, config) {
     accesorios: plantilla.admiteAccesorios ? accesoriosVacios() : null,
     // Plegado con pendiente: el perfil cambia de una punta a la otra (ver pendiente.js).
     conPendiente: false,
+    // Cortes (agujeros) en las caras, con pared opcional (ver cortes.js).
+    cortes: [],
+    // Empalme cuando la pieza es más larga que la chapa (ver empalme.js). null = automático.
+    empalme: null,
   };
 }
 

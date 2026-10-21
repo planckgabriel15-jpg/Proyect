@@ -14,8 +14,10 @@ import { validarTramos, validarLargo, validarMaterialYCantidad } from './validac
 import { armarDescripcion } from './descripcion.js';
 import { buscarPlantilla } from './renglones.js';
 import { armarCodigoGenerico } from './codigoGenerico.js';
-import { validarAccesorios, medidaDeBoqueta } from './accesoriosCanaleta.js';
-import { tienePendiente, calcularPendiente, validarPendiente, perfilFinal } from './pendiente.js';
+import { validarAccesorios, normalizarBoqueta, nombreDeBoqueta, perfilDeTapa, TIPOS_BOQUETA, tipoDeTapa } from './accesoriosCanaleta.js';
+import { validarCortes } from './cortes.js';
+import { tramosDeChapa, validarEmpalme, textoEmpalme } from './empalme.js';
+import { tienePendiente, calcularPendiente, validarPendiente } from './pendiente.js';
 
 export const AVISO_CODIGO_GENERICO = 'Código genérico: no está en la tabla de facturación, confirmarlo con administración';
 
@@ -92,10 +94,19 @@ export function calcularRenglon(renglon, datos) {
   if (renglon.usaLargo !== false) {
     agregar(validarLargo(renglon.largoCm, config));
   }
+  // Empalme: en qué tramos de chapa se arma la pieza (si es más larga que la chapa, o si se pidió).
+  const tramosChapa = renglon.usaLargo !== false && renglon.tipoPieza === 'plegada' ? tramosDeChapa(renglon, config) : [];
+  const empalme = tramosChapa.length > 1 ? { tramosCm: tramosChapa, texto: textoEmpalme(tramosChapa) } : null;
+  if (empalme) agregar(validarEmpalme(renglon, config));
 
   // ---- 2b) Tapas y boquetas puestas en la canaleta ----
   if (renglon.accesorios) {
-    agregar(validarAccesorios(renglon.accesorios, renglon.largoCm, config));
+    agregar(validarAccesorios(renglon.accesorios, renglon.largoCm, config, renglon));
+  }
+
+  // ---- 2c) Cortes en las caras ----
+  if (renglon.cortes?.length) {
+    agregar(validarCortes(renglon, config));
   }
 
   // ---- 3) Material, calibre, color, cantidad ----
@@ -151,7 +162,7 @@ export function calcularRenglon(renglon, datos) {
   const codigosAdicionales = renglon.accesorios ? codigosDeAccesorios(renglon, datos) : [];
 
   // ---- 6) Descripción ----
-  const descripcion = armarDescripcion(renglon, materiales, { desarrolloCm, porUnidad, pendiente });
+  const descripcion = armarDescripcion(renglon, materiales, { desarrolloCm, porUnidad, pendiente, empalme });
 
   return {
     desarrolloCm,
@@ -167,6 +178,7 @@ export function calcularRenglon(renglon, datos) {
     puedeEmitirse: errores.length === 0,
     problemasTramos,
     pendiente,
+    empalme,
   };
 }
 
@@ -193,26 +205,31 @@ export function codigosDeAccesorios(renglon, datos) {
   };
 
   const defTapa = definicionDe(catalogo, 'tapa_suelta', { siglas: 'TS', medidas: ['desarrolloPerfil'] });
-  // Cada tapa lleva el perfil de su punta. Sin pendiente las dos son iguales → el mismo código, en una línea.
-  // Con pendiente la derecha tiene el perfil final (otro desarrollo → otro código).
-  const conPendiente = tienePendiente(renglon);
-  const perfilDe = (lado) => (lado === 'der.' && conPendiente ? perfilFinal(renglon.perfil) : renglon.perfil);
-  const tapas = [['izq.', acc.tapaIzquierda], ['der.', acc.tapaDerecha]]
-    .filter(([, tipo]) => tipo && tipo !== 'ninguna')
-    .map(([lado, tipo]) => ({ lado, tipo, codigo: armarCodigoGenerico(defTapa, { ...renglon, perfil: perfilDe(lado), parametros: {} }, materiales) }));
+  // Cada tapa lleva su perfil: el de la canaleta en esa punta (con pendiente la derecha es otro)
+  // o el suyo si es a medida. Si las dos dan el mismo código, van juntas en una línea.
+  const tapas = ['izquierda', 'derecha']
+    .map((lado) => ({ lado, abreviado: lado === 'izquierda' ? 'izq.' : 'der.', tipo: tipoDeTapa(acc, lado) }))
+    .filter((t) => t.tipo !== 'ninguna')
+    .map((t) => ({ ...t, codigo: armarCodigoGenerico(defTapa, { ...renglon, perfil: perfilDeTapa(renglon, t.lado, datos.config), parametros: {} }, materiales) }));
   for (const codigo of [...new Set(tapas.map((t) => t.codigo))]) {
     const iguales = tapas.filter((t) => t.codigo === codigo);
-    const detalle = iguales.map((t) => `${t.lado} ${t.tipo}`).join(', ');
+    const detalle = iguales.map((t) => `${t.abreviado} ${t.tipo}`).join(', ');
     sumar(codigo, iguales.length > 1 ? `2 tapas (${detalle})` : `tapa ${detalle}`, iguales.length * cantidadCanaletas);
   }
 
+  // Cada boqueta factura con el código del mismo producto suelto (boqueta, tronera, colector…).
   const defBoqueta = definicionDe(catalogo, 'boqueta_suelta', {
     siglasPorForma: { redonda: 'BQ', cuadrada: 'BQC', rectangular: 'BQR' },
     medidasPorForma: { redonda: ['diametroCm'], cuadrada: ['ladoACm'], rectangular: ['ladoACm', 'ladoBCm'] },
   });
-  for (const boqueta of acc.boquetas || []) {
-    const codigo = armarCodigoGenerico(defBoqueta, { ...renglon, parametros: { ...boqueta } }, materiales);
-    sumar(codigo, `boqueta ${boqueta.forma} ${medidaDeBoqueta(boqueta)}`, cantidadCanaletas);
+  for (const original of acc.boquetas || []) {
+    const boqueta = normalizarBoqueta(original, datos.config);
+    const tipo = TIPOS_BOQUETA.find((t) => t.valor === boqueta.tipo) || TIPOS_BOQUETA[0];
+    const definicion = tipo.valor === 'boqueta' ? defBoqueta : definicionDe(catalogo, tipo.plantillaId, null);
+    // Los artículos de reventa (colectores) no llevan letra de color ni material en el código.
+    const sinMaterial = Boolean(catalogo && buscarPlantilla(catalogo, tipo.plantillaId)?.sinMaterial);
+    const codigo = definicion ? armarCodigoGenerico(definicion, { ...renglon, sinMaterial, parametros: { ...boqueta } }, materiales) : null;
+    sumar(codigo, nombreDeBoqueta(boqueta), cantidadCanaletas);
   }
   return lista;
 }
