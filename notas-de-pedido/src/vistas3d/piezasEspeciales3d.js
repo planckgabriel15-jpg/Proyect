@@ -11,6 +11,7 @@ import * as THREE from 'three';
 import { leerNumero } from '../logica/numeros.js';
 import { calcularGeometria, ladoPintadoDelPerfil } from '../logica/geometria.js';
 import { construirDesdeSegmentos } from './extrusion.js';
+import { caminoDeHueco } from './huecos3d.js';
 
 export const num = (valor, porDefecto) => {
   const n = leerNumero(valor);
@@ -35,14 +36,14 @@ function superficie(geometria, materiales, ladoPintura) {
 }
 
 /** Caño abierto (cilindro sin tapas). Si lados = 4 queda cuadrado (se escala a rectángulo afuera). */
-function tubo(radio, alto, materiales, ladoPintura, lados = 48, radioArriba = radio) {
+export function tubo(radio, alto, materiales, ladoPintura, lados = 48, radioArriba = radio) {
   const geometria = new THREE.CylinderGeometry(radioArriba, radio, alto, lados, 1, true);
   geometria.translate(0, alto / 2, 0); // la base queda en y = 0
   return superficie(geometria, materiales, ladoPintura);
 }
 
 /** Caño rectangular a × b de alto dado (base en y = 0). */
-function tuboRectangular(a, b, alto, materiales, ladoPintura) {
+export function tuboRectangular(a, b, alto, materiales, ladoPintura) {
   const geometria = new THREE.CylinderGeometry(Math.SQRT1_2, Math.SQRT1_2, alto, 4, 1, true);
   geometria.rotateY(Math.PI / 4);
   geometria.scale(a, 1, b);
@@ -128,6 +129,16 @@ function techoSegunForma(p, factor, alto, m, lado, haciaArriba = true) {
   return superficie(geometria, m, lado);
 }
 
+/**
+ * Alto del caño, alto del techo y "ala" de un sombrero: lo que cargó el vendedor o,
+ * si no hay dato (renglones viejos), las proporciones de siempre.
+ * factorAla = cuánto más grande que el caño es el techo.
+ */
+function medidasDeSombrero(p, radio, porDefecto) {
+  const ala = num(p.alaCm, porDefecto.ala);
+  return { cano: num(p.altoCanoCm, radio * 3), techo: num(p.altoTechoCm, porDefecto.techo), factorAla: (radio + ala) / radio };
+}
+
 /** Medida de referencia del sombrero (para las proporciones). */
 export function medidaReferencia(p) {
   return p.forma === 'rectangular' ? Math.max(num(p.ladoACm, 20), num(p.ladoBCm, 10)) / 2 : num(p.diametroCm, 15) / 2;
@@ -198,7 +209,7 @@ export const GENERADORES = {
     const radio = num(p.diametroCm, 10) / 2;
     const angulo = (num(p.anguloGrados, 90) * Math.PI) / 180;
     const gajos = Math.max(2, Math.round(num(p.gajos, 4)));
-    const radioCurva = radio * 3;
+    const radioCurva = Math.max(num(p.radioCurvaCm, radio * 3), radio * 1.05);
     // Arco que arranca en el origen subiendo (+Y) y dobla hacia +X.
     class Arco extends THREE.Curve {
       getPoint(t, destino = new THREE.Vector3()) {
@@ -216,7 +227,7 @@ export const GENERADORES = {
     const a = num(p.ladoACm, 10);
     const b = num(p.ladoBCm, 5);
     const angulo = (num(p.anguloGrados, 90) * Math.PI) / 180;
-    const radioCurva = Math.max(a, b) * 1.6;
+    const radioCurva = Math.max(num(p.radioCurvaCm, Math.max(a, b) * 1.6), (Math.max(a, b) / 2) * 1.05);
     class Arco extends THREE.Curve {
       getPoint(t, destino = new THREE.Vector3()) {
         const ang = t * angulo;
@@ -241,10 +252,11 @@ export const GENERADORES = {
     const radio = num(p.diametroCm, 10) / 2;
     const radioRamal = num(p.diametroRamalCm, radio * 2) / 2;
     const angulo = (num(p.anguloGrados, 45) * Math.PI) / 180;
+    const largo = num(p.largoPrincipalCm, radio * 8);
     const grupo = new THREE.Group();
-    grupo.add(tubo(radio, radio * 8, m, r.ladoPintura));
-    const ramal = tubo(radioRamal, radio * 5, m, r.ladoPintura);
-    ramal.position.set(0, radio * 3, 0);
+    grupo.add(tubo(radio, largo, m, r.ladoPintura));
+    const ramal = tubo(radioRamal, num(p.largoRamalCm, radio * 5), m, r.ladoPintura);
+    ramal.position.set(0, largo * (3 / 8), 0);
     ramal.rotation.z = -angulo;
     grupo.add(ramal);
     return grupo;
@@ -271,43 +283,51 @@ export const GENERADORES = {
 
   sombreroChino(p, r, m) {
     const radio = medidaReferencia(p);
+    const alto = medidasDeSombrero(p, radio, { ala: radio * 0.9, techo: radio * 1.1 });
+    const separacion = num(p.separacionCm, radio * 0.8);
     const grupo = new THREE.Group();
-    grupo.add(tuboSegunForma(p, radio * 3, m, r.ladoPintura));
-    const techo = techoSegunForma(p, 1.9, radio * 1.1, m, r.ladoPintura);
-    techo.position.y = radio * 3.8;
+    grupo.add(tuboSegunForma(p, alto.cano, m, r.ladoPintura));
+    const techo = techoSegunForma(p, alto.factorAla, alto.techo, m, r.ladoPintura);
+    techo.position.y = alto.cano + separacion;
     grupo.add(techo);
-    grupo.add(patitas(radio * 0.95, radio * 2.6, radio * 3.9, m));
+    grupo.add(patitas(radio * 0.95, alto.cano - radio * 0.4, alto.cano + separacion + radio * 0.1, m));
     return grupo;
   },
 
   sombreroCanadiense(p, r, m) {
     // Salamandra / canadiense: caño, faldón y techo cónico (forma aproximada, ver PENDIENTES.md).
     const radio = medidaReferencia(p);
+    const alto = medidasDeSombrero(p, radio, { ala: radio, techo: radio * 1.2 });
+    const faldonAlto = num(p.altoFaldonCm, radio * 0.9);
     const grupo = new THREE.Group();
-    grupo.add(tuboSegunForma(p, radio * 3, m, r.ladoPintura));
-    const faldon = tuboSegunForma(p, radio * 0.9, m, r.ladoPintura, 1.8);
-    faldon.position.y = radio * 3.2;
+    grupo.add(tuboSegunForma(p, alto.cano, m, r.ladoPintura));
+    const faldon = tuboSegunForma(p, faldonAlto, m, r.ladoPintura, 1.8);
+    faldon.position.y = alto.cano + radio * 0.2;
     grupo.add(faldon);
-    const techo = techoSegunForma(p, 2, radio * 1.2, m, r.ladoPintura);
-    techo.position.y = radio * 4.1;
+    const techo = techoSegunForma(p, alto.factorAla, alto.techo, m, r.ladoPintura);
+    techo.position.y = alto.cano + radio * 0.2 + faldonAlto;
     grupo.add(techo);
-    grupo.add(patitas(radio * 0.95, radio * 2.6, radio * 3.3, m));
+    grupo.add(patitas(radio * 0.95, alto.cano - radio * 0.4, alto.cano + radio * 0.3, m));
     return grupo;
   },
 
   sombreroH(p, r, m) {
     // Sombrero "H": el caño sube hasta un travesaño horizontal que une dos caños verticales abiertos.
     const radio = medidaReferencia(p);
+    const altoCano = num(p.altoCanoCm, radio * 4);
+    const separacion = num(p.separacionCm, radio * 7);
+    const altoPatas = num(p.altoPatasCm, radio * 3.2);
+    const yTravesano = altoCano + radio * 0.6;
     const grupo = new THREE.Group();
-    grupo.add(tuboSegunForma(p, radio * 4, m, r.ladoPintura));
-    const travesano = tuboSegunForma(p, radio * 7, m, r.ladoPintura);
+    grupo.add(tuboSegunForma(p, altoCano, m, r.ladoPintura));
+    const travesano = tuboSegunForma(p, separacion, m, r.ladoPintura);
     travesano.rotation.z = Math.PI / 2;
-    travesano.position.set(radio * 3.5, radio * 4.6, 0);
+    travesano.position.set(separacion / 2, yTravesano, 0);
     grupo.add(travesano);
     // Los dos caños verticales de las puntas (las "patas" de la H), abiertos arriba y abajo.
-    for (const x of [-radio * 3.5, radio * 3.5]) {
-      const pata = tuboSegunForma(p, radio * 3.2, m, r.ladoPintura);
-      pata.position.set(x, radio * 3, 0);
+    for (const x of [-separacion / 2, separacion / 2]) {
+      const pata = tuboSegunForma(p, altoPatas, m, r.ladoPintura);
+      pata.position.set(x, yTravesano - altoPatas / 2, 0);
       grupo.add(pata);
     }
     return grupo;
@@ -316,17 +336,18 @@ export const GENERADORES = {
   sombreroSpiro(p, r, m) {
     // Tipo Spiro: caño con varios aros cónicos apilados y techo (forma aproximada).
     const radio = medidaReferencia(p);
+    const alto = medidasDeSombrero(p, radio, { ala: radio * 0.9, techo: radio });
     const grupo = new THREE.Group();
-    grupo.add(tuboSegunForma(p, radio * 3, m, r.ladoPintura));
+    grupo.add(tuboSegunForma(p, alto.cano, m, r.ladoPintura));
     for (let i = 0; i < 3; i++) {
       const aro = techoSegunForma(p, 1.7, radio * 0.45, m, r.ladoPintura, false);
-      aro.position.y = radio * (3.2 + i * 0.5);
+      aro.position.y = alto.cano + radio * (0.2 + i * 0.5);
       grupo.add(aro);
     }
-    const techo = techoSegunForma(p, 1.9, radio * 1, m, r.ladoPintura);
-    techo.position.y = radio * 4.8;
+    const techo = techoSegunForma(p, alto.factorAla, alto.techo, m, r.ladoPintura);
+    techo.position.y = alto.cano + radio * 1.8;
     grupo.add(techo);
-    grupo.add(patitas(radio * 0.95, radio * 2.6, radio * 4.9, m));
+    grupo.add(patitas(radio * 0.95, alto.cano - radio * 0.4, alto.cano + radio * 1.9, m));
     return grupo;
   },
 
@@ -362,17 +383,22 @@ export const GENERADORES = {
  * Tapa de canaleta: chapa con la forma del perfil + pestaña de apoyo alrededor.
  * @param {number} z        dónde va la tapa (0 = punta izquierda de la canaleta)
  * @param {number} sentidoZ +1 = la pestaña entra hacia +Z; −1 = hacia −Z
+ * @param {{dy?: number, huecos?: Array<{x, y, huella}>}} opciones
+ *        dy: cuánto se corre la tapa (una tapa a medida se apoya en el fondo);
+ *        huecos: agujeros de las boquetas puestas en la tapa (en cm, como la canaleta)
  */
-export function construirTapa(renglonTapa, materiales, config, z, sentidoZ) {
+export function construirTapa(renglonTapa, materiales, config, z, sentidoZ, opciones = {}) {
   const grupo = new THREE.Group();
   const perfil = renglonTapa.perfil;
   if (!perfil?.tramos?.length) return grupo;
   const geometria = calcularGeometria(perfil, config);
   const pestana = num(renglonTapa.parametros?.pestanaApoyoCm, 1.5);
+  const dy = opciones.dy || 0;
 
-  // 1) Chapa plana con la forma del perfil.
+  // 1) Chapa plana con la forma del perfil (con los agujeros de las boquetas).
   const forma = new THREE.Shape(geometria.puntos.map((q) => new THREE.Vector2(q.x, q.y)));
-  const plano = superficie(new THREE.ShapeGeometry(forma), materiales, renglonTapa.ladoPintura);
+  for (const hueco of opciones.huecos || []) forma.holes.push(caminoDeHueco(hueco.x, hueco.y - dy, hueco.huella));
+  const plano = superficie(new THREE.ShapeGeometry(forma, 24), materiales, renglonTapa.ladoPintura);
   plano.position.z = z;
   grupo.add(plano);
 
@@ -385,5 +411,30 @@ export function construirTapa(renglonTapa, materiales, config, z, sentidoZ) {
   const borde = construirDesdeSegmentos(geometria.segmentos.map((s) => ({ indice: s.indice, inicio: s.inicio, fin: s.fin })), pestana, lados, config);
   borde.position.z = sentidoZ > 0 ? z : z - pestana;
   grupo.add(borde);
+  grupo.position.y = dy;
+  return grupo;
+}
+
+/**
+ * Boqueta puesta en la canaleta, de cualquiera de los tipos que se venden sueltos.
+ * La boca queda en y = 0 y la boqueta baja hacia −Y (se gira para ponerla en una tapa).
+ */
+export function construirBoqueta(boqueta, renglon, materiales, config) {
+  const tipo = boqueta.tipo || 'boqueta';
+  if (tipo === 'boqueta') return GENERADORES.boquetaSuelta({ pestanaCm: 2, ...boqueta }, renglon, materiales, config);
+  const grupo = new THREE.Group();
+  if (tipo === 'colector_recto') {
+    const colector = tuboRectangular(num(boqueta.ladoACm, 10), num(boqueta.ladoBCm, 5), 15, materiales, renglon.ladoPintura);
+    colector.position.y = -15;
+    grupo.add(colector);
+    return grupo;
+  }
+  // Tronera (y embudo colector moldura): boca rectangular arriba y salida redonda abajo.
+  const parametros = tipo === 'tronera'
+    ? boqueta
+    : { bocaACm: boqueta.ladoACm, bocaBCm: boqueta.ladoBCm, diametroSalidaCm: Math.min(num(boqueta.ladoACm, 20), num(boqueta.ladoBCm, 10)) * 0.8, altoCm: 10 };
+  const embudo = GENERADORES.embudo(parametros, renglon, materiales, config);
+  embudo.position.y = -num(parametros.altoCm, 12);
+  grupo.add(embudo);
   return grupo;
 }

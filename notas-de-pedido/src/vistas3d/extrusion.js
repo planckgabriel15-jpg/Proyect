@@ -12,6 +12,7 @@
 import * as THREE from 'three';
 import { calcularGeometria, ladoPintadoDelPerfil } from '../logica/geometria.js';
 import { generarBordeOndulado } from '../logica/corteLaser.js';
+import { caminoDeHueco } from './huecos3d.js';
 
 const ESPESOR_VISUAL_CM = 0.25; // espesor dibujado (no es el real: es para que se vea)
 
@@ -21,7 +22,21 @@ const ESPESOR_VISUAL_CM = 0.25; // espesor dibujado (no es el real: es para que 
  * v = a lo largo de la pieza (0 → largo). Si el tramo tiene corte láser en su
  * borde libre, ese borde sale ondulado.
  */
-function formaDelTramo(medidaCm, largoCm, corteLaser, bordeLibre, config) {
+function formaDelTramo(medidaCm, largoCm, corteLaser, bordeLibre, config, huecos = []) {
+  const forma = formaSinHuecos(medidaCm, largoCm, corteLaser, bordeLibre, config);
+  // Agujeros (cortes y boquetas): solo los que entran enteros en la cara.
+  for (const hueco of huecos) {
+    const medioU = hueco.huella.forma === 'circulo' ? hueco.huella.diametro / 2 : hueco.huella.ancho / 2;
+    const medioV = hueco.huella.forma === 'circulo' ? hueco.huella.diametro / 2 : hueco.huella.alto / 2;
+    if (!(medioU > 0) || !(medioV > 0)) continue;
+    if (hueco.centroU - medioU <= 0.01 || hueco.centroU + medioU >= medidaCm - 0.01) continue;
+    if (hueco.centroZ - medioV <= 0.01 || hueco.centroZ + medioV >= largoCm - 0.01) continue;
+    forma.holes.push(caminoDeHueco(hueco.centroU, hueco.centroZ, hueco.huella));
+  }
+  return forma;
+}
+
+function formaSinHuecos(medidaCm, largoCm, corteLaser, bordeLibre, config) {
   const forma = new THREE.Shape();
   if (corteLaser && bordeLibre) {
     const borde = generarBordeOndulado(largoCm, corteLaser, config, 24);
@@ -50,7 +65,7 @@ function formaDelTramo(medidaCm, largoCm, corteLaser, bordeLibre, config) {
 
 /**
  * Arma la pieza a partir de segmentos 2D.
- * @param {Array<{indice, inicio:{x,y}, fin:{x,y}, corteLaser?, bordeLibre?}>} segmentos
+ * @param {Array<{indice, inicio:{x,y}, fin:{x,y}, corteLaser?, bordeLibre?, huecos?}>} segmentos
  * @param {number} largoCm
  * @param {{izquierda: THREE.Material, derecha: THREE.Material}} materialesPorLado
  *        material de la cara que queda a la izquierda / derecha del recorrido
@@ -68,7 +83,7 @@ export function construirDesdeSegmentos(segmentos, largoCm, materialesPorLado, c
     const ejeV = new THREE.Vector3(0, 0, 1);                      // a lo largo de la pieza
     const normalDerecha = new THREE.Vector3(dy / medida, -dx / medida, 0); // = ejeU × ejeV
 
-    const geometria = new THREE.ShapeGeometry(formaDelTramo(medida, largoCm, segmento.corteLaser, segmento.bordeLibre, config));
+    const geometria = new THREE.ShapeGeometry(formaDelTramo(medida, largoCm, segmento.corteLaser, segmento.bordeLibre, config, segmento.huecos), 24);
     const grupoTramo = new THREE.Group();
     grupoTramo.userData.tramo = segmento.indice;
 
@@ -113,8 +128,9 @@ function materialesSegunLado(perfil, materiales, ladoPintura, config) {
  * @param {{pintado, sinPintar, esPrepintada}} materiales  de materiales3d.js
  * @param {string|null} ladoPintura 'afuera' | 'adentro'
  * @param {object|null} perfilFin  con pendiente: el perfil de la punta final (Z = largo)
+ * @param {Array} huecos  agujeros de cortes y boquetas (ver logica/cortes.js → huecosEnCaras)
  */
-export function construirPlegada(perfil, largoCm, materiales, ladoPintura, config, perfilFin = null) {
+export function construirPlegada(perfil, largoCm, materiales, ladoPintura, config, perfilFin = null, huecos = []) {
   if (perfilFin) return construirConPendiente(perfil, perfilFin, largoCm, materiales, ladoPintura, config);
   const geometria = calcularGeometria(perfil, config);
   const ultimo = geometria.segmentos.length - 1;
@@ -125,6 +141,7 @@ export function construirPlegada(perfil, largoCm, materiales, ladoPintura, confi
     corteLaser: s.tramo.corteLaser || null,
     // El corte va en el borde libre: el comienzo del primer tramo o el final del último.
     bordeLibre: s.indice === 0 ? 'inicio' : (s.indice === ultimo ? 'fin' : null),
+    huecos: huecos.filter((h) => h.tramo === s.indice),
   }));
 
   const grupo = construirDesdeSegmentos(segmentos, largoCm, materialesSegunLado(perfil, materiales, ladoPintura, config), config);

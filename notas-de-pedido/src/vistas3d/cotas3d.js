@@ -19,10 +19,12 @@
 import * as THREE from 'three';
 import { leerNumero, formatearNumero, formatearCorto } from '../logica/numeros.js';
 import { cotasDelPerfil } from '../logica/cotas.js';
-import { calcularLimites, calcularGeometria } from '../logica/geometria.js';
+import { calcularLimites, calcularGeometria, ladoExteriorDelPerfil } from '../logica/geometria.js';
 import { parametrosVisibles } from '../logica/piezasEspeciales.js';
 import { buscarPlantilla } from '../logica/renglones.js';
-import { medidaDeBoqueta } from '../logica/accesoriosCanaleta.js';
+import { normalizarBoqueta, nombreDeBoqueta, centroDeBoquetaEnTapa, tipoDeTapa, medidasDeTapa } from '../logica/accesoriosCanaleta.js';
+import { medidaDeCorte, centroDelCorte } from '../logica/cortes.js';
+import { tramosDeChapa, posicionesDeUniones } from '../logica/empalme.js';
 import { num, medidaReferencia } from './piezasEspeciales3d.js';
 import { fondoEn } from './modelo.js';
 import { tienePendiente, perfilFinal, calcularPendiente } from '../logica/pendiente.js';
@@ -117,9 +119,14 @@ export function construirCotas(renglon, datos, modelo) {
     const separacion = Math.max(Math.max(limites.ancho, limites.alto, 1) * 0.12, 1);
     if (renglon.usaLargo !== false) {
       grupo.add(cotaDelLargo(limites, largoCm, separacion, etiquetas));
+      const tramos = tramosDeChapa(renglon, config);
+      if (tramos.length > 1) grupo.add(cotasDelEmpalme(limites, tramos, separacion, etiquetas, config));
     }
     if (renglon.accesorios) {
-      grupo.add(cotasDeAccesorios(renglon, modelo, limites, largoCm, separacion, etiquetas));
+      grupo.add(cotasDeAccesorios(renglon, modelo, limites, largoCm, separacion, etiquetas, config));
+    }
+    if (renglon.cortes?.length) {
+      grupo.add(cotasDeCortes(renglon, config, largoCm, separacion, etiquetas));
     }
   } else {
     grupo.add(cotasDeEspecial(renglon, datos, modelo, largoCm, etiquetas, ficha));
@@ -205,14 +212,93 @@ function cotaDelLargo(limites, largoCm, separacion, etiquetas) {
   return grupo;
 }
 
+/** Empalme: cuánto mide cada tramo de chapa (al costado de la cota del largo; se pueden cambiar). */
+function cotasDelEmpalme(limites, tramos, separacion, etiquetas, config) {
+  const grupo = new THREE.Group();
+  const trazos = new Trazos();
+  const x = limites.minX - separacion * 2.8;
+  const y = limites.minY - separacion * 1.6;
+  const uniones = [0, ...posicionesDeUniones(tramos, config.empalme?.solapeCm ?? 0)];
+  tramos.forEach((t, i) => {
+    const a = v3(x, y, uniones[i]);
+    const b = v3(x, y, uniones[i] + t);
+    trazos.linea(a, b);
+    marcas(trazos, a, b, v3(-1, 0, 0), separacion * 1.2);
+    etiquetas.push({
+      ancla: grupo, posicion: a.clone().add(b).multiplyScalar(0.5), texto: `chapa ${i + 1}: ${formatearNumero(t / 100, 2)} m`,
+      clase: 'cota-medida cota-empalme', prioridad: 4, editar: { tipo: 'empalme-tramo', indice: i }, valor: t / 100, unidad: 'm',
+      titulo: `Tramo de chapa ${i + 1} del empalme: tocá para cambiarlo (el último se ajusta solo)`,
+    });
+  });
+  grupo.add(trazos.objeto());
+  return grupo;
+}
+
+/** Cortes: cartel de cada corte y su posición desde la punta izquierda. */
+function cotasDeCortes(renglon, config, largoCm, separacion, etiquetas) {
+  const grupo = new THREE.Group();
+  const trazos = new Trazos();
+  const geometria = calcularGeometria(renglon.perfil, config);
+  const exteriorDerecha = ladoExteriorDelPerfil(renglon.perfil, config) === 'derecha';
+  renglon.cortes.forEach((corte, i) => {
+    const s = geometria.segmentos[corte.tramo];
+    if (!s) return;
+    const dx = s.fin.x - s.inicio.x;
+    const dy = s.fin.y - s.inicio.y;
+    const medida = Math.hypot(dx, dy) || 1;
+    const u = v3(dx / medida, dy / medida, 0);
+    const n = v3(dy / medida, -dx / medida, 0).multiplyScalar(exteriorDerecha ? 1 : -1); // hacia afuera
+    const centro = v3(s.inicio.x, s.inicio.y, 0).addScaledVector(u, centroDelCorte(corte, medida));
+    const posicionCm = Math.min(Math.max(leerNumero(corte.posicionCm) || 0, 0), largoCm);
+    const linea = centro.clone().addScaledVector(n, separacion * (0.9 + i * 0.5));
+    const a = linea.clone().setZ(0);
+    const b = linea.clone().setZ(posicionCm);
+    trazos.linea(a, b);
+    trazos.linea(b, centro.clone().setZ(posicionCm));
+    marcas(trazos, a, b, n, separacion);
+    etiquetas.push({
+      ancla: grupo, posicion: a.clone().add(b).multiplyScalar(0.5), texto: `corte ${i + 1}: ${cm(leerNumero(corte.posicionCm))}`,
+      clase: 'cota-medida', prioridad: 2, editar: { tipo: 'corte-posicion', indice: i }, valor: leerNumero(corte.posicionCm), unidad: 'cm',
+      titulo: `Posición del corte ${i + 1} (desde la punta izquierda hasta el centro)`,
+    });
+    etiquetas.push({
+      ancla: grupo, posicion: centro.clone().addScaledVector(n, separacion * 0.4).setZ(posicionCm), texto: `corte ${medidaDeCorte(corte)}`,
+      clase: 'cota-dato', prioridad: 1, editar: { tipo: 'seleccionar', seleccion: { tipo: 'corte', indice: i } },
+      titulo: 'Tocá para cambiar la forma, la medida, la cara o la pared del corte',
+    });
+  });
+  grupo.add(trazos.objeto());
+  return grupo;
+}
+
+/** Cuánto baja la boqueta desde el fondo (aproximado, como se dibuja en piezasEspeciales3d.js). */
+function profundidadDeBoqueta(b) {
+  if (b.tipo === 'tronera') return num(b.altoCm, 12) + num(b.diametroSalidaCm, 10);
+  if (b.tipo === 'colector_recto') return 15;
+  if (b.tipo === 'embudo_colector_moldura') return 10 + Math.min(num(b.ladoACm, 20), num(b.ladoBCm, 10)) * 0.8;
+  return num(b.pestanaCm, 2) * 0.6 + num(b.largoBocaCm, 10);
+}
+
 /** Canaleta: posición de cada boqueta (desde la punta izquierda) y cartel de cada tapa. */
-function cotasDeAccesorios(renglon, modelo, limites, largoCm, separacion, etiquetas) {
+function cotasDeAccesorios(renglon, modelo, limites, largoCm, separacion, etiquetas, config) {
   const grupo = new THREE.Group();
   const trazos = new Trazos();
   const acc = renglon.accesorios;
   const pieza = modelo.children.find((o) => o.userData.esPiezaPrincipal);
 
-  acc.boquetas.forEach((b, i) => {
+  acc.boquetas.forEach((original, i) => {
+    const b = normalizarBoqueta(original, config);
+    if (b.ubicacion !== 'fondo') {
+      // En una tapa: el cartel va en la boca, sobre la tapa.
+      const centro = centroDeBoquetaEnTapa(renglon, b, config);
+      etiquetas.push({
+        ancla: grupo, posicion: v3(centro.x, centro.y, b.ubicacion === 'tapaIzquierda' ? -separacion : largoCm + separacion),
+        texto: `${nombreDeBoqueta(b)} (en la tapa)`, clase: 'cota-dato', prioridad: 1,
+        editar: { tipo: 'seleccionar', seleccion: { tipo: 'boqueta', indice: i } },
+        titulo: 'Tocá para cambiar la boqueta, su altura o su corrimiento',
+      });
+      return;
+    }
     const posicionCm = Math.min(Math.max(leerNumero(b.posicionCm) || 0, 0), largoCm);
     const fondo = fondoEn(pieza, posicionCm / largoCm);
     const y = limites.minY - separacion * (2.4 + i * 0.9);
@@ -227,18 +313,20 @@ function cotasDeAccesorios(renglon, modelo, limites, largoCm, separacion, etique
       titulo: `Posición de la boqueta ${i + 1} (desde la punta izquierda hasta el centro)`,
     });
     etiquetas.push({
-      ancla: grupo, posicion: v3(fondo.x, fondo.y - separacion * 1.2, posicionCm), texto: `boqueta ${medidaDeBoqueta(b)}`,
-      clase: 'cota-dato', prioridad: 0, editar: { tipo: 'seleccionar', seleccion: { tipo: 'boqueta', indice: i } },
+      // El cartel va en la punta de abajo de la boqueta, así no se pisa con la cota de la posición.
+      ancla: grupo, posicion: v3(fondo.x, fondo.y - profundidadDeBoqueta(b) - separacion * 0.4, posicionCm), texto: nombreDeBoqueta(b),
+      clase: 'cota-dato', prioridad: 1, editar: { tipo: 'seleccionar', seleccion: { tipo: 'boqueta', indice: i } },
       titulo: 'Tocá para cambiar la forma o la medida de la boqueta',
     });
   });
 
   const arriba = limites.maxY + separacion * 0.8;
   for (const [lado, z] of [['izquierda', 0], ['derecha', largoCm]]) {
-    const tipo = lado === 'izquierda' ? acc.tapaIzquierda : acc.tapaDerecha;
+    const tipo = tipoDeTapa(acc, lado);
+    const aMedida = medidasDeTapa(acc, lado, config).aMedida ? ' a medida' : '';
     etiquetas.push({
       ancla: grupo, posicion: v3((limites.minX + limites.maxX) / 2, arriba, z),
-      texto: tipo === 'ninguna' ? `sin tapa ${lado === 'izquierda' ? 'izq.' : 'der.'}` : `tapa ${tipo}`,
+      texto: tipo === 'ninguna' ? `sin tapa ${lado === 'izquierda' ? 'izq.' : 'der.'}` : `tapa ${tipo}${aMedida}`,
       clase: 'cota-dato', prioridad: 0, soloEdicion: tipo === 'ninguna',
       editar: { tipo: 'seleccionar', seleccion: { tipo: 'tapa', lado } },
       titulo: `Tapa ${lado}: tocá para elegir soldada, engrampada o ninguna`,
@@ -277,10 +365,11 @@ const COTAS_ESPECIALES = {
   codoRedondo(p) {
     const radio = num(p.diametroCm, 10) / 2;
     const angulo = (num(p.anguloGrados, 90) * Math.PI) / 180;
-    const radioCurva = radio * 3;
+    const radioCurva = Math.max(num(p.radioCurvaCm, radio * 3), radio * 1.05);
     return [
       { a: v3(-radio, 0, 0), b: v3(radio, 0, 0), normal: v3(0, -1, 0), parametro: 'diametroCm' },
       { punto: v3(radioCurva, 0, 0), parametro: 'anguloGrados' },
+      { punto: v3(radioCurva * 0.5, -radio * 0.6, 0), parametro: 'radioCurvaCm' },
       { punto: v3(radioCurva - radioCurva * Math.cos(angulo / 2) - radio * 1.6, radioCurva * Math.sin(angulo / 2) + radio * 0.6, 0), parametro: 'gajos' },
     ];
   },
@@ -291,7 +380,8 @@ const COTAS_ESPECIALES = {
     return [
       { a: v3(-a / 2, 0, b / 2), b: v3(a / 2, 0, b / 2), normal: v3(0, -1, 0), parametro: 'ladoACm' },
       { a: v3(-a / 2, 0, -b / 2), b: v3(-a / 2, 0, b / 2), normal: v3(-1, 0, 0), parametro: 'ladoBCm' },
-      { punto: v3(Math.max(a, b) * 1.6, 0, 0), parametro: 'anguloGrados' },
+      { punto: v3(Math.max(num(p.radioCurvaCm, Math.max(a, b) * 1.6), Math.max(a, b) / 2), 0, 0), parametro: 'anguloGrados' },
+      { punto: v3(Math.max(a, b) * 0.8, -b * 0.8, 0), parametro: 'radioCurvaCm' },
     ];
   },
 
@@ -301,11 +391,16 @@ const COTAS_ESPECIALES = {
     const angulo = (num(p.anguloGrados, 45) * Math.PI) / 180;
     const direccion = v3(Math.sin(angulo), Math.cos(angulo), 0);
     const perpendicular = v3(Math.cos(angulo), -Math.sin(angulo), 0);
-    const punta = v3(0, radio * 3, 0).addScaledVector(direccion, radio * 5);
+    const largo = num(p.largoPrincipalCm, radio * 8);
+    const largoRamal = num(p.largoRamalCm, radio * 5);
+    const base = v3(0, largo * (3 / 8), 0);
+    const punta = base.clone().addScaledVector(direccion, largoRamal);
     return [
       { a: v3(-radio, 0, 0), b: v3(radio, 0, 0), normal: v3(0, -1, 0), parametro: 'diametroCm' },
+      { a: v3(-radio, 0, 0), b: v3(-radio, largo, 0), normal: v3(-1, 0, 0), parametro: 'largoPrincipalCm' },
       { a: punta.clone().addScaledVector(perpendicular, -radioRamal), b: punta.clone().addScaledVector(perpendicular, radioRamal), normal: direccion, parametro: 'diametroRamalCm' },
-      { punto: v3(0, radio * 3, 0).addScaledVector(direccion.clone().add(v3(0, 1, 0)).normalize(), radio * 2.6), parametro: 'anguloGrados' },
+      { a: base.clone().addScaledVector(perpendicular, radioRamal), b: punta.clone().addScaledVector(perpendicular, radioRamal), normal: perpendicular, parametro: 'largoRamalCm' },
+      { punto: base.clone().addScaledVector(direccion.clone().add(v3(0, 1, 0)).normalize(), radio * 2.6), parametro: 'anguloGrados' },
     ];
   },
 
@@ -333,11 +428,38 @@ const COTAS_ESPECIALES = {
     ];
   },
 
-  sombreroChino: (p) => seccion(p, 0, -1),
-  sombreroCanadiense: (p) => seccion(p, 0, -1),
-  sombreroSpiro: (p) => seccion(p, 0, -1),
-  sombreroH: (p) => seccion(p, 0, -1),
+  sombreroChino: (p) => cotasDeSombrero(p, { ala: 0.9, techo: 1.1, alTecho: (r, cano) => cano + num(p.separacionCm, r * 0.8) }),
+  sombreroCanadiense: (p) => cotasDeSombrero(p, { ala: 1, techo: 1.2, alTecho: (r, cano) => cano + r * 0.2 + num(p.altoFaldonCm, r * 0.9) }),
+  sombreroSpiro: (p) => cotasDeSombrero(p, { ala: 0.9, techo: 1, alTecho: (r, cano) => cano + r * 1.8 }),
+  sombreroH(p) {
+    const r = medidaReferencia(p);
+    const cano = num(p.altoCanoCm, r * 4);
+    const separacion = num(p.separacionCm, r * 7);
+    const yTravesano = cano + r * 0.6;
+    const altoPatas = num(p.altoPatasCm, r * 3.2);
+    return [
+      ...seccion(p, 0, -1),
+      largoVertical(p, 0, cano, 'altoCanoCm'),
+      { a: v3(-separacion / 2, yTravesano + altoPatas / 2, 0), b: v3(separacion / 2, yTravesano + altoPatas / 2, 0), normal: v3(0, 1, 0), parametro: 'separacionCm' },
+      { a: v3(separacion / 2 + r, yTravesano - altoPatas / 2, 0), b: v3(separacion / 2 + r, yTravesano + altoPatas / 2, 0), normal: v3(1, 0, 0), parametro: 'altoPatasCm' },
+    ];
+  },
 };
+
+/** Sombreros con caño, ala y techo: Ø o lados del caño, alto del caño, ala y alto del techo. */
+function cotasDeSombrero(p, proporciones) {
+  const r = medidaReferencia(p);
+  const cano = num(p.altoCanoCm, r * 3);
+  const ala = num(p.alaCm, r * proporciones.ala);
+  const altoTecho = num(p.altoTechoCm, r * proporciones.techo);
+  const yTecho = proporciones.alTecho(r, cano);
+  return [
+    ...seccion(p, 0, -1),
+    largoVertical(p, 0, cano, 'altoCanoCm'),
+    { a: v3(r, yTecho, 0), b: v3(r + ala, yTecho, 0), normal: v3(0, -1, 0), parametro: 'alaCm' },
+    { a: v3(r + ala, yTecho, 0), b: v3(r + ala, yTecho + altoTecho, 0), normal: v3(1, 0, 0), parametro: 'altoTechoCm' },
+  ];
+}
 
 /** Ancho de la sección (para correr las cotas verticales hacia afuera del caño). */
 function anchoSeccion(p) {

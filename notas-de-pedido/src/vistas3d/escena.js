@@ -163,10 +163,12 @@ export function crearVisor3d(contenedor, opciones = {}) {
     return tamano.z > 3 * Math.max(tamano.x, tamano.y) ? 'punta' : 'iso';
   }
 
+  let tamanoEncuadrado = 0; // lado mayor de la pieza la última vez que se encuadró
   function vista(nombre) {
     if (!modelo) return;
     ultimaVista = nombre;
     camaraMovida = false;
+    tamanoEncuadrado = ladoMayor(modelo);
     const efectiva = nombre === 'inicial' ? vistaInicial() : nombre;
     const direccion = DIRECCIONES_VISTA[efectiva] || DIRECCIONES_VISTA.iso;
     // Con las cotas prendidas se encuadra la pieza junto con sus cotas (y con un poco más de aire).
@@ -207,6 +209,11 @@ export function crearVisor3d(contenedor, opciones = {}) {
     for (const e of etiquetas) {
       e.elemento.classList.toggle('resaltada', e.datos.indiceTramo !== undefined && e.datos.indiceTramo === tramoResaltado);
     }
+  }
+
+  function ladoMayor(objeto) {
+    const tamano = new THREE.Box3().setFromObject(objeto).getSize(new THREE.Vector3());
+    return Math.max(tamano.x, tamano.y, tamano.z, 1);
   }
 
   function liberar(objeto) {
@@ -392,7 +399,10 @@ export function crearVisor3d(contenedor, opciones = {}) {
       if (edicionAbierta) redibujarAlCerrar = true;
       else armarCotas();
       aplicarResaltado();
-      if (!encuadrado || reencuadrar) {
+      // Se vuelve a encuadrar la primera vez, si se pide, o si la pieza cambió mucho de tamaño
+      // (por ejemplo, una chapa de 10 cm que pasa a 50) y el vendedor no movió la cámara.
+      const cambioMucho = tamanoEncuadrado > 0 && Math.abs(Math.log(ladoMayor(modelo) / tamanoEncuadrado)) > Math.log(1.4);
+      if (!encuadrado || reencuadrar || (cambioMucho && !camaraMovida)) {
         vista(ultimaVista);
         encuadrado = true;
       }
