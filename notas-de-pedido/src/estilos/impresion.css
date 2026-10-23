@@ -29,7 +29,12 @@
 .col-cantidad { width: 20mm; text-align: center; font-weight: 700; font-size: 12pt; }
 .fila-principal td { font-size: 12pt; font-weight: 700; }
 .numero-en-hoja { font-weight: 900; }
-.hoja-renglon { break-inside: avoid; page-break-inside: avoid; }
+/* Cada fila entera en una hoja; el renglón sí se puede partir entre filas (si no, un renglón alto
+   se pasaba entero a la hoja siguiente y dejaba la primera casi vacía). */
+.hoja-renglon tr { break-inside: avoid; page-break-inside: avoid; }
+.fila-principal { break-after: avoid; page-break-after: avoid; }
+.fila-laser td { border-top: none; }
+.hoja-laser > svg { break-inside: avoid; }
 .hoja-dibujos { display: grid; grid-template-columns: 1fr 1fr; grid-template-areas: "dos tres" "detalles detalles"; gap: 3mm 4mm; align-items: start; }
 .hoja-2d { grid-area: dos; }
 .hoja-2d svg { width: 100%; height: auto; max-height: 85mm; }
@@ -40,7 +45,7 @@
 .hoja-3d img { max-height: 75mm; object-fit: contain; }
 .hoja-detalles li { margin-bottom: 1mm; }
 .hoja-laser .planta-svg { max-height: 50mm; border: none; border-top: 1px dashed #000; border-radius: 0; }
-.hoja-laser svg { width: 100%; height: auto; max-height: 45mm; border-top: 1px dashed #000; margin-top: 2mm; }
+.hoja-laser svg { width: 100%; height: auto; max-height: 45mm; border: none; border-top: 1px dashed #000; border-radius: 0; margin-top: 2mm; }
 .resaltar-texto { font-weight: 700; text-decoration: underline; }
 .marca-borrador { position: absolute; top: 3mm; left: 50%; transform: translateX(-50%); font-weight: 900; border: 2px dashed #000; padding: 1mm 4mm; font-size: 10pt; }
 .hoja-pie-pantalla { margin-top: 4mm; font-size: 9pt; border-top: 1px solid #000; padding-top: 2mm; }

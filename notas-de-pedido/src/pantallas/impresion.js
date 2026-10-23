@@ -142,8 +142,10 @@ export async function pantallaImpresion(contenedor, notaId) {
         h('div', { class: 'hoja-dibujos' },
           h('div', { class: 'hoja-2d', html: dibujo2d }),
           h('div', { class: 'hoja-3d', 'data-renglon': renglon.id }),
-          h('ul', { class: 'hoja-detalles' }, detalles)),
-        laseres ? h('div', { class: 'hoja-laser', html: laseres }) : null))));
+          h('ul', { class: 'hoja-detalles' }, detalles)))),
+      // Vistas extra (corte láser, desde arriba, caras con cortes, tapas) en otra fila:
+      // así un renglón largo puede seguir en la hoja siguiente sin dejar la primera vacía.
+      laseres ? h('tr', { class: 'fila-laser' }, h('td', { colspan: 3 }, h('div', { class: 'hoja-laser', html: laseres }))) : null));
   });
 
   const hoja = h('article', { class: 'hoja-a4' },
