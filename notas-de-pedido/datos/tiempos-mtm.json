@@ -1,0 +1,1419 @@
+{
+  "_leeme": "Modelo de tiempo estándar (MTM) de la zinguería. Generado con herramientas/importar-modelo-mtm.py desde la planilla \"Modelo MTM Zinguería\" (hojas PARAMETROS_GLOBALES, ACTIVIDADES, MATERIALES, TIPOS_PLIEGUE_Y_DETALLES y MTM_CODIGOS). Los valores se editan desde Producción > Parámetros de tiempos (los cambios quedan guardados aparte y se pueden descartar). Estado: DATO = con fuente; [SUPUESTO] = elegido por el analista; [A VALIDAR] = hay que cronometrarlo en planta.",
+  "version": "Modelo MTM Zinguería v1.0 (28/10/2026)",
+  "tmuNota": "1 TMU = 0,00001 h = 0,036 s (MTM-1 Data Card, MTM ASSOCIATION e.V., 2019)",
+  "calculados": [
+    {
+      "clave": "p_supl_total",
+      "formula": "suma de los suplementos (p_supl_np + … + p_supl_demoras)"
+    },
+    {
+      "clave": "p_t_golpe_guill_s",
+      "formula": "60 ÷ p_guill_gpm"
+    },
+    {
+      "clave": "p_d_max_mm",
+      "formula": "ancho de chapa (config.anchoChapaCm) − despunte (config.cantidadDeChapas.margenEscuadreCm)"
+    },
+    {
+      "clave": "p_t_ciclo_manual",
+      "formula": "actividad A21 × p_tmu_s"
+    },
+    {
+      "clave": "p_l_max_m",
+      "formula": "el menor entre p_guill_largo_max_m y p_pleg_largo_max_m"
+    },
+    {
+      "clave": "p_ancho_chapa_mm",
+      "formula": "config.anchoChapaCm × 10"
+    },
+    {
+      "clave": "p_margen_escuadre_mm",
+      "formula": "config.cantidadDeChapas.margenEscuadreCm × 10"
+    }
+  ],
+  "parametros": [
+    {
+      "clave": "p_tmu_s",
+      "valor": 0.036,
+      "unidad": "s/TMU",
+      "descripcion": "Conversión TMU a segundos (1 TMU = 0,00001 h = 0,036 s).",
+      "fuente": "MTM ASSOCIATION e.V. (2019). MTM-1 Data Card (SI). https://mtm.org/fileadmin/user_upload/MTM-1_datacard_2019_EN.pdf",
+      "confianza": "Alta",
+      "estado": "DATO",
+      "grupo": "General"
+    },
+    {
+      "clave": "p_eficiencia",
+      "valor": 1.0,
+      "unidad": "fracción",
+      "descripcion": "Actuación real de planta respecto del estándar MTM (100 % LMS). T esperado = T estándar / eficiencia. Recalibrar con la hoja VALIDACION.",
+      "fuente": "Supuesto inicial: actuación estándar.",
+      "confianza": "Baja",
+      "estado": "[SUPUESTO]",
+      "grupo": "General"
+    },
+    {
+      "clave": "p_supl_np",
+      "valor": 0.05,
+      "unidad": "fracción",
+      "descripcion": "Suplemento por necesidades personales.",
+      "fuente": "OIT, Kanawaty (ed.) (1992/1996), Introducción al estudio del trabajo, 4.ª ed., tabla de suplementos; Freivalds y Niebel (2014), cap. 11",
+      "confianza": "Alta",
+      "estado": "DATO",
+      "grupo": "Suplementos"
+    },
+    {
+      "clave": "p_supl_fb",
+      "valor": 0.04,
+      "unidad": "fracción",
+      "descripcion": "Suplemento básico por fatiga.",
+      "fuente": "OIT, Kanawaty (ed.) (1992/1996), Introducción al estudio del trabajo, 4.ª ed., tabla de suplementos; Freivalds y Niebel (2014), cap. 11",
+      "confianza": "Alta",
+      "estado": "DATO",
+      "grupo": "Suplementos"
+    },
+    {
+      "clave": "p_supl_pie",
+      "valor": 0.02,
+      "unidad": "fracción",
+      "descripcion": "Suplemento variable: trabajo de pie.",
+      "fuente": "OIT, Kanawaty (ed.) (1992/1996), Introducción al estudio del trabajo, 4.ª ed., tabla de suplementos; Freivalds y Niebel (2014), cap. 11",
+      "confianza": "Alta",
+      "estado": "DATO",
+      "grupo": "Suplementos"
+    },
+    {
+      "clave": "p_supl_postura",
+      "valor": 0.02,
+      "unidad": "fracción",
+      "descripcion": "Suplemento variable: postura incómoda (inclinarse sobre mesa de guillotina y pilas de chapa). Nivel 'incómoda' de la tabla OIT.",
+      "fuente": "OIT, Kanawaty (ed.) (1992/1996), Introducción al estudio del trabajo, 4.ª ed., tabla de suplementos; Freivalds y Niebel (2014), cap. 11. Nivel elegido por el analista.",
+      "confianza": "Media",
+      "estado": "[SUPUESTO]",
+      "grupo": "Suplementos"
+    },
+    {
+      "clave": "p_supl_fuerza",
+      "valor": 0.02,
+      "unidad": "fracción",
+      "descripcion": "Suplemento variable: uso de fuerza. Tabla OIT: 1 % a 5 kg y 2 % a 7,5 kg por levantamiento.",
+      "fuente": "OIT, Kanawaty (ed.) (1992/1996), Introducción al estudio del trabajo, 4.ª ed., tabla de suplementos; Freivalds y Niebel (2014), cap. 11. Peso medio por operario estimado (chapa de 4 a 8 kg).",
+      "confianza": "Media",
+      "estado": "[SUPUESTO]",
+      "grupo": "Suplementos"
+    },
+    {
+      "clave": "p_supl_ruido",
+      "valor": 0.02,
+      "unidad": "fracción",
+      "descripcion": "Suplemento variable: ruido intermitente fuerte (guillotina, plegadora).",
+      "fuente": "OIT, Kanawaty (ed.) (1992/1996), Introducción al estudio del trabajo, 4.ª ed., tabla de suplementos; Freivalds y Niebel (2014), cap. 11. Confirmar con medición de ruido.",
+      "confianza": "Media",
+      "estado": "[A VALIDAR]",
+      "grupo": "Suplementos"
+    },
+    {
+      "clave": "p_supl_atencion",
+      "valor": 0.0,
+      "unidad": "fracción",
+      "descripcion": "Suplemento variable: tensión visual o atención (trabajo bastante fino = 0 %).",
+      "fuente": "OIT, Kanawaty (ed.) (1992/1996), Introducción al estudio del trabajo, 4.ª ed., tabla de suplementos; Freivalds y Niebel (2014), cap. 11",
+      "confianza": "Media",
+      "estado": "[SUPUESTO]",
+      "grupo": "Suplementos"
+    },
+    {
+      "clave": "p_supl_monotonia",
+      "valor": 0.0,
+      "unidad": "fracción",
+      "descripcion": "Suplemento variable: monotonía baja (0 %).",
+      "fuente": "OIT, Kanawaty (ed.) (1992/1996), Introducción al estudio del trabajo, 4.ª ed., tabla de suplementos; Freivalds y Niebel (2014), cap. 11",
+      "confianza": "Media",
+      "estado": "[SUPUESTO]",
+      "grupo": "Suplementos"
+    },
+    {
+      "clave": "p_supl_tedio",
+      "valor": 0.0,
+      "unidad": "fracción",
+      "descripcion": "Suplemento variable: tedio (algo tedioso = 0 %).",
+      "fuente": "OIT, Kanawaty (ed.) (1992/1996), Introducción al estudio del trabajo, 4.ª ed., tabla de suplementos; Freivalds y Niebel (2014), cap. 11",
+      "confianza": "Media",
+      "estado": "[SUPUESTO]",
+      "grupo": "Suplementos"
+    },
+    {
+      "clave": "p_supl_demoras",
+      "valor": 0.03,
+      "unidad": "fracción",
+      "descripcion": "Suplemento por demoras inevitables y contingencias (la OIT sugiere no superar 5 %).",
+      "fuente": "OIT (Kanawaty, 1992). Determinar por muestreo del trabajo.",
+      "confianza": "Baja",
+      "estado": "[A VALIDAR]",
+      "grupo": "Suplementos"
+    },
+    {
+      "clave": "p_supl_en_maquina",
+      "valor": 1.0,
+      "unidad": "0/1",
+      "descripcion": "1 = aplicar suplementos también al tiempo de máquina (el operario sostiene la pieza durante el ciclo); 0 = no aplicar.",
+      "fuente": "Criterio del estudio.",
+      "confianza": "Media",
+      "estado": "[SUPUESTO]",
+      "grupo": "Suplementos"
+    },
+    {
+      "clave": "p_d_rack_m",
+      "valor": 10.0,
+      "unidad": "m",
+      "descripcion": "Distancia depósito de chapa a guillotina (un sentido).",
+      "fuente": "Distribución de planta no relevada.",
+      "confianza": "Baja",
+      "estado": "[A VALIDAR]",
+      "grupo": "Planta"
+    },
+    {
+      "clave": "p_d_guill_pleg_m",
+      "valor": 6.0,
+      "unidad": "m",
+      "descripcion": "Distancia guillotina a plegadora (traslado del carro de tiras).",
+      "fuente": "Distribución de planta no relevada.",
+      "confianza": "Baja",
+      "estado": "[A VALIDAR]",
+      "grupo": "Planta"
+    },
+    {
+      "clave": "p_d_despacho_m",
+      "valor": 20.0,
+      "unidad": "m",
+      "descripcion": "Distancia plegadora a depósito de terminados (un sentido).",
+      "fuente": "Distribución de planta no relevada.",
+      "confianza": "Baja",
+      "estado": "[A VALIDAR]",
+      "grupo": "Planta"
+    },
+    {
+      "clave": "p_paso_lateral_m",
+      "valor": 0.5,
+      "unidad": "m",
+      "descripcion": "Longitud media de un paso lateral al recorrer una pieza larga.",
+      "fuente": "Supuesto del analista (MTM-1 SS-C1: 17,0 TMU hasta 30 cm, + 0,2 TMU/cm adicional).",
+      "confianza": "Media",
+      "estado": "[SUPUESTO]",
+      "grupo": "Planta"
+    },
+    {
+      "clave": "p_recorridos_lat_pliegue",
+      "valor": 2.0,
+      "unidad": "recorridos",
+      "descripcion": "Recorridos laterales por golpe cuando un solo operario alinea una pieza larga (ir al extremo y volver al pedal).",
+      "fuente": "Supuesto del analista.",
+      "confianza": "Baja",
+      "estado": "[A VALIDAR]",
+      "grupo": "Planta"
+    },
+    {
+      "clave": "p_l_ref_manip_m",
+      "valor": 1.6,
+      "unidad": "m",
+      "descripcion": "Largo de pieza que un operario controla sin desplazarse (envergadura de brazos menos margen).",
+      "fuente": "Supuesto antropométrico del analista.",
+      "confianza": "Media",
+      "estado": "[A VALIDAR]",
+      "grupo": "Operarios"
+    },
+    {
+      "clave": "p_l_umbral_2op_m",
+      "valor": 2.5,
+      "unidad": "m",
+      "descripcion": "Largo a partir del cual se asignan dos operarios a corte y plegado.",
+      "fuente": "Supuesto del analista. Confirmar con la práctica del taller.",
+      "confianza": "Baja",
+      "estado": "[A VALIDAR]",
+      "grupo": "Operarios"
+    },
+    {
+      "clave": "p_peso_max_1op_kg",
+      "valor": 23.0,
+      "unidad": "kg",
+      "descripcion": "Peso máximo de pieza para un solo operario (constante de carga de la ecuación NIOSH).",
+      "fuente": "Waters et al. (1993), Ergonomics 36(7). Verificar contra Res. MTEySS 295/2003, Anexo I, tablas I a III.",
+      "confianza": "Media",
+      "estado": "DATO",
+      "grupo": "Operarios"
+    },
+    {
+      "clave": "p_k_sinc_2op",
+      "valor": 1.1,
+      "unidad": "factor",
+      "descripcion": "Factor de coordinación cuando dos operarios manipulan la misma pieza (aplicado al trabajo manual).",
+      "fuente": "Supuesto del analista: MTM no tabula la sincronización entre dos personas.",
+      "confianza": "Baja",
+      "estado": "[A VALIDAR]",
+      "grupo": "Operarios"
+    },
+    {
+      "clave": "p_corte_largo_en_planta",
+      "valor": 1.0,
+      "unidad": "0/1",
+      "descripcion": "1 = la chapa se corta a largo en la guillotina (desde bobina o fleje); 0 = llega cortada a largo.",
+      "fuente": "Supuesto del analista.",
+      "confianza": "Baja",
+      "estado": "[A VALIDAR]",
+      "grupo": "Material"
+    },
+    {
+      "clave": "p_d_min_mm",
+      "valor": 20.0,
+      "unidad": "mm",
+      "descripcion": "Desarrollo mínimo admisible (control de errores).",
+      "fuente": "Supuesto del analista.",
+      "confianza": "Media",
+      "estado": "[SUPUESTO]",
+      "grupo": "Material"
+    },
+    {
+      "clave": "p_l_min_m",
+      "valor": 0.1,
+      "unidad": "m",
+      "descripcion": "Largo mínimo admisible (control de errores).",
+      "fuente": "Supuesto del analista.",
+      "confianza": "Media",
+      "estado": "[SUPUESTO]",
+      "grupo": "Material"
+    },
+    {
+      "clave": "p_guill_largo_max_m",
+      "valor": 3.2,
+      "unidad": "m",
+      "descripcion": "Largo de corte de la guillotina.",
+      "fuente": "Referencia de mercado: guillotinas hidráulicas 4 × 3200 mm. Ficha CORMAK NC SHARK 4x3200: 8 a 12 golpes/min. https://www.cormak.pl/gb/product/3144-hydraulic-guillotine-shears-cormak-nc-shark-4x3200.html",
+      "confianza": "Baja",
+      "estado": "[A VALIDAR]",
+      "grupo": "Guillotina"
+    },
+    {
+      "clave": "p_guill_esp_max_mm",
+      "valor": 4.0,
+      "unidad": "mm",
+      "descripcion": "Espesor máximo de corte en acero dulce (S235).",
+      "fuente": "Ficha CORMAK NC SHARK 4x3200: 8 a 12 golpes/min. https://www.cormak.pl/gb/product/3144-hydraulic-guillotine-shears-cormak-nc-shark-4x3200.html",
+      "confianza": "Baja",
+      "estado": "[A VALIDAR]",
+      "grupo": "Guillotina"
+    },
+    {
+      "clave": "p_guill_gpm",
+      "valor": 12.0,
+      "unidad": "golpes/min",
+      "descripcion": "Golpes por minuto de la guillotina.",
+      "fuente": "Ficha CORMAK NC SHARK 4x3200: 8 a 12 golpes/min. https://www.cormak.pl/gb/product/3144-hydraulic-guillotine-shears-cormak-nc-shark-4x3200.html; Euromet HGS 4x3200: 14 golpes/min.",
+      "confianza": "Media",
+      "estado": "[A VALIDAR]",
+      "grupo": "Guillotina"
+    },
+    {
+      "clave": "p_setup_corte_s",
+      "valor": 60.0,
+      "unidad": "s",
+      "descripcion": "Ajuste del tope trasero al desarrollo y corte de prueba, por ítem.",
+      "fuente": "Supuesto del analista; cronometrar.",
+      "confianza": "Baja",
+      "estado": "[A VALIDAR]",
+      "grupo": "Guillotina"
+    },
+    {
+      "clave": "p_tipo_plegadora",
+      "valor": "HIDRAULICA",
+      "unidad": "lista",
+      "descripcion": "Tipo de plegadora: HIDRAULICA (prensa plegadora con pedal) o MANUAL (plegadora de palanca).",
+      "fuente": "El taller de Abasto no está relevado.",
+      "confianza": "Baja",
+      "estado": "[A VALIDAR]",
+      "grupo": "Plegadora"
+    },
+    {
+      "clave": "p_pleg_largo_max_m",
+      "valor": 3.2,
+      "unidad": "m",
+      "descripcion": "Largo útil de plegado.",
+      "fuente": "Referencia de mercado (3050 a 3200 mm). Ficha Durma HAP 30120 (3050 mm, 120 t): aproximación 100, trabajo 9, retorno 77 mm/s. https://www.exapro.com/durma-hap-30120-p260930033",
+      "confianza": "Baja",
+      "estado": "[A VALIDAR]",
+      "grupo": "Plegadora"
+    },
+    {
+      "clave": "p_pleg_tonelaje_t",
+      "valor": 60.0,
+      "unidad": "t",
+      "descripcion": "Fuerza nominal de la plegadora.",
+      "fuente": "Supuesto del analista.",
+      "confianza": "Baja",
+      "estado": "[A VALIDAR]",
+      "grupo": "Plegadora"
+    },
+    {
+      "clave": "p_v_aprox_mm_s",
+      "valor": 100.0,
+      "unidad": "mm/s",
+      "descripcion": "Velocidad de aproximación del punzón.",
+      "fuente": "Ficha Durma HAP 30120 (3050 mm, 120 t): aproximación 100, trabajo 9, retorno 77 mm/s. https://www.exapro.com/durma-hap-30120-p260930033",
+      "confianza": "Media",
+      "estado": "[A VALIDAR]",
+      "grupo": "Plegadora"
+    },
+    {
+      "clave": "p_v_trabajo_mm_s",
+      "valor": 9.0,
+      "unidad": "mm/s",
+      "descripcion": "Velocidad de trabajo (plegado).",
+      "fuente": "Ficha Durma HAP 30120 (3050 mm, 120 t): aproximación 100, trabajo 9, retorno 77 mm/s. https://www.exapro.com/durma-hap-30120-p260930033 Bystronic 100x3100: 10 mm/s.",
+      "confianza": "Media",
+      "estado": "[A VALIDAR]",
+      "grupo": "Plegadora"
+    },
+    {
+      "clave": "p_v_retorno_mm_s",
+      "valor": 77.0,
+      "unidad": "mm/s",
+      "descripcion": "Velocidad de retorno.",
+      "fuente": "Ficha Durma HAP 30120 (3050 mm, 120 t): aproximación 100, trabajo 9, retorno 77 mm/s. https://www.exapro.com/durma-hap-30120-p260930033",
+      "confianza": "Media",
+      "estado": "[A VALIDAR]",
+      "grupo": "Plegadora"
+    },
+    {
+      "clave": "p_carrera_aprox_mm",
+      "valor": 40.0,
+      "unidad": "mm",
+      "descripcion": "Carrera de aproximación programada (apertura sobre la chapa).",
+      "fuente": "Supuesto del analista.",
+      "confianza": "Baja",
+      "estado": "[SUPUESTO]",
+      "grupo": "Plegadora"
+    },
+    {
+      "clave": "p_t_dwell_s",
+      "valor": 0.2,
+      "unidad": "s",
+      "descripcion": "Permanencia en punto muerto e inversión.",
+      "fuente": "Supuesto del analista.",
+      "confianza": "Baja",
+      "estado": "[SUPUESTO]",
+      "grupo": "Plegadora"
+    },
+    {
+      "clave": "p_t_topes_s",
+      "valor": 0.3,
+      "unidad": "s",
+      "descripcion": "Tiempo de topes traseros no solapado con el retorno.",
+      "fuente": "Supuesto; The Fabricator indica que suele ser despreciable.",
+      "confianza": "Baja",
+      "estado": "[SUPUESTO]",
+      "grupo": "Plegadora"
+    },
+    {
+      "clave": "p_factor_v",
+      "valor": 8.0,
+      "unidad": "× espesor",
+      "descripcion": "Abertura de matriz V = factor × espesor (plegado al aire).",
+      "fuente": "Regla práctica V = 8 a 10 × espesor (machinemfg; Durma).",
+      "confianza": "Media",
+      "estado": "DATO",
+      "grupo": "Plegadora"
+    },
+    {
+      "clave": "p_v_min_mm",
+      "valor": 6.0,
+      "unidad": "mm",
+      "descripcion": "Abertura de matriz mínima disponible.",
+      "fuente": "Supuesto del analista.",
+      "confianza": "Baja",
+      "estado": "[SUPUESTO]",
+      "grupo": "Plegadora"
+    },
+    {
+      "clave": "p_coef_flexion",
+      "valor": 1.42,
+      "unidad": "-",
+      "descripcion": "Coeficiente empírico del plegado al aire: F(kN) = 1,42 × Rm × s² × L / V.",
+      "fuente": "Fórmula empírica de fuerza de plegado (ADH Machine Tool; machinemfg).",
+      "confianza": "Media",
+      "estado": "DATO",
+      "grupo": "Plegadora"
+    },
+    {
+      "clave": "p_g",
+      "valor": 9.80665,
+      "unidad": "kN/t",
+      "descripcion": "Conversión de kN a tonelada-fuerza.",
+      "fuente": "Constante física.",
+      "confianza": "Alta",
+      "estado": "DATO",
+      "grupo": "Plegadora"
+    },
+    {
+      "clave": "p_setup_pleg_std_s",
+      "valor": 90.0,
+      "unidad": "s",
+      "descripcion": "Preparación de plegadora para perfil estándar con programa guardado (llamar programa, verificar herramental, pliegue de prueba).",
+      "fuente": "Supuesto del analista. Referencia: The Fabricator (con CNC, leer el plano y verificar el programa toma un minuto o menos).",
+      "confianza": "Baja",
+      "estado": "[A VALIDAR]",
+      "grupo": "Setup"
+    },
+    {
+      "clave": "p_setup_pleg_esp_base_s",
+      "valor": 180.0,
+      "unidad": "s",
+      "descripcion": "Preparación base para perfil especial (programar, ajustar topes, pieza de prueba).",
+      "fuente": "Supuesto del analista. Referencia superior: 10 min el primer pliegue con herramental (The Fabricator).",
+      "confianza": "Baja",
+      "estado": "[A VALIDAR]",
+      "grupo": "Setup"
+    },
+    {
+      "clave": "p_setup_pleg_esp_pliegue_s",
+      "valor": 60.0,
+      "unidad": "s/pliegue",
+      "descripcion": "Preparación adicional por pliegue del perfil especial.",
+      "fuente": "Supuesto del analista. Referencia superior: 5 min por pliegue adicional (The Fabricator).",
+      "confianza": "Baja",
+      "estado": "[A VALIDAR]",
+      "grupo": "Setup"
+    },
+    {
+      "clave": "p_cambio_herr_s",
+      "valor": 600.0,
+      "unidad": "s",
+      "descripcion": "Cambio de punzón y matriz para pliegues con herramental especial.",
+      "fuente": "Referencias: caso Mate (10 min por cambio antes de SMED); The Fabricator (≈30 min del último buen pliegue al siguiente).",
+      "confianza": "Baja",
+      "estado": "[A VALIDAR]",
+      "grupo": "Setup"
+    },
+    {
+      "clave": "p_t_decision_pedido_s",
+      "valor": 30.0,
+      "unidad": "s",
+      "descripcion": "Planificación mental de la nota (secuencia, materiales). Actividad mental: no se modela con MTM.",
+      "fuente": "Supuesto del analista; cronometrar.",
+      "confianza": "Baja",
+      "estado": "[A VALIDAR]",
+      "grupo": "Pedido"
+    },
+    {
+      "clave": "p_t_registro_pedido_s",
+      "valor": 30.0,
+      "unidad": "s",
+      "descripcion": "Completar la orden de trabajo y avisar al responsable (INET, etapa 9).",
+      "fuente": "Supuesto del analista; cronometrar.",
+      "confianza": "Baja",
+      "estado": "[A VALIDAR]",
+      "grupo": "Pedido"
+    },
+    {
+      "clave": "p_t_interp_item_std_s",
+      "valor": 15.0,
+      "unidad": "s",
+      "descripcion": "Interpretación mental de un ítem estándar.",
+      "fuente": "Supuesto del analista.",
+      "confianza": "Baja",
+      "estado": "[SUPUESTO]",
+      "grupo": "Pedido"
+    },
+    {
+      "clave": "p_t_interp_item_esp_s",
+      "valor": 60.0,
+      "unidad": "s",
+      "descripcion": "Interpretación de un ítem especial (dibujo, desarrollo, secuencia de pliegues).",
+      "fuente": "Supuesto del analista.",
+      "confianza": "Baja",
+      "estado": "[SUPUESTO]",
+      "grupo": "Pedido"
+    },
+    {
+      "clave": "p_t_atado_item_s",
+      "valor": 40.0,
+      "unidad": "s",
+      "descripcion": "Atado o agrupado del lote y etiquetado por ítem.",
+      "fuente": "Supuesto del analista; cronometrar.",
+      "confianza": "Baja",
+      "estado": "[A VALIDAR]",
+      "grupo": "Pedido"
+    },
+    {
+      "clave": "p_palabras_encabezado",
+      "valor": 15.0,
+      "unidad": "palabras",
+      "descripcion": "Palabras leídas del encabezado de la nota (lectura MTM-SD LWS).",
+      "fuente": "Supuesto según formato de nota.",
+      "confianza": "Media",
+      "estado": "[SUPUESTO]",
+      "grupo": "Pedido"
+    },
+    {
+      "clave": "p_palabras_item",
+      "valor": 12.0,
+      "unidad": "palabras",
+      "descripcion": "Palabras leídas por línea de ítem.",
+      "fuente": "Supuesto según formato de nota.",
+      "confianza": "Media",
+      "estado": "[SUPUESTO]",
+      "grupo": "Pedido"
+    },
+    {
+      "clave": "p_frec_control",
+      "valor": 0.2,
+      "unidad": "fracción",
+      "descripcion": "Fracción de piezas con control dimensional completo (además de la primera pieza).",
+      "fuente": "Supuesto: 1 de cada 5 piezas.",
+      "confianza": "Baja",
+      "estado": "[SUPUESTO]",
+      "grupo": "Control"
+    },
+    {
+      "clave": "p_t_perforado_s",
+      "valor": 3.0,
+      "unidad": "s",
+      "descripcion": "Tiempo de proceso de perforado por remache (chapa fina).",
+      "fuente": "Supuesto del analista.",
+      "confianza": "Baja",
+      "estado": "[A VALIDAR]",
+      "grupo": "Detalles"
+    },
+    {
+      "clave": "p_v_sellado_m_s",
+      "valor": 0.1,
+      "unidad": "m/s",
+      "descripcion": "Velocidad de aplicación del cordón de sellador.",
+      "fuente": "Supuesto del analista.",
+      "confianza": "Baja",
+      "estado": "[A VALIDAR]",
+      "grupo": "Detalles"
+    },
+    {
+      "clave": "p_t_tapa_s",
+      "valor": 120.0,
+      "unidad": "s",
+      "descripcion": "Fabricación y colocación de una tapa o terminal de canaleta.",
+      "fuente": "Supuesto del analista; cronometrar.",
+      "confianza": "Baja",
+      "estado": "[A VALIDAR]",
+      "grupo": "Detalles"
+    },
+    {
+      "clave": "p_t_soldadura_union_s",
+      "valor": 60.0,
+      "unidad": "s",
+      "descripcion": "Soldadura de estaño de una unión (limpiar, decapar, calentar, soldar, limpiar; secuencia INET).",
+      "fuente": "Supuesto del analista; cronometrar.",
+      "confianza": "Baja",
+      "estado": "[A VALIDAR]",
+      "grupo": "Detalles"
+    },
+    {
+      "clave": "p_v_cilindrado_m_s",
+      "valor": 0.15,
+      "unidad": "m/s",
+      "descripcion": "Velocidad de pasada en cilindradora.",
+      "fuente": "Supuesto del analista.",
+      "confianza": "Baja",
+      "estado": "[A VALIDAR]",
+      "grupo": "Detalles"
+    },
+    {
+      "clave": "p_pasadas_cilindrado",
+      "valor": 3.0,
+      "unidad": "pasadas",
+      "descripcion": "Pasadas de cilindrado por pieza.",
+      "fuente": "Supuesto del analista.",
+      "confianza": "Baja",
+      "estado": "[SUPUESTO]",
+      "grupo": "Detalles"
+    },
+    {
+      "clave": "p_v_engrafe_m_s",
+      "valor": 0.2,
+      "unidad": "m/s",
+      "descripcion": "Velocidad de pasada en engrafadora.",
+      "fuente": "Supuesto del analista.",
+      "confianza": "Baja",
+      "estado": "[A VALIDAR]",
+      "grupo": "Detalles"
+    },
+    {
+      "clave": "p_err_ok",
+      "valor": 0.05,
+      "unidad": "fracción",
+      "descripcion": "Desvío aceptable modelo contra cronometraje (semáforo verde).",
+      "fuente": "Criterio del estudio, alineado con la precisión ±5 % de la OIT.",
+      "confianza": "Media",
+      "estado": "[SUPUESTO]",
+      "grupo": "Validación"
+    },
+    {
+      "clave": "p_err_alerta",
+      "valor": 0.1,
+      "unidad": "fracción",
+      "descripcion": "Desvío de alerta (amarillo); por encima, rojo y recalibrar.",
+      "fuente": "Criterio del estudio.",
+      "confianza": "Media",
+      "estado": "[SUPUESTO]",
+      "grupo": "Validación"
+    },
+    {
+      "clave": "p_z",
+      "valor": 1.96,
+      "unidad": "-",
+      "descripcion": "Valor z para 95 % de confianza.",
+      "fuente": "Estadística normal estándar.",
+      "confianza": "Alta",
+      "estado": "DATO",
+      "grupo": "Validación"
+    },
+    {
+      "clave": "p_k_precision",
+      "valor": 0.05,
+      "unidad": "fracción",
+      "descripcion": "Precisión relativa buscada en el cronometraje (±5 %).",
+      "fuente": "OIT (Kanawaty, 1992).",
+      "confianza": "Alta",
+      "estado": "DATO",
+      "grupo": "Validación"
+    },
+    {
+      "clave": "q_tolerancia_angulo_recto_grados",
+      "valor": 1.0,
+      "unidad": "grados",
+      "descripcion": "Un pliegue a 90° ± esta tolerancia cuenta como SIMPLE; con otro ángulo, como ANGULO.",
+      "fuente": "Criterio del programa para leer la nota (no está en la planilla). Revisar con el jefe de producción.",
+      "confianza": "Baja",
+      "estado": "[SUPUESTO]",
+      "grupo": "Programa"
+    },
+    {
+      "clave": "q_tapas_por_tapa",
+      "valor": 1.0,
+      "unidad": "TAPA",
+      "descripcion": "Detalle TAPA que se carga por cada tapa puesta en la canaleta.",
+      "fuente": "Criterio del programa para leer la nota (no está en la planilla). Revisar con el jefe de producción.",
+      "confianza": "Baja",
+      "estado": "[SUPUESTO]",
+      "grupo": "Programa"
+    },
+    {
+      "clave": "q_soldaduras_por_boqueta",
+      "valor": 1.0,
+      "unidad": "uniones",
+      "descripcion": "Uniones de SOLDADURA por cada boqueta puesta en la canaleta (además del corte del agujero).",
+      "fuente": "Criterio del programa para leer la nota (no está en la planilla). Revisar con el jefe de producción.",
+      "confianza": "Baja",
+      "estado": "[SUPUESTO]",
+      "grupo": "Programa"
+    },
+    {
+      "clave": "q_encastres_por_corte",
+      "valor": 1.0,
+      "unidad": "ENCASTRE",
+      "descripcion": "Cortes con tijera (ENCASTRE) por cada agujero: el de una boqueta o un corte pedido.",
+      "fuente": "Criterio del programa para leer la nota (no está en la planilla). Revisar con el jefe de producción.",
+      "confianza": "Baja",
+      "estado": "[SUPUESTO]",
+      "grupo": "Programa"
+    },
+    {
+      "clave": "q_soldaduras_por_pared",
+      "valor": 1.0,
+      "unidad": "uniones",
+      "descripcion": "Uniones de SOLDADURA por cada corte que lleva pared o aletas alrededor.",
+      "fuente": "Criterio del programa para leer la nota (no está en la planilla). Revisar con el jefe de producción.",
+      "confianza": "Baja",
+      "estado": "[SUPUESTO]",
+      "grupo": "Programa"
+    },
+    {
+      "clave": "q_remaches_por_union",
+      "valor": 4.0,
+      "unidad": "remaches",
+      "descripcion": "Remaches por cada unión de empalme (piezas más largas que la chapa).",
+      "fuente": "Criterio del programa para leer la nota (no está en la planilla). Revisar con el jefe de producción.",
+      "confianza": "Baja",
+      "estado": "[SUPUESTO]",
+      "grupo": "Programa"
+    },
+    {
+      "clave": "q_sellado_por_union",
+      "valor": 1.0,
+      "unidad": "0/1",
+      "descripcion": "1 = cada unión de empalme se sella a lo largo de todo el desarrollo; 0 = no se sella.",
+      "fuente": "Criterio del programa para leer la nota (no está en la planilla). Revisar con el jefe de producción.",
+      "confianza": "Baja",
+      "estado": "[SUPUESTO]",
+      "grupo": "Programa"
+    },
+    {
+      "clave": "q_pendiente_es_especial",
+      "valor": 1.0,
+      "unidad": "0/1",
+      "descripcion": "1 = un plegado con pendiente se trata como perfil ESPECIAL (topes distintos en cada punta).",
+      "fuente": "Criterio del programa para leer la nota (no está en la planilla). Revisar con el jefe de producción.",
+      "confianza": "Baja",
+      "estado": "[SUPUESTO]",
+      "grupo": "Programa"
+    }
+  ],
+  "productosSinPerfil": [
+    {
+      "grupo": "boquetas",
+      "setupS": 120,
+      "piezaS": 240,
+      "maquina": "banco",
+      "estado": "[SUPUESTO]",
+      "fuente": "Estimación: desarrollo + engrafe + soldadura de 2 a 3 uniones (p_t_soldadura_union_s = 60 s)."
+    },
+    {
+      "grupo": "canos",
+      "setupS": 180,
+      "piezaS": 420,
+      "maquina": "banco",
+      "estado": "[SUPUESTO]",
+      "fuente": "Estimación: codos y ramales armados por gajos con engrafe y soldadura."
+    },
+    {
+      "grupo": "tapas",
+      "setupS": 60,
+      "piezaS": 120,
+      "maquina": "banco",
+      "estado": "[A VALIDAR]",
+      "fuente": "Igual a p_t_tapa_s (planilla MTM)."
+    },
+    {
+      "grupo": "sombreros",
+      "setupS": 300,
+      "piezaS": 900,
+      "maquina": "banco",
+      "estado": "[SUPUESTO]",
+      "fuente": "Estimación: varias piezas cilindradas, engrafadas y remachadas."
+    },
+    {
+      "grupo": "articulos",
+      "setupS": 0,
+      "piezaS": 30,
+      "maquina": "deposito",
+      "estado": "[SUPUESTO]",
+      "fuente": "Artículo de reventa: solo buscarlo y prepararlo (no se fabrica)."
+    },
+    {
+      "grupo": "*",
+      "setupS": 180,
+      "piezaS": 600,
+      "maquina": "banco",
+      "estado": "[SUPUESTO]",
+      "fuente": "Valor por defecto para cualquier otro producto por unidad."
+    }
+  ],
+  "actividades": [
+    {
+      "id": "A01",
+      "nombre": "Recepción y lectura de la nota",
+      "clase": "POR_PEDIDO",
+      "nivel": "MTM-MEK + MTM-SD",
+      "justificacion": "Una vez por nota, no cíclica: MEK (unidad y series pequeñas). Lectura con dato estándar SD (LWS).",
+      "tmuSinPeso": 155.0,
+      "tmuConPeso": 0.0,
+      "movimientosConPeso": 0.0
+    },
+    {
+      "id": "A02",
+      "nombre": "Interpretación del ítem (parte motora)",
+      "clase": "POR_ITEM",
+      "nivel": "MTM-SD + MTM-MEK",
+      "justificacion": "Una vez por ítem. La parte mental se suma como parámetro (p_t_interp_item_*).",
+      "tmuSinPeso": 180.0,
+      "tmuConPeso": 0.0,
+      "movimientosConPeso": 0.0
+    },
+    {
+      "id": "A03",
+      "nombre": "Selección y verificación de chapa",
+      "clase": "POR_ITEM",
+      "nivel": "MTM-MEK",
+      "justificacion": "Una vez por ítem, distancias y piezas variables: MEK.",
+      "tmuSinPeso": 240.0,
+      "tmuConPeso": 0.0,
+      "movimientosConPeso": 0.0
+    },
+    {
+      "id": "A04",
+      "nombre": "Preparación de chapa en guillotina",
+      "clase": "POR_CHAPA",
+      "nivel": "MTM-MEK + MTM-1",
+      "justificacion": "Chapa voluminosa a distancias de hasta 2 m: MEK clases 4 y 5. Pedal con MTM-1 (FMP).",
+      "tmuSinPeso": 1288.2,
+      "tmuConPeso": 0.0,
+      "movimientosConPeso": 0.0
+    },
+    {
+      "id": "A05",
+      "nombre": "Corte de tira al desarrollo",
+      "clase": "POR_PIEZA",
+      "nivel": "MTM-MEK + MTM-1",
+      "justificacion": "Se repite por pieza, pero con manipulación voluminosa: MEK; pedal con MTM-1.",
+      "tmuSinPeso": 288.5,
+      "tmuConPeso": 0.0,
+      "movimientosConPeso": 0.0
+    },
+    {
+      "id": "A06",
+      "nombre": "Traslado del carro de tiras a la plegadora",
+      "clase": "POR_ITEM",
+      "nivel": "MTM-MEK",
+      "justificacion": "Una vez por ítem.",
+      "tmuSinPeso": 150.0,
+      "tmuConPeso": 0.0,
+      "movimientosConPeso": 0.0
+    },
+    {
+      "id": "A07",
+      "nombre": "Carga de la tira en la plegadora",
+      "clase": "POR_PIEZA",
+      "nivel": "MTM-MEK",
+      "justificacion": "Pieza voluminosa, más de 80 cm.",
+      "tmuSinPeso": 220.0,
+      "tmuConPeso": 0.0,
+      "movimientosConPeso": 0.0
+    },
+    {
+      "id": "A08",
+      "nombre": "Posicionado y retiro por golpe de plegado",
+      "clase": "POR_GOLPE",
+      "nivel": "MTM-1",
+      "justificacion": "Micro-ciclo corto (2 a 3 s) repetido golpes × piezas: MTM-1. UAS no se recomienda para ciclos menores a 1 min y MEK no discrimina distancias cortas.",
+      "tmuSinPeso": 28.7,
+      "tmuConPeso": 26.0,
+      "movimientosConPeso": 2.0
+    },
+    {
+      "id": "A09",
+      "nombre": "Volteo o reorientación de la pieza",
+      "clase": "POR_VOLTEO",
+      "nivel": "MTM-1",
+      "justificacion": "Micro-movimiento repetitivo: MTM-1.",
+      "tmuSinPeso": 26.0,
+      "tmuConPeso": 36.0,
+      "movimientosConPeso": 2.0
+    },
+    {
+      "id": "A10",
+      "nombre": "Desplazamiento lateral por metro excedente",
+      "clase": "POR_METRO_EXCESO",
+      "nivel": "MTM-1",
+      "justificacion": "Operario solo con pieza larga: pasos laterales (SS-C1) por metro de pieza que excede su alcance.",
+      "tmuSinPeso": 42.0,
+      "tmuConPeso": 0.0,
+      "movimientosConPeso": 0.0
+    },
+    {
+      "id": "A11",
+      "nombre": "Control: tomar, usar y dejar el flexómetro",
+      "clase": "POR_CONTROL",
+      "nivel": "MTM-MEK",
+      "justificacion": "Control no cíclico: MEK.",
+      "tmuSinPeso": 70.0,
+      "tmuConPeso": 0.0,
+      "movimientosConPeso": 0.0
+    },
+    {
+      "id": "A12",
+      "nombre": "Control: medición de una cota",
+      "clase": "POR_COTA",
+      "nivel": "MTM-MEK",
+      "justificacion": "Por cota medida.",
+      "tmuSinPeso": 60.0,
+      "tmuConPeso": 0.0,
+      "movimientosConPeso": 0.0
+    },
+    {
+      "id": "A13",
+      "nombre": "Descarga de la pieza plegada",
+      "clase": "POR_PIEZA",
+      "nivel": "MTM-MEK",
+      "justificacion": "Pieza voluminosa.",
+      "tmuSinPeso": 220.0,
+      "tmuConPeso": 0.0,
+      "movimientosConPeso": 0.0
+    },
+    {
+      "id": "A14",
+      "nombre": "Descarga en depósito de terminados",
+      "clase": "POR_PIEZA",
+      "nivel": "MTM-MEK",
+      "justificacion": "Pieza voluminosa.",
+      "tmuSinPeso": 220.0,
+      "tmuConPeso": 0.0,
+      "movimientosConPeso": 0.0
+    },
+    {
+      "id": "A15",
+      "nombre": "Traslado del carro a depósito y regreso",
+      "clase": "POR_PEDIDO",
+      "nivel": "MTM-MEK",
+      "justificacion": "Una vez por nota.",
+      "tmuSinPeso": 1000.0,
+      "tmuConPeso": 0.0,
+      "movimientosConPeso": 0.0
+    },
+    {
+      "id": "A16",
+      "nombre": "Remache pop con agujereado",
+      "clase": "POR_UNIDAD_DETALLE",
+      "nivel": "MTM-MEK",
+      "justificacion": "Detalle no cíclico. El perforado se suma como tiempo de proceso.",
+      "tmuSinPeso": 380.0,
+      "tmuConPeso": 0.0,
+      "movimientosConPeso": 0.0
+    },
+    {
+      "id": "A17",
+      "nombre": "Encastre o corte de esquina con tijera",
+      "clase": "POR_UNIDAD_DETALLE",
+      "nivel": "MTM-MEK",
+      "justificacion": "Detalle no cíclico.",
+      "tmuSinPeso": 230.0,
+      "tmuConPeso": 0.0,
+      "movimientosConPeso": 0.0
+    },
+    {
+      "id": "A18",
+      "nombre": "Sellado: preparación de la junta",
+      "clase": "POR_PIEZA_CON_DETALLE",
+      "nivel": "MTM-MEK",
+      "justificacion": "Una vez por pieza sellada; el cordón se suma por metro.",
+      "tmuSinPeso": 140.0,
+      "tmuConPeso": 0.0,
+      "movimientosConPeso": 0.0
+    },
+    {
+      "id": "A19",
+      "nombre": "Curvado: carga, marcha y descarga",
+      "clase": "POR_PIEZA_CON_DETALLE",
+      "nivel": "MTM-MEK",
+      "justificacion": "Una vez por pieza curvada; las pasadas se suman por metro.",
+      "tmuSinPeso": 470.0,
+      "tmuConPeso": 0.0,
+      "movimientosConPeso": 0.0
+    },
+    {
+      "id": "A20",
+      "nombre": "Engrafe: carga, marcha y descarga",
+      "clase": "POR_PIEZA_CON_DETALLE",
+      "nivel": "MTM-MEK",
+      "justificacion": "Una vez por pieza engrafada; la pasada se suma por metro.",
+      "tmuSinPeso": 470.0,
+      "tmuConPeso": 0.0,
+      "movimientosConPeso": 0.0
+    },
+    {
+      "id": "A21",
+      "nombre": "Ciclo de plegadora manual de palanca",
+      "clase": "POR_GOLPE (solo MANUAL)",
+      "nivel": "MTM-MEK",
+      "justificacion": "Accionamiento manual de la plegadora de palanca.",
+      "tmuSinPeso": 260.0,
+      "tmuConPeso": 0.0,
+      "movimientosConPeso": 0.0
+    }
+  ],
+  "materiales": [
+    {
+      "codigo": "GALV-C30",
+      "nombre": "Galvanizado Z275",
+      "materialId": "galvanizado",
+      "terminacion": "N",
+      "espesorMm": 0.3,
+      "densidadKgM3": 7850.0,
+      "recubrimientoKgM2": 0.275,
+      "rmMpa": 500.0,
+      "factorManipulacion": 1.0,
+      "factorPlegado": 1.0,
+      "factorCorte": 1.0,
+      "fuente": "Espesor y calibre: informe del rubro. Rm: DX51D EN 10346 (270 a 500 MPa; se usa el máximo para el control de tonelaje). Recubrimiento Z275 = 275 g/m².",
+      "estado": "DATO / factores [SUPUESTO]"
+    },
+    {
+      "codigo": "GALV-C27",
+      "nombre": "Galvanizado Z275",
+      "materialId": "galvanizado",
+      "terminacion": "N",
+      "espesorMm": 0.4,
+      "densidadKgM3": 7850.0,
+      "recubrimientoKgM2": 0.275,
+      "rmMpa": 500.0,
+      "factorManipulacion": 1.0,
+      "factorPlegado": 1.0,
+      "factorCorte": 1.0,
+      "fuente": "Espesor y calibre: informe del rubro. Rm: DX51D EN 10346 (270 a 500 MPa; se usa el máximo para el control de tonelaje). Recubrimiento Z275 = 275 g/m².",
+      "estado": "DATO / factores [SUPUESTO]"
+    },
+    {
+      "codigo": "GALV-C25",
+      "nombre": "Galvanizado Z275",
+      "materialId": "galvanizado",
+      "terminacion": "N",
+      "espesorMm": 0.5,
+      "densidadKgM3": 7850.0,
+      "recubrimientoKgM2": 0.275,
+      "rmMpa": 500.0,
+      "factorManipulacion": 1.0,
+      "factorPlegado": 1.0,
+      "factorCorte": 1.0,
+      "fuente": "Espesor y calibre: informe del rubro. Rm: DX51D EN 10346 (270 a 500 MPa; se usa el máximo para el control de tonelaje). Recubrimiento Z275 = 275 g/m².",
+      "estado": "DATO / factores [SUPUESTO]"
+    },
+    {
+      "codigo": "GALV-C22",
+      "nombre": "Galvanizado Z275",
+      "materialId": "galvanizado",
+      "terminacion": "N",
+      "espesorMm": 0.7,
+      "densidadKgM3": 7850.0,
+      "recubrimientoKgM2": 0.275,
+      "rmMpa": 500.0,
+      "factorManipulacion": 1.0,
+      "factorPlegado": 1.05,
+      "factorCorte": 1.0,
+      "fuente": "Espesor y calibre: informe del rubro. Rm: DX51D EN 10346 (270 a 500 MPa; se usa el máximo para el control de tonelaje). Recubrimiento Z275 = 275 g/m².",
+      "estado": "DATO / factores [SUPUESTO]"
+    },
+    {
+      "codigo": "GALV-C20",
+      "nombre": "Galvanizado Z275",
+      "materialId": "galvanizado",
+      "terminacion": "N",
+      "espesorMm": 0.9,
+      "densidadKgM3": 7850.0,
+      "recubrimientoKgM2": 0.275,
+      "rmMpa": 500.0,
+      "factorManipulacion": 1.05,
+      "factorPlegado": 1.05,
+      "factorCorte": 1.0,
+      "fuente": "Espesor de uso especial; correspondencia de calibre a confirmar.",
+      "estado": "[A VALIDAR]"
+    },
+    {
+      "codigo": "CINC-C27",
+      "nombre": "Cincalum AZ150",
+      "materialId": "cincalum",
+      "terminacion": "N",
+      "espesorMm": 0.4,
+      "densidadKgM3": 7850.0,
+      "recubrimientoKgM2": 0.15,
+      "rmMpa": 500.0,
+      "factorManipulacion": 1.0,
+      "factorPlegado": 1.0,
+      "factorCorte": 1.0,
+      "fuente": "Ternium (cincalum de 0,30 a 1,24 mm). Recubrimiento AZ150 = 150 g/m² [SUPUESTO]. Rm asumido igual al galvanizado.",
+      "estado": "[SUPUESTO]"
+    },
+    {
+      "codigo": "CINC-C25",
+      "nombre": "Cincalum AZ150",
+      "materialId": "cincalum",
+      "terminacion": "N",
+      "espesorMm": 0.5,
+      "densidadKgM3": 7850.0,
+      "recubrimientoKgM2": 0.15,
+      "rmMpa": 500.0,
+      "factorManipulacion": 1.0,
+      "factorPlegado": 1.0,
+      "factorCorte": 1.0,
+      "fuente": "Ternium (cincalum de 0,30 a 1,24 mm). Recubrimiento AZ150 = 150 g/m² [SUPUESTO]. Rm asumido igual al galvanizado.",
+      "estado": "[SUPUESTO]"
+    },
+    {
+      "codigo": "PREP-C27",
+      "nombre": "Prepintado (base galvanizada)",
+      "materialId": "galvanizado",
+      "terminacion": "P",
+      "espesorMm": 0.4,
+      "densidadKgM3": 7850.0,
+      "recubrimientoKgM2": 0.25,
+      "rmMpa": 500.0,
+      "factorManipulacion": 1.1,
+      "factorPlegado": 1.1,
+      "factorCorte": 1.0,
+      "fuente": "Ternium (prepintado de 0,40 a 1,24 mm). Factores mayores por cuidado de la pintura y del film protector (informe del rubro).",
+      "estado": "[SUPUESTO]"
+    },
+    {
+      "codigo": "PREP-C25",
+      "nombre": "Prepintado (base galvanizada)",
+      "materialId": "galvanizado",
+      "terminacion": "P",
+      "espesorMm": 0.5,
+      "densidadKgM3": 7850.0,
+      "recubrimientoKgM2": 0.25,
+      "rmMpa": 500.0,
+      "factorManipulacion": 1.1,
+      "factorPlegado": 1.1,
+      "factorCorte": 1.0,
+      "fuente": "Ternium (prepintado de 0,40 a 1,24 mm). Factores mayores por cuidado de la pintura y del film protector (informe del rubro).",
+      "estado": "[SUPUESTO]"
+    },
+    {
+      "codigo": "ALUM-070",
+      "nombre": "Aluminio",
+      "materialId": "aluminio",
+      "terminacion": "N",
+      "espesorMm": 0.7,
+      "densidadKgM3": 2700.0,
+      "recubrimientoKgM2": 0.0,
+      "rmMpa": 150.0,
+      "factorManipulacion": 1.05,
+      "factorPlegado": 1.1,
+      "factorCorte": 1.0,
+      "fuente": "Densidad 2700 kg/m³. Rm de aleación de uso general H14 estimado. Mayor recuperación elástica (módulo ≈ 1/3 del acero).",
+      "estado": "[SUPUESTO]"
+    },
+    {
+      "codigo": "INOX-050",
+      "nombre": "Acero inoxidable 304",
+      "materialId": "inoxidable",
+      "terminacion": "N",
+      "espesorMm": 0.5,
+      "densidadKgM3": 7930.0,
+      "recubrimientoKgM2": 0.0,
+      "rmMpa": 600.0,
+      "factorManipulacion": 1.05,
+      "factorPlegado": 1.2,
+      "factorCorte": 1.5,
+      "fuente": "Densidad 7930 kg/m³. Rm 520 a 720 MPa (se usa 600). Las guillotinas cortan en inoxidable ≈ 2/3 del espesor de acero dulce (factor 1,5).",
+      "estado": "[SUPUESTO]"
+    },
+    {
+      "codigo": "COBRE-060",
+      "nombre": "Cobre",
+      "materialId": "cobre",
+      "terminacion": "N",
+      "espesorMm": 0.6,
+      "densidadKgM3": 8960.0,
+      "recubrimientoKgM2": 0.0,
+      "rmMpa": 240.0,
+      "factorManipulacion": 1.1,
+      "factorPlegado": 1.0,
+      "factorCorte": 1.0,
+      "fuente": "Densidad 8960 kg/m³. Rm de cobre semiduro estimado. Mayor cuidado superficial.",
+      "estado": "[SUPUESTO]"
+    }
+  ],
+  "tiposPliegue": [
+    {
+      "codigo": "SIMPLE",
+      "descripcion": "Pliegue simple hasta 90° (recto o abierto)",
+      "golpes": 1.0,
+      "volteos": 0.5,
+      "factor": 1.0,
+      "herramental": 0.0,
+      "justificacion": "Un golpe. Volteo cada dos pliegues en promedio (canaletas con pliegues en ambos bordes).",
+      "estado": "[SUPUESTO]"
+    },
+    {
+      "codigo": "ANGULO",
+      "descripcion": "Pliegue a ángulo específico distinto de 90°",
+      "golpes": 1.0,
+      "volteos": 0.5,
+      "factor": 1.15,
+      "herramental": 0.0,
+      "justificacion": "Ajuste de ángulo y verificación adicional por recuperación elástica (springback).",
+      "estado": "[SUPUESTO]"
+    },
+    {
+      "codigo": "CIERRE180",
+      "descripcion": "Cierre a 180°, dobladillo o remate",
+      "golpes": 2.0,
+      "volteos": 0.5,
+      "factor": 1.1,
+      "herramental": 0.0,
+      "justificacion": "Dos golpes: pre-plegado agudo y aplastado. Supone herramental de dobladillo montado (cambiar a 1 si requiere cambio).",
+      "estado": "[A VALIDAR]"
+    },
+    {
+      "codigo": "INVERSO",
+      "descripcion": "Pliegue inverso (exige voltear la pieza)",
+      "golpes": 1.0,
+      "volteos": 1.0,
+      "factor": 1.0,
+      "herramental": 0.0,
+      "justificacion": "Un golpe con volteo obligatorio.",
+      "estado": "[SUPUESTO]"
+    },
+    {
+      "codigo": "ESPECIAL",
+      "descripcion": "Pliegue con herramental especial (radio grande, cuello de cisne, escalón)",
+      "golpes": 1.0,
+      "volteos": 0.5,
+      "factor": 1.2,
+      "herramental": 1.0,
+      "justificacion": "Requiere cambio de herramental una vez por ítem.",
+      "estado": "[A VALIDAR]"
+    }
+  ],
+  "detalles": [
+    {
+      "codigo": "REMACHE",
+      "descripcion": "Remache pop (incluye agujereado)",
+      "unidad": "unidad",
+      "actividadPorUnidad": "A16",
+      "actividadFijaPorPieza": null,
+      "proceso": {
+        "numerador": "p_t_perforado_s"
+      },
+      "estado": "MTM-MEK A16 + perforado [A VALIDAR]"
+    },
+    {
+      "codigo": "ENCASTRE",
+      "descripcion": "Encastre o corte de esquina con tijera",
+      "unidad": "unidad",
+      "actividadPorUnidad": "A17",
+      "actividadFijaPorPieza": null,
+      "proceso": {
+        "numerador": 0
+      },
+      "estado": "MTM-MEK A17"
+    },
+    {
+      "codigo": "SELLADO",
+      "descripcion": "Sellado de junta con sellador",
+      "unidad": "metro",
+      "actividadPorUnidad": null,
+      "actividadFijaPorPieza": "A18",
+      "proceso": {
+        "numerador": 1,
+        "denominador": "p_v_sellado_m_s"
+      },
+      "estado": "Preparación MEK A18 por pieza + cordón por metro [A VALIDAR]"
+    },
+    {
+      "codigo": "TAPA",
+      "descripcion": "Tapa o terminal de canaleta",
+      "unidad": "unidad",
+      "actividadPorUnidad": null,
+      "actividadFijaPorPieza": null,
+      "proceso": {
+        "numerador": "p_t_tapa_s"
+      },
+      "estado": "[A VALIDAR] cronometrar"
+    },
+    {
+      "codigo": "SOLDADURA",
+      "descripcion": "Soldadura de estaño (por unión)",
+      "unidad": "unión",
+      "actividadPorUnidad": null,
+      "actividadFijaPorPieza": null,
+      "proceso": {
+        "numerador": "p_t_soldadura_union_s"
+      },
+      "estado": "[A VALIDAR] cronometrar"
+    },
+    {
+      "codigo": "CURVADO",
+      "descripcion": "Curvado o cilindrado",
+      "unidad": "metro",
+      "actividadPorUnidad": null,
+      "actividadFijaPorPieza": "A19",
+      "proceso": {
+        "numerador": "p_pasadas_cilindrado",
+        "denominador": "p_v_cilindrado_m_s"
+      },
+      "estado": "Carga y descarga MEK A19 + pasadas por metro [A VALIDAR]"
+    },
+    {
+      "codigo": "ENGRAFE",
+      "descripcion": "Engrafe a máquina",
+      "unidad": "metro",
+      "actividadPorUnidad": null,
+      "actividadFijaPorPieza": "A20",
+      "proceso": {
+        "numerador": 1,
+        "denominador": "p_v_engrafe_m_s"
+      },
+      "estado": "Carga y descarga MEK A20 + pasada por metro [A VALIDAR]"
+    }
+  ],
+  "factorPeso": [
+    {
+      "desdeKg": 0.0,
+      "hastaKg": 1.0,
+      "sc": 0.0,
+      "df": 1.0
+    },
+    {
+      "desdeKg": 1.0,
+      "hastaKg": 2.0,
+      "sc": 1.6,
+      "df": 1.04
+    },
+    {
+      "desdeKg": 2.0,
+      "hastaKg": 4.0,
+      "sc": 2.8,
+      "df": 1.07
+    },
+    {
+      "desdeKg": 4.0,
+      "hastaKg": 6.0,
+      "sc": 4.3,
+      "df": 1.12
+    },
+    {
+      "desdeKg": 6.0,
+      "hastaKg": 8.0,
+      "sc": 5.8,
+      "df": 1.17
+    },
+    {
+      "desdeKg": 8.0,
+      "hastaKg": 10.0,
+      "sc": 7.3,
+      "df": 1.22
+    },
+    {
+      "desdeKg": 10.0,
+      "hastaKg": 12.0,
+      "sc": 8.8,
+      "df": 1.27
+    },
+    {
+      "desdeKg": 12.0,
+      "hastaKg": 14.0,
+      "sc": 10.4,
+      "df": 1.32
+    },
+    {
+      "desdeKg": 14.0,
+      "hastaKg": 16.0,
+      "sc": 11.9,
+      "df": 1.36
+    },
+    {
+      "desdeKg": 16.0,
+      "hastaKg": 18.0,
+      "sc": 13.4,
+      "df": 1.41
+    },
+    {
+      "desdeKg": 18.0,
+      "hastaKg": 20.0,
+      "sc": 14.9,
+      "df": 1.46
+    },
+    {
+      "desdeKg": 20.0,
+      "hastaKg": 22.0,
+      "sc": 16.4,
+      "df": 1.51
+    }
+  ]
+}
