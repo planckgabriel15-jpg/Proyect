@@ -122,3 +122,27 @@ export function enterPasaAlSiguiente(contenedor) {
 export function esperar(ms) {
   return new Promise((resolver) => setTimeout(resolver, ms));
 }
+
+/** Baja un archivo generado en el navegador (CSV, JSON…). */
+export function descargarArchivo(nombre, contenido, tipo = 'text/csv;charset=utf-8') {
+  const url = URL.createObjectURL(new Blob([contenido], { type: tipo }));
+  const enlace = h('a', { href: url, download: nombre });
+  document.body.append(enlace);
+  enlace.click();
+  enlace.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+/** Minutos → "1 h 05 min" / "35 min". */
+export function textoMinutos(minutos) {
+  if (!Number.isFinite(minutos)) return '—';
+  const redondo = Math.round(minutos);
+  if (redondo < 60) return `${redondo} min`;
+  return `${Math.floor(redondo / 60)} h ${String(redondo % 60).padStart(2, '0')} min`;
+}
+
+/** 0,853 → "85 %". */
+export function textoPorcentaje(fraccion, decimales = 0) {
+  if (fraccion === null || fraccion === undefined || !Number.isFinite(fraccion)) return '—';
+  return `${(fraccion * 100).toFixed(decimales).replace('.', ',')} %`;
+}

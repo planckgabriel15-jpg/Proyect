@@ -447,3 +447,85 @@ kbd.atajo { display: inline-block; margin-left: .45rem; padding: 0 .35rem; borde
 .editor-3d-contenido .tapa-a-medida { grid-template-columns: 1fr; }
 .editor-3d-contenido .fila-campos { flex-direction: column; align-items: stretch; }
 @media (max-width: 860px) { .tapa-a-medida { grid-template-columns: 1fr; } }
+
+/* =============================================================
+   Producción (tablero, lotes, asignación, operarios, indicadores) y roles
+   ============================================================= */
+.roles-ingreso { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1rem; }
+.rol-ingreso { border: 2px solid var(--borde-suave); border-radius: var(--radio); padding: .75rem; display: flex; flex-direction: column; gap: .5rem; background: var(--fondo); }
+.rol-ingreso p { margin: 0; font-size: .9rem; }
+.panel-ingreso:has(.roles-ingreso) { max-width: 980px; }
+.etiqueta-demo { display: inline-block; margin-left: .3rem; padding: 0 .35rem; border-radius: 4px; background: #e5e9ef; border: 1px solid var(--borde-suave); font-size: .7rem; font-weight: 700; color: #333; }
+.etiqueta-urgente { display: inline-block; margin-left: .3rem; padding: 0 .35rem; border-radius: 4px; background: var(--peligro); color: #fff; font-size: .7rem; font-weight: 800; }
+.etiqueta-estado.prod-pendiente { background: #fff; }
+.etiqueta-estado.prod-programada { background: #dce8f7; border-color: var(--principal); }
+.etiqueta-estado.prod-en_curso { background: var(--aviso-fondo); border-color: var(--aviso); }
+.etiqueta-estado.prod-hecha { background: var(--ok); color: #fff; border-color: var(--ok); }
+.etiqueta-estado.prod-demorada { background: var(--peligro); color: #fff; border-color: var(--peligro); }
+.chips-estado { display: flex; flex-wrap: wrap; gap: .4rem; margin: .5rem 0; }
+.chip-estado { font: inherit; border: 2px solid var(--borde-suave); border-radius: 999px; padding: .2rem .6rem .2rem .2rem; background: var(--fondo); cursor: pointer; min-height: 40px; font-weight: 700; }
+.chip-estado.elegido { border-color: var(--principal); outline: 2px solid var(--principal); }
+.tabla-desplazable { overflow-x: auto; max-width: 100%; }
+.fila-urgente td { background: #fff1f1; }
+.fila-elegida th, .fila-elegida td { background: #e8f0fb; }
+.celda-orden { white-space: nowrap; }
+.asa-arrastre { cursor: grab; color: #666; }
+tr.arrastrando { opacity: .4; }
+tr.destino td { border-top: 3px solid var(--acento); }
+.boton.mini { min-height: 30px; min-width: 30px; padding: .1rem .4rem; font-size: .85rem; }
+.barra-avance { display: inline-block; width: 60px; height: 10px; border: 1px solid var(--borde); border-radius: 5px; vertical-align: middle;
+  background: linear-gradient(90deg, var(--ok) var(--avance, 0%), #fff var(--avance, 0%)); }
+.caja-alertas ul { margin: .4rem 0 0; padding-left: 1.2rem; }
+.panel-interno { border: 1px solid var(--borde-suave); border-radius: var(--radio); padding: .6rem .75rem; margin: .75rem 0; background: var(--fondo); }
+.panel-interno > summary { cursor: pointer; }
+.campo-chico { width: 6.5rem; }
+.campo-chico.cambiado { border-color: var(--acento); background: #fff4ea; font-weight: 700; }
+.con-error { border-color: var(--peligro) !important; background: var(--error-fondo); }
+.tarjetas-kpi { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: .6rem; margin: .75rem 0; }
+.tarjeta-kpi { border: 2px solid var(--borde-suave); border-radius: var(--radio); padding: .6rem; display: flex; flex-direction: column; gap: .15rem; background: var(--fondo); }
+.lista-lotes { display: grid; gap: .75rem; }
+.tarjeta-lote { border: 2px solid var(--borde-suave); border-radius: var(--radio); padding: .6rem; background: var(--fondo); }
+.tarjeta-lote.aceptado { border-color: var(--ok); }
+.tarjeta-lote.suelto { opacity: .85; }
+.tarjeta-lote header { margin-bottom: .3rem; }
+.selector-mini { font-size: .85rem; min-height: 30px; }
+.tabla-carga td, .tabla-carga th { min-width: 110px; }
+.celda-carga { padding: .2rem !important; }
+.boton-celda { font: inherit; color: inherit; width: 100%; border: none; background: transparent; text-align: left; cursor: pointer; padding: .2rem; min-height: 36px; }
+.barra-carga { display: block; height: 8px; border-radius: 4px; margin-bottom: .15rem; background: linear-gradient(90deg, currentColor var(--uso, 0%), #e7e9ec var(--uso, 0%)); }
+.carga-vacia { color: #888; }
+.carga-normal { color: var(--ok); }
+.carga-alta { color: var(--aviso); background: var(--aviso-fondo); }
+.carga-excedida { color: var(--peligro); background: var(--error-fondo); font-weight: 700; }
+.ef-alta { color: var(--ok); font-weight: 700; }
+.ef-media { color: var(--aviso); font-weight: 700; }
+.ef-baja { color: var(--peligro); font-weight: 700; }
+.grafico svg { width: 100%; max-width: 720px; height: auto; background: var(--fondo); border: 1px solid var(--borde-suave); border-radius: var(--radio); }
+.grafico-titulo { font-size: 13px; font-weight: 700; }
+.grafico-eje { font-size: 11px; fill: #333; }
+.grafico-referencia { stroke: var(--principal); stroke-dasharray: 5 4; stroke-width: 1.5; }
+.grafico-barra { fill: currentColor; }
+.grafico-barra.ef-alta { fill: var(--ok); } .grafico-barra.ef-media { fill: #c48a00; } .grafico-barra.ef-baja { fill: var(--peligro); }
+.casilla-chica { display: inline-block; margin-right: .5rem; font-size: .85rem; white-space: nowrap; }
+.estado-parametro { font-size: .75rem; font-weight: 700; padding: .05rem .3rem; border-radius: 4px; white-space: nowrap; }
+.estado-parametro.validar { background: var(--error-fondo); color: var(--peligro); }
+.estado-parametro.supuesto { background: var(--aviso-fondo); color: var(--aviso); }
+.estado-parametro.dato { background: #e3f2e6; color: var(--ok); }
+.celda-fuente { max-width: 320px; }
+.tabla-parametros td { vertical-align: top; }
+.cabecera-operario { display: flex; flex-wrap: wrap; gap: 1rem; align-items: center; justify-content: space-between; }
+.lista-tareas { display: grid; gap: .75rem; }
+.tarjeta-tarea { display: grid; grid-template-columns: 220px 1fr; gap: .75rem; border: 2px solid var(--borde-suave); border-radius: var(--radio); padding: .6rem; background: var(--fondo); }
+.tarjeta-tarea.urgente { border-color: var(--peligro); }
+.tarjeta-tarea.hecha { background: #eef7ef; border-color: var(--ok); }
+.tarea-dibujo svg { width: 100%; height: auto; max-height: 150px; }
+.casilla-hecha { display: inline-flex; align-items: center; gap: .3rem; font-weight: 800; font-size: 1.1rem; border: 2px solid var(--ok); border-radius: var(--radio); padding: .3rem .7rem; min-height: 44px; cursor: pointer; }
+.casilla-hecha input { width: 26px; height: 26px; }
+.dialogo-historial { max-width: 900px; width: calc(100% - 1rem); border: 2px solid var(--borde); border-radius: var(--radio); }
+.dialogo-historial::backdrop { background: rgba(0, 0, 0, .4); }
+.lista-historial { font-size: .9rem; padding-left: 1.4rem; }
+.detalle-chapas summary { cursor: pointer; color: var(--principal); }
+@media (max-width: 700px) {
+  .tarjeta-tarea { grid-template-columns: 1fr; }
+  .tarea-dibujo svg { max-height: 120px; }
+}

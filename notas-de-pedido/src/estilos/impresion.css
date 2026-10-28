@@ -78,3 +78,12 @@
 .hoja-dibujos.sin-3d .hoja-detalles { columns: 1; }
 @media (max-width: 700px) { .hoja-dibujos.sin-3d { grid-template-columns: 1fr; grid-template-areas: "dos" "detalles"; } }
 @media print { .hoja-dibujos.sin-3d { grid-template-columns: 3fr 2fr; grid-template-areas: "dos detalles"; } }
+/* Hoja de ruta (producción). */
+.hoja-ruta .hoja-tabla td { font-size: 10pt; }
+.ruta-dibujo { width: 42mm; }
+.ruta-dibujo svg { width: 40mm; height: auto; max-height: 26mm; }
+.ruta-firma { width: 32mm; font-size: 14pt; text-align: center; }
+.fila-ruta { break-inside: avoid; page-break-inside: avoid; }
+@media print {
+  body[data-pantalla="produccion"] .pestanas, body[data-pantalla="produccion"] .filtros { display: none; }
+}

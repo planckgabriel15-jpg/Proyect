@@ -17,6 +17,8 @@ import { calcularRenglon } from '../logica/calculoRenglon.js';
 import { fotoDelCalculo, mostrar3d, OPCIONES_3D_NOTA } from '../logica/fotoCalculo.js';
 import { cantidadDeLaNota, explicarDiferencia } from '../logica/chapas.js';
 import { PRIORIDADES } from '../logica/produccion.js';
+import { tiempoDeRenglon, tiempoDeNota, textoDeTiempo } from '../logica/tiemposRenglon.js';
+import { cargarModelo } from './contextoProduccion.js';
 import { validarNota } from '../logica/validaciones.js';
 import { duplicarRenglon } from '../logica/renglones.js';
 import { registrarAtajos, etiquetaAtajo } from './atajos.js';
@@ -51,6 +53,9 @@ export async function pantallaNota(contenedor, notaId) {
 
   let hayCambios = false;
   let asistenteAbierto = null;
+  // Modelo de tiempos (con los parámetros que haya cambiado el jefe), para mostrar el tiempo estándar.
+  const { modelo } = await cargarModelo();
+  const totalTiempo = h('span', { class: 'texto-chico' });
 
   // ---------- guardado ----------
 
@@ -149,8 +154,11 @@ export async function pantallaNota(contenedor, notaId) {
     if (!nota.renglones.length) {
       listaRenglones.append(h('p', { class: 'vacio' }, 'Todavía no hay piezas. Tocá "Agregar pieza".'));
     }
+    const tiempoTotal = tiempoDeNota(nota, datos, modelo);
+    totalTiempo.textContent = nota.renglones.length ? `Tiempo estándar de fabricación: ${textoDeTiempo(tiempoTotal.totalEstandarS)} (estimado, modelo MTM a validar)` : '';
     nota.renglones.forEach((renglon, i) => {
       const r = calcularRenglon(renglon, datos);
+      const tiempo = tiempoDeRenglon(renglon, datos, modelo, r);
       const cantidad = cantidadDeLaNota(renglon, r, datos.config);
       const diferencia = explicarDiferencia(renglon, r, datos.config);
       const con3d = mostrar3d(renglon, nota, datos);
@@ -167,7 +175,8 @@ export async function pantallaNota(contenedor, notaId) {
             r.codigo.generico ? ' (genérico)' : '',
             r.codigosAdicionales.map((c) => h('span', { class: 'codigo-extra' }, ` + ${c.codigo} x${c.cantidad}`)),
             ' · Piezas: ', h('strong', {}, String(renglon.cantidad)),
-            ' · Cantidad: ', h('strong', {}, `${cantidad.texto} ${cantidad.unidad === 'chapas' ? 'chapa(s)' : 'unid.'}`)),
+            ' · Cantidad: ', h('strong', {}, `${cantidad.texto} ${cantidad.unidad === 'chapas' ? 'chapa(s)' : 'unid.'}`),
+            ' · Tiempo: ', h('strong', { title: tiempo.fuente === 'error' ? tiempo.estado : `Setup ${textoDeTiempo(tiempo.setupEstandarS)} + ${textoDeTiempo(tiempo.piezaEstandarS)} por pieza` }, tiempo.fuente === 'error' ? '—' : textoDeTiempo(tiempo.totalEstandarS))),
           diferencia && Math.abs(diferencia.diferencia) >= 0.005
             ? h('details', { class: 'texto-chico detalle-chapas' }, h('summary', {}, 'Consumo físico estimado (no cambia la cantidad)'), diferencia.texto)
             : null,
@@ -300,7 +309,7 @@ export async function pantallaNota(contenedor, notaId) {
     zonaRecuperar,
     encabezado,
     h('section', { class: 'panel' },
-      h('div', { class: 'titulo-seccion' }, h('h2', {}, 'Piezas'), ayuda(datos.glosario, 'desarrollo')),
+      h('div', { class: 'titulo-seccion' }, h('h2', {}, 'Piezas'), ayuda(datos.glosario, 'desarrollo'), totalTiempo),
       listaRenglones,
       h('button', { type: 'button', class: 'boton grande principal', onclick: () => abrir(null) }, 'Agregar pieza', etiquetaAtajo('Alt+P'))),
     zonaErrores,

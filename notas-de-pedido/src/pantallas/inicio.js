@@ -10,7 +10,13 @@ import { estado, ir, vendedorActual, sucursalActual } from './estado.js';
 import { registrarAtajos, etiquetaAtajo } from './atajos.js';
 import * as almacenamiento from '../datos/almacenamiento.js';
 
-/** Ingreso del prototipo: elegir el vendedor de una lista. (Con Google será la cuenta de la empresa.) */
+/**
+ * Ingreso del prototipo: elegir el ROL y quién es. (Con Google será la cuenta de la empresa.)
+ * - Comercial: elige su nombre (vendedor) → carga notas.
+ * - Jefe de producción: clave fija del prototipo (datos/produccion.json) → tablero, lotes, asignación…
+ * - Operario: elige su nombre → sus trabajos del día.
+ * No es seguridad real: cualquiera que abra la página puede elegir (ver README, Roles).
+ */
 export async function pantallaIngreso(contenedor) {
   const { datos } = estado;
   const grupos = datos.sucursales.map((s) => ({
@@ -21,20 +27,54 @@ export async function pantallaIngreso(contenedor) {
     h('option', { value: '' }, '— Elegí tu nombre —'),
     grupos.map((g) => h('optgroup', { label: g.sucursal.nombre },
       g.vendedores.map((v) => h('option', { value: v.id, selected: v.id === estado.sesion?.vendedorId }, v.nombre)))));
+  const operarios = datos.produccion.operarios.filter((o) => o.activo !== false);
+  const listaOperarios = h('select', { class: 'selector-grande', 'aria-label': 'Operario' },
+    h('option', { value: '' }, '— Elegí tu nombre —'),
+    operarios.map((o) => h('option', { value: o.id, selected: o.id === estado.sesion?.operarioId }, o.nombre)));
+  const claveJefe = h('input', { type: 'password', class: 'selector-grande', placeholder: 'Clave del jefe de producción', 'aria-label': 'Clave del jefe de producción' });
+
+  const entrar = async (sesion, destino) => {
+    estado.sesion = { rol: null, vendedorId: null, sucursalHoyId: null, operarioId: null, ...sesion };
+    await almacenamiento.guardarSesion(estado.sesion);
+    ir(destino);
+  };
+  const entrarJefe = () => {
+    if (claveJefe.value !== datos.produccion.claveJefeProduccion) { mostrarAviso('Clave incorrecta', 'error'); return; }
+    entrar({ rol: 'jefe' }, '#produccion');
+  };
+  claveJefe.addEventListener('keydown', (e) => { if (e.key === 'Enter') entrarJefe(); });
+
   contenedor.replaceChildren(h('section', { class: 'panel panel-ingreso' },
     h('h1', {}, '¿Quién sos?'),
-    h('p', {}, 'Elegí tu nombre. Se va a usar tu sucursal habitual (la podés cambiar por hoy).'),
-    lista,
-    h('button', {
-      type: 'button', class: 'boton grande principal',
-      onclick: async () => {
-        const vendedor = datos.vendedores.find((v) => v.id === lista.value);
-        if (!vendedor) { mostrarAviso('Elegí un nombre de la lista', 'error'); return; }
-        estado.sesion = { vendedorId: vendedor.id, sucursalHoyId: vendedor.sucursalHabitualId };
-        await almacenamiento.guardarSesion(estado.sesion);
-        ir('#inicio');
-      },
-    }, 'Entrar')));
+    h('div', { class: 'roles-ingreso' },
+      h('div', { class: 'rol-ingreso' },
+        h('h2', {}, 'Comercial'),
+        h('p', {}, 'Cargás las notas de pedido. Se usa tu sucursal habitual (la podés cambiar por hoy).'),
+        lista,
+        h('button', {
+          type: 'button', class: 'boton grande principal',
+          onclick: async () => {
+            const vendedor = datos.vendedores.find((v) => v.id === lista.value);
+            if (!vendedor) { mostrarAviso('Elegí un nombre de la lista', 'error'); return; }
+            await entrar({ rol: 'comercial', vendedorId: vendedor.id, sucursalHoyId: vendedor.sucursalHabitualId }, '#inicio');
+          },
+        }, 'Entrar')),
+      h('div', { class: 'rol-ingreso' },
+        h('h2', {}, 'Jefe de producción'),
+        h('p', {}, 'Tablero, lotes, asignación a operarios, eficiencia, material e indicadores.'),
+        claveJefe,
+        h('button', { type: 'button', class: 'boton grande principal', onclick: entrarJefe }, 'Entrar')),
+      h('div', { class: 'rol-ingreso' },
+        h('h2', {}, 'Operario'),
+        h('p', {}, 'Tus trabajos del día: marcás HECHA (y si querés, Iniciar / Pausar / Terminar).'),
+        listaOperarios,
+        h('button', {
+          type: 'button', class: 'boton grande principal',
+          onclick: async () => {
+            if (!listaOperarios.value) { mostrarAviso('Elegí tu nombre', 'error'); return; }
+            await entrar({ rol: 'operario', operarioId: listaOperarios.value }, '#operario');
+          },
+        }, 'Entrar')))));
   return () => {};
 }
 
@@ -89,10 +129,10 @@ export async function pantallaInicio(contenedor) {
       return;
     }
     lista.append(h('table', { class: 'tabla-notas' },
-      h('thead', {}, h('tr', {}, h('th', {}, 'Estado'), h('th', {}, 'NP Nº'), h('th', {}, 'Fecha'), h('th', {}, 'Cliente'), h('th', {}, 'Factura'), h('th', {}, 'Piezas'), h('th', {}, ''))),
+      h('thead', {}, h('tr', {}, h('th', {}, 'Estado'), h('th', {}, 'NP Nº'), h('th', {}, 'Fecha'), h('th', {}, 'Cliente'), h('th', {}, 'Factura'), h('th', {}, 'Renglones'), h('th', {}, ''))),
       h('tbody', {}, notas.map((n) => h('tr', {},
         h('td', {}, h('span', { class: `etiqueta-estado ${n.estado}` }, n.estado === 'emitida' ? 'EMITIDA' : 'borrador')),
-        h('td', {}, n.numero ? String(n.numero) : '—'),
+        h('td', {}, n.numero ? String(n.numero) : '—', n.demo ? h('span', { class: 'etiqueta-demo' }, 'DEMO') : null),
         h('td', {}, fechaCorta(n.fechaEmision || n.fechaModificacion || n.fechaCreacion)),
         h('td', {}, n.cliente || '(sin cliente)'),
         h('td', {}, n.factura || '—'),

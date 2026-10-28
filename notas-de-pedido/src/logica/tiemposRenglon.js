@@ -239,6 +239,6 @@ export function textoDeTiempo(segundos) {
   if (segundos < 60) return `${Math.round(segundos)} s`;
   const minutos = segundos / 60;
   if (minutos < 60) return `${String(Math.round(minutos * 10) / 10).replace('.', ',')} min`;
-  const horas = Math.floor(minutos / 60);
-  return `${horas} h ${String(Math.round(minutos - horas * 60)).padStart(2, '0')} min`;
+  const redondo = Math.round(minutos);
+  return `${Math.floor(redondo / 60)} h ${String(redondo % 60).padStart(2, '0')} min`;
 }

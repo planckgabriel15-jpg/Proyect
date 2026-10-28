@@ -14,6 +14,7 @@ import * as A from '../src/logica/agrupamiento.js';
 import * as P from '../src/logica/produccion.js';
 import { generarDemo, crearAzar } from '../src/logica/demo.js';
 import * as almacenamiento from '../src/datos/almacenamiento.js';
+import { armarCsv, leerCsvParametros } from '../src/logica/exportar.js';
 
 const datos = {
   ...datosCompletos(),
@@ -301,4 +302,16 @@ test('almacenamiento: lotes con deshacer, incidencias con causa obligatoria y pa
   assert.equal((await almacenamiento.leerCambiosTiempos()).parametros.p_setup_pleg_std_s, 120);
   await almacenamiento.descartarCambiosTiempos();
   assert.equal(await almacenamiento.leerCambiosTiempos(), null);
+});
+
+// ---------- exportar ----------
+
+test('exportar: CSV para Excel en español e importación de PARAMETROS_API', () => {
+  const csv = armarCsv(['Nota', 'Minutos'], [['NP "1"; A', 12.345], [null, 3]]);
+  assert.ok(csv.startsWith('﻿Nota;Minutos\r\n'));
+  assert.match(csv, /"NP ""1""; A";12,35/);
+  const { valores, errores } = leerCsvParametros('Clave,Valor,Unidad,Origen\np_setup_pleg_std_s,"120,5",s,X\np_tipo_plegadora,MANUAL,lista,X\np_vacio,,s,X\nact01_np,155,TMU,X\n');
+  assert.deepEqual(valores, { p_setup_pleg_std_s: 120.5, p_tipo_plegadora: 'MANUAL' });
+  assert.deepEqual(errores, ['p_vacio: sin valor']);
+  assert.match(leerCsvParametros('a,b\n1,2').errores[0], /PARAMETROS_API/);
 });
