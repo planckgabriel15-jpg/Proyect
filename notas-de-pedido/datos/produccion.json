@@ -1,0 +1,61 @@
+{
+  "_leeme": "Datos de PRODUCCIÓN del prototipo: operarios, máquinas, turnos, plazos y criterios de agrupamiento. Todo lo que dice SUPUESTO hay que confirmarlo con la empresa (ver PENDIENTES.md, sección H). Los operarios y criterios se pueden cambiar desde Producción.",
+  "turnos": [
+    { "id": "manana", "nombre": "Mañana", "inicio": "07:00", "fin": "15:00", "minutosDisponibles": 450, "supuesto": true, "nota": "SUPUESTO: 8 h menos 30 min de descanso." },
+    { "id": "tarde", "nombre": "Tarde", "inicio": "15:00", "fin": "23:00", "minutosDisponibles": 450, "supuesto": true }
+  ],
+  "_turnos": "minutosDisponibles es la capacidad de cada operario por turno. El modelo de tiempos ya incluye 3 % de demoras dentro del suplemento (no se descuenta dos veces).",
+  "diasHabiles": [1, 2, 3, 4, 5],
+  "_diasHabiles": "SUPUESTO: lunes (1) a viernes (5). 0 = domingo, 6 = sábado.",
+  "maquinas": [
+    { "id": "guillotina", "nombre": "Guillotina", "tipo": "guillotina", "cantidad": 1, "minutosPorTurno": 450, "largoMaxCm": 320, "espesorMaxMm": 4, "supuesto": true },
+    { "id": "plegadora", "nombre": "Plegadora hidráulica", "tipo": "plegadora", "cantidad": 2, "minutosPorTurno": 450, "largoMaxCm": 320, "espesorMaxMm": 3, "supuesto": true },
+    { "id": "cilindradora", "nombre": "Cilindradora / engrafadora", "tipo": "cilindradora", "cantidad": 1, "minutosPorTurno": 450, "largoMaxCm": 300, "espesorMaxMm": 1, "supuesto": true },
+    { "id": "banco", "nombre": "Banco de armado y soldadura", "tipo": "banco", "cantidad": 3, "minutosPorTurno": 450, "supuesto": true },
+    { "id": "deposito", "nombre": "Depósito (artículos de reventa)", "tipo": "deposito", "cantidad": 1, "minutosPorTurno": 450, "supuesto": true }
+  ],
+  "_maquinas": "SUPUESTO: el taller no está relevado (ver informe MTM, sección 13). cantidad = máquinas iguales que trabajan en paralelo.",
+  "operarios": [
+    { "id": "op01", "nombre": "Operario 1", "turno": "manana", "maquinas": ["guillotina", "plegadora", "cilindradora", "banco"], "activo": true },
+    { "id": "op02", "nombre": "Operario 2", "turno": "manana", "maquinas": ["guillotina", "plegadora"], "activo": true },
+    { "id": "op03", "nombre": "Operario 3", "turno": "manana", "maquinas": ["plegadora", "banco"], "activo": true },
+    { "id": "op04", "nombre": "Operario 4", "turno": "manana", "maquinas": ["plegadora", "cilindradora"], "activo": true },
+    { "id": "op05", "nombre": "Operario 5", "turno": "manana", "maquinas": ["banco", "deposito"], "activo": true },
+    { "id": "op06", "nombre": "Operario 6", "turno": "manana", "maquinas": ["guillotina", "plegadora", "banco"], "activo": true },
+    { "id": "op07", "nombre": "Operario 7", "turno": "tarde", "maquinas": ["guillotina", "plegadora"], "activo": true },
+    { "id": "op08", "nombre": "Operario 8", "turno": "tarde", "maquinas": ["plegadora", "banco"], "activo": true },
+    { "id": "op09", "nombre": "Operario 9", "turno": "tarde", "maquinas": ["cilindradora", "banco"], "activo": true },
+    { "id": "op10", "nombre": "Operario 10", "turno": "tarde", "maquinas": ["banco", "deposito", "plegadora"], "activo": true }
+  ],
+  "_operarios": "SUPUESTO: 10 personas de producción (especificación, sección 2). Nombres genéricos hasta tener la lista real.",
+  "plazoPorDefectoDiasHabiles": 5,
+  "_plazoPorDefectoDiasHabiles": "SUPUESTO: si la nota no tiene fecha de entrega, se toma la emisión + 5 días hábiles.",
+  "alertaDiasAntes": 1,
+  "_alertaDiasAntes": "SUPUESTO: alerta 'en riesgo' si faltan 1 día hábil o menos y la nota no está terminada, o si lo programado termina después de la entrega.",
+  "agrupamiento": {
+    "_leeme": "Criterios por defecto del agrupamiento (Producción > Lotes). peso = importancia en el coeficiente de similitud. Ver docs/AGRUPAMIENTO.md.",
+    "criterios": {
+      "perfil": { "activo": true, "peso": 3 },
+      "desarrollo": { "activo": true, "peso": 2, "toleranciaMm": 5 },
+      "material": { "activo": true, "peso": 3 },
+      "producto": { "activo": false, "peso": 1 },
+      "largo": { "activo": false, "peso": 1, "toleranciaCm": 20 },
+      "pliegues": { "activo": true, "peso": 1 },
+      "herramental": { "activo": true, "peso": 2 }
+    },
+    "similitudMinima": 0.6,
+    "ventanaDias": 3,
+    "urgentesSolas": true,
+    "maxMinutosPorLote": 240,
+    "maxRenglonesPorLote": 15,
+    "respetarMaquina": true,
+    "_valores": "SUPUESTO: un lote no pasa de medio turno (240 min) para no frenar otras entregas; ventana de 3 días hábiles entre entregas; las urgentes se agrupan solo con urgentes."
+  },
+  "causasIncidencia": {
+    "retrabajo": ["Medida mal tomada", "Pliegue fuera de ángulo", "Chapa marcada o rayada", "Error en la nota", "Otro"],
+    "demora": ["Falta de chapa", "Máquina ocupada", "Máquina en reparación", "Consulta al vendedor", "Falta de personal", "Otro"],
+    "incidente": ["Accidente o casi accidente", "Rotura de herramental", "Corte de luz", "Otro"]
+  },
+  "claveJefeProduccion": "jefe2026",
+  "_claveJefeProduccion": "SUPUESTO: clave fija del prototipo para entrar como jefe de producción (no es seguridad real: ver README, Roles)."
+}

@@ -13,6 +13,7 @@
 
 import { asignarNumeroNP, contadoresDesdeSucursales } from '../logica/numeracion.js';
 import { crearId } from '../logica/renglones.js';
+import { completarFotoVieja } from '../logica/fotoCalculo.js';
 
 const PREFIJO = 'notasPedido.';
 
@@ -55,7 +56,15 @@ async function leer(clave, valorPorDefecto) {
 
 async function guardar(clave, valor) {
   if (!motor) throw new Error('No hay dónde guardar datos (localStorage no disponible)');
-  motor.setItem(PREFIJO + clave, JSON.stringify(valor));
+  try {
+    motor.setItem(PREFIJO + clave, JSON.stringify(valor));
+  } catch (error) {
+    // El navegador da unos 5 MB por página: con muchos datos de demostración se puede llenar.
+    if (error?.name === 'QuotaExceededError' || /quota/i.test(String(error?.message))) {
+      throw new Error('No queda lugar en el navegador para guardar. Borrá los datos de demostración (Producción > Demo) o bajá una copia y borrá notas viejas.');
+    }
+    throw error;
+  }
 }
 
 // =============================================================
@@ -67,7 +76,7 @@ async function guardar(clave, valor) {
  * @returns {Promise<{config, sucursales, vendedores, materiales, catalogo, codigos, glosario}>}
  */
 export async function cargarDatosBase() {
-  const [config, sucursales, vendedores, materiales, catalogo, codigosArchivo, glosario] = await Promise.all([
+  const [config, sucursales, vendedores, materiales, catalogo, codigosArchivo, glosario, tiemposMtm, produccion] = await Promise.all([
     leerArchivoDatos('config.json'),
     leerArchivoDatos('sucursales.json'),
     leerArchivoDatos('vendedores.json'),
@@ -75,12 +84,17 @@ export async function cargarDatosBase() {
     leerArchivoDatos('catalogo.json'),
     leerArchivoDatos('codigos.json'),
     leerArchivoDatos('glosario.json'),
+    leerArchivoDatos('tiempos-mtm.json'),
+    leerArchivoDatos('produccion.json'),
   ]);
 
   // Si en Configuración se importó una tabla de códigos, manda esa.
   const codigosImportados = await leer('codigosImportados', null);
   // Si en Configuración se editaron sucursales (nombre, letra), mandan esas.
   const sucursalesEditadas = await leer('sucursalesEditadas', null);
+  // Operarios editados en Producción (nombre, turno, máquinas, activo).
+  const operariosEditados = await leer('operariosEditados', null);
+  const criteriosAgrupamiento = await leer('criteriosAgrupamiento', null);
 
   return {
     config,
@@ -90,6 +104,12 @@ export async function cargarDatosBase() {
     catalogo,
     codigos: codigosImportados || codigosArchivo,
     glosario: glosario.terminos,
+    tiemposMtm,
+    produccion: {
+      ...produccion,
+      operarios: operariosEditados || produccion.operarios,
+      agrupamiento: criteriosAgrupamiento || produccion.agrupamiento,
+    },
   };
 }
 
@@ -97,9 +117,14 @@ export async function cargarDatosBase() {
 // SESIÓN (quién está usando el programa y en qué sucursal trabaja hoy)
 // =============================================================
 
-/** @returns {Promise<{vendedorId: string|null, sucursalHoyId: string|null}>} */
+/**
+ * rol: 'comercial' (vendedor, carga notas) | 'jefe' (jefe de producción) | 'operario'.
+ * Las sesiones guardadas antes de que existieran los roles son de comercial.
+ * @returns {Promise<{rol: string, vendedorId: string|null, sucursalHoyId: string|null, operarioId: string|null}>}
+ */
 export async function leerSesion() {
-  return leer('sesion', { vendedorId: null, sucursalHoyId: null });
+  const sesion = await leer('sesion', { vendedorId: null, sucursalHoyId: null });
+  return { rol: sesion.vendedorId ? 'comercial' : null, operarioId: null, ...sesion };
 }
 
 export async function guardarSesion(sesion) {
@@ -162,6 +187,9 @@ export async function crearNotaVacia({ sucursalId, vendedorId }) {
     fechaEmision: null,
     cliente: '',
     factura: '',
+    fechaEntrega: null,        // 'aaaa-mm-dd' comprometida con el cliente (la usa producción)
+    prioridad: 'normal',       // 'normal' | 'urgente'
+    mostrar3d: 'auto',         // 'auto' | 'si' | 'no' (cada renglón puede elegir otra cosa)
     renglones: [],
   };
 }
@@ -251,23 +279,195 @@ export async function borrarBorrador(id) {
   await guardar('notas', notas.filter((n) => n.id !== id));
 }
 
+/**
+ * Cambia SOLO cómo se muestra el 3D de una nota (también si ya está emitida: es presentación,
+ * no cambia lo facturado). Queda anotado en el historial de producción.
+ * @param {{mostrar3d?: string, renglones?: object}} cambios  renglones = { renglonId: true|false|null }
+ */
+export async function cambiarVista3d(notaId, cambios, quien = null) {
+  const notas = await leer('notas', []);
+  const nota = notas.find((n) => n.id === notaId);
+  if (!nota) throw new Error('No se encontró la nota');
+  if (cambios.mostrar3d) nota.mostrar3d = cambios.mostrar3d;
+  for (const [renglonId, valor] of Object.entries(cambios.renglones || {})) {
+    const renglon = nota.renglones.find((r) => r.id === renglonId);
+    if (renglon) renglon.mostrar3d = valor;
+  }
+  await guardar('notas', notas);
+  if (nota.estado === 'emitida') {
+    await anotarEnHistorial(notaId, quien, 'vista 3D', JSON.stringify(cambios));
+  }
+  return nota;
+}
+
+// =============================================================
+// PRODUCCIÓN (registros por nota, lotes, incidencias, parámetros)
+// La lógica está en logica/produccion.js; acá solo se guarda y se lee.
+// =============================================================
+
+/** { notaId: registro } (ver logica/produccion.js → registroVacio). */
+export async function leerRegistros() {
+  return leer('produccion', {});
+}
+
+/** Guarda (crea o reemplaza) varios registros de una vez. */
+export async function guardarRegistros(lista) {
+  const registros = await leer('produccion', {});
+  for (const registro of lista) registros[registro.notaId] = registro;
+  await guardar('produccion', registros);
+  return registros;
+}
+
+async function anotarEnHistorial(notaId, quien, accion, detalle) {
+  const registros = await leer('produccion', {});
+  registros[notaId] ||= { notaId, demo: false, orden: null, renglones: {}, historial: [] };
+  registros[notaId].historial.push({ hora: new Date().toISOString(), rol: quien?.rol || null, usuario: quien?.nombre || null, accion, detalle });
+  await guardar('produccion', registros);
+}
+
+/** Lotes guardados por el jefe: [{id, nombre, claves: ['notaId/renglonId'], aceptado}]. Guarda la versión anterior para "deshacer". */
+export async function leerLotes() {
+  return leer('lotes', []);
+}
+
+export async function guardarLotes(lotes) {
+  await guardar('lotesAnterior', await leer('lotes', []));
+  await guardar('lotes', lotes);
+}
+
+/** Vuelve a la versión de los lotes anterior al último cambio. */
+export async function deshacerLotes() {
+  const anterior = await leer('lotesAnterior', null);
+  if (!anterior) throw new Error('No hay un cambio para deshacer');
+  await guardar('lotes', anterior);
+  motor.removeItem(PREFIJO + 'lotesAnterior');
+  return anterior;
+}
+
+/** Incidencias, retrabajos y demoras: [{id, hora, tipo, causa, notaId, renglonId, operarioId, minutosPerdidos, descripcion}]. */
+export async function leerIncidencias() {
+  return leer('incidencias', []);
+}
+
+export async function agregarIncidencia(incidencia) {
+  if (!incidencia.tipo || !incidencia.causa) throw new Error('Elegí el tipo y la causa de la incidencia');
+  const lista = await leer('incidencias', []);
+  const nueva = { id: crearId('inc'), hora: new Date().toISOString(), demo: false, ...incidencia };
+  lista.push(nueva);
+  await guardar('incidencias', lista);
+  if (nueva.notaId) await anotarEnHistorial(nueva.notaId, null, `incidencia: ${nueva.tipo}`, `${nueva.causa}${nueva.descripcion ? ` – ${nueva.descripcion}` : ''}`);
+  return nueva;
+}
+
+/** Cambios del jefe a los parámetros de tiempos: {parametros: {clave: valor}, productosSinPerfil?, fuente, fecha}. */
+export async function leerCambiosTiempos() {
+  return leer('cambiosTiempos', null);
+}
+
+export async function guardarCambiosTiempos(cambios) {
+  await guardar('cambiosTiempos', { ...cambios, fecha: new Date().toISOString() });
+}
+
+/** Vuelve a los valores del estudio (datos/tiempos-mtm.json). */
+export async function descartarCambiosTiempos() {
+  motor.removeItem(PREFIJO + 'cambiosTiempos');
+}
+
+export async function guardarOperarios(lista) {
+  await guardar('operariosEditados', lista);
+}
+
+export async function guardarCriteriosAgrupamiento(criterios) {
+  await guardar('criteriosAgrupamiento', criterios);
+}
+
+// =============================================================
+// DATOS DE DEMOSTRACIÓN (marcados demo: true; no tocan los contadores reales)
+// =============================================================
+
+export async function hayDemo() {
+  return (await leer('notas', [])).some((n) => n.demo);
+}
+
+/** Agrega los datos de demostración. Si ya hay, primero hay que borrarlos. */
+export async function cargarDemo({ notas, registros }) {
+  const actuales = await leer('notas', []);
+  if (actuales.some((n) => n.demo)) throw new Error('Ya hay datos de demostración cargados: borralos primero');
+  if (notas.some((n) => !n.demo)) throw new Error('Los datos de demostración tienen que estar marcados como demo');
+  await guardar('notas', actuales.concat(notas));
+  await guardarRegistros(Object.values(registros));
+}
+
+/** Borra SOLO lo marcado como demo (notas, registros, incidencias y lotes que las usan). */
+export async function borrarDemo() {
+  const notas = await leer('notas', []);
+  const idsDemo = new Set(notas.filter((n) => n.demo).map((n) => n.id));
+  await guardar('notas', notas.filter((n) => !n.demo));
+  const registros = await leer('produccion', {});
+  for (const id of Object.keys(registros)) if (registros[id].demo || idsDemo.has(id)) delete registros[id];
+  await guardar('produccion', registros);
+  await guardar('incidencias', (await leer('incidencias', [])).filter((i) => !i.demo && !idsDemo.has(i.notaId)));
+  const sinDemo = (lotes) => (lotes || []).map((l) => ({ ...l, claves: l.claves.filter((c) => !idsDemo.has(c.split('/')[0])) })).filter((l) => l.claves.length);
+  await guardar('lotes', sinDemo(await leer('lotes', [])));
+  motor.removeItem(PREFIJO + 'lotesAnterior');
+  return idsDemo.size;
+}
+
+// =============================================================
+// MIGRACIÓN (notas guardadas con versiones anteriores del programa)
+// =============================================================
+
+export const VERSION_DATOS = 2;
+
+/**
+ * Versión 2: las notas emitidas antes guardaban la foto sin la cantidad de chapas.
+ * Se completa (sin tocar código ni descripción) y se agregan los campos nuevos de la nota
+ * (fecha de entrega, prioridad, vista 3D). Se hace una sola vez.
+ */
+export async function migrarDatos(datos) {
+  const version = await leer('versionDatos', 1);
+  if (version >= VERSION_DATOS) return { migradas: 0 };
+  const notas = await leer('notas', []);
+  let migradas = 0;
+  for (const nota of notas) {
+    nota.fechaEntrega ??= null;
+    nota.prioridad ??= 'normal';
+    nota.mostrar3d ??= 'auto';
+    for (const renglon of nota.renglones || []) {
+      if (renglon.calculado && !(renglon.calculado.version >= 2)) {
+        renglon.calculado = completarFotoVieja(renglon, renglon.calculado, datos.config);
+        migradas += 1;
+      }
+    }
+  }
+  await guardar('notas', notas);
+  await guardar('versionDatos', VERSION_DATOS);
+  return { migradas };
+}
+
 // =============================================================
 // COPIA DE SEGURIDAD
 // =============================================================
 
-/** Todo lo guardado (notas, contadores, configuración) en un solo objeto, para bajarlo como archivo. */
+/** Todo lo guardado (notas, producción, configuración) en un solo objeto, para bajarlo como archivo. */
 export async function exportarTodo() {
   return {
     exportado: new Date().toISOString(),
+    versionDatos: await leer('versionDatos', 1),
     notas: await leer('notas', []),
     contadores: await leer('contadores', {}),
     sucursalesEditadas: await leer('sucursalesEditadas', null),
     codigosImportados: await leer('codigosImportados', null),
+    produccion: await leer('produccion', {}),
+    lotes: await leer('lotes', []),
+    incidencias: await leer('incidencias', []),
+    cambiosTiempos: await leer('cambiosTiempos', null),
+    operariosEditados: await leer('operariosEditados', null),
+    criteriosAgrupamiento: await leer('criteriosAgrupamiento', null),
   };
 }
 
-/** Borra las notas y los contadores (para empezar de cero después de probar). La configuración queda. */
+/** Borra las notas, los contadores y lo de producción (para empezar de cero después de probar). La configuración queda. */
 export async function borrarNotasYContadores() {
-  motor.removeItem(PREFIJO + 'notas');
-  motor.removeItem(PREFIJO + 'contadores');
+  for (const clave of ['notas', 'contadores', 'produccion', 'lotes', 'lotesAnterior', 'incidencias']) motor.removeItem(PREFIJO + clave);
 }

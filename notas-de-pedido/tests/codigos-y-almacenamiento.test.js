@@ -103,10 +103,11 @@ test('tabla de códigos importada reemplaza a la de ejemplo (y se puede descarta
   assert.ok((await almacenamiento.cargarDatosBase()).codigos.length > 1);
 });
 
-test('sesión: vendedor y sucursal de hoy', async () => {
-  assert.deepEqual(await almacenamiento.leerSesion(), { vendedorId: null, sucursalHoyId: null });
+test('sesión: vendedor y sucursal de hoy (una sesión vieja sin rol es de comercial)', async () => {
+  assert.deepEqual(await almacenamiento.leerSesion(), { rol: null, operarioId: null, vendedorId: null, sucursalHoyId: null });
   await almacenamiento.guardarSesion({ vendedorId: 'v01', sucursalHoyId: 'ohiggins' });
   assert.equal((await almacenamiento.leerSesion()).sucursalHoyId, 'ohiggins');
+  assert.equal((await almacenamiento.leerSesion()).rol, 'comercial');
 });
 
 test('exportar todo y borrar notas de prueba', async () => {
