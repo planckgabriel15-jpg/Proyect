@@ -71,3 +71,10 @@
   .perfil-cota, .cota-texto { stroke: #fff; }
 }
 .hoja-2d .titulo-perfil { margin: .1rem 0; font-weight: 700; font-size: 9pt; }
+/* Piezas (cuántas se fabrican) al lado de la cantidad de chapas (lo que se factura). */
+.col-piezas { width: 16mm; text-align: center; font-size: 11pt; }
+/* Renglón sin 3D: los detalles van al lado del dibujo 2D. */
+.hoja-dibujos.sin-3d { grid-template-columns: 3fr 2fr; grid-template-areas: "dos detalles"; }
+.hoja-dibujos.sin-3d .hoja-detalles { columns: 1; }
+@media (max-width: 700px) { .hoja-dibujos.sin-3d { grid-template-columns: 1fr; grid-template-areas: "dos" "detalles"; } }
+@media print { .hoja-dibujos.sin-3d { grid-template-columns: 3fr 2fr; grid-template-areas: "dos detalles"; } }

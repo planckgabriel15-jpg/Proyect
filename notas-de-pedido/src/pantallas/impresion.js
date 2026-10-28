@@ -3,9 +3,12 @@
 // Vista de impresión (A4 vertical), con el mismo esquema que la nota en papel:
 //   ORIGEN (grande)                     NP Nº · Fecha · Factura Nº
 //   Cliente
-//   Descripción | Código | Cantidad
+//   Descripción | Código | Piezas | Cantidad (chapas)
 //   … y debajo de cada renglón: dibujo 2D acotado (referencia oficial),
-//   imagen 3D chica (ayuda visual), tramos, pintura, corte láser y observaciones.
+//   imagen 3D chica (ayuda visual, opcional por nota y por renglón), tramos,
+//   pintura, corte láser y observaciones.
+// Lo facturado (descripción, código, cantidad) sale de logica/fotoCalculo.js:
+// en una nota emitida es la foto guardada al emitir; los dibujos, del renglón.
 // Pie de página: vendedor, fecha y hora de emisión y "Página X de Y".
 // Se imprime con window.print(); desde ahí se puede "Guardar como PDF".
 // =============================================================
@@ -14,7 +17,7 @@ import { h, fechaCorta, fechaYHora, mostrarAviso } from './util.js';
 import { etiquetaAtajo } from './atajos.js';
 import { estado, nombreSucursal, nombreVendedor } from './estado.js';
 import * as almacenamiento from '../datos/almacenamiento.js';
-import { calcularRenglon } from '../logica/calculoRenglon.js';
+import { datosDelRenglon, mostrar3d } from '../logica/fotoCalculo.js';
 import { textoDeTramos } from '../logica/descripcion.js';
 import { describirCorteLaser } from '../logica/corteLaser.js';
 import { formatearCorto } from '../logica/numeros.js';
@@ -73,21 +76,16 @@ export async function pantallaImpresion(contenedor, notaId) {
 
   // ---------- renglones ----------
   const tabla = h('table', { class: 'hoja-tabla' },
-    h('thead', {}, h('tr', {}, h('th', { class: 'col-descripcion' }, 'Descripción'), h('th', { class: 'col-codigo' }, 'Código'), h('th', { class: 'col-cantidad' }, 'Cantidad'))));
+    h('thead', {}, h('tr', {},
+      h('th', { class: 'col-descripcion' }, 'Descripción'),
+      h('th', { class: 'col-codigo' }, 'Código'),
+      h('th', { class: 'col-piezas' }, 'Piezas'),
+      h('th', { class: 'col-cantidad', title: 'Cantidad de chapas = piezas × largo ÷ 2,44 m (los productos sin largo, en unidades)' }, 'Cantidad'))));
 
   nota.renglones.forEach((renglon, i) => {
     // Si la nota está emitida se usa lo calculado al emitir (no cambia aunque cambie la tabla de códigos).
-    const vivo = calcularRenglon(renglon, datos);
-    const c = renglon.calculado || {
-      descripcion: vivo.descripcion,
-      codigo: vivo.codigo.encontrado ? vivo.codigo.codigo : null,
-      desarrolloCm: vivo.desarrolloCm,
-      desarrolloEsManual: vivo.desarrolloEsManual,
-      porUnidad: vivo.porUnidad,
-      avisos: vivo.avisos,
-      codigoGenerico: vivo.codigo.generico,
-      codigosAdicionales: vivo.codigosAdicionales,
-    };
+    const { vivo, foto: c } = datosDelRenglon(renglon, datos);
+    const con3d = mostrar3d(renglon, nota, datos);
     const usaPerfil = renglon.tipoPieza === 'plegada' || renglon.usaPerfil;
     const conPendiente = tienePendiente(renglon) && vivo.pendiente;
     const opcionesPerfil = { config: datos.config, ancho: 560, alto: conPendiente ? 250 : 340, ladoPintura: renglon.terminacion === 'P' ? renglon.ladoPintura : null };
@@ -104,13 +102,13 @@ export async function pantallaImpresion(contenedor, notaId) {
     if (conPendiente) {
       detalles.push(h('li', {}, h('strong', {}, 'Tramos punta izquierda: '), textoDeTramos(renglon.perfil.tramos)));
       detalles.push(h('li', {}, h('strong', {}, 'Tramos punta derecha: '), textoDeTramos(perfilFinal(renglon.perfil).tramos)));
-      detalles.push(h('li', {}, h('strong', {}, 'Pendiente: '), vivo.pendiente.texto));
+      detalles.push(h('li', {}, h('strong', {}, 'Pendiente: '), c.pendienteTexto || vivo.pendiente.texto));
     } else if (usaPerfil && renglon.perfil?.tramos?.length) {
       detalles.push(h('li', {}, h('strong', {}, 'Tramos: '), textoDeTramos(renglon.perfil.tramos)));
     }
     if (!c.porUnidad && c.desarrolloCm) detalles.push(h('li', {}, h('strong', {}, 'Desarrollo: '), `${formatearCorto(c.desarrolloCm, 1)} cm${c.desarrolloEsManual ? ' (corregido a mano)' : ''}`));
     if (renglon.terminacion === 'P' && !renglon.sinMaterial) detalles.push(h('li', {}, h('strong', {}, 'Pintura: '), renglon.ladoPintura === 'ambos' ? 'DE LOS DOS LADOS' : (renglon.ladoPintura || '—').toUpperCase()));
-    if (vivo.empalme) detalles.push(h('li', {}, h('strong', {}, 'Empalme: '), vivo.empalme.texto));
+    if (c.empalmeTexto) detalles.push(h('li', {}, h('strong', {}, 'Empalme: '), c.empalmeTexto));
     for (const linea of [...detalleDeAccesorios(renglon.accesorios, renglon, datos.config), ...detalleDeCortes(renglon, datos.config)]) detalles.push(h('li', {}, h('strong', {}, `${linea.split(':')[0]}: `), linea.split(':').slice(1).join(':').trim()));
     for (const tramo of (usaPerfil ? renglon.perfil.tramos : []).filter((t) => t.corteLaser)) {
       detalles.push(h('li', {}, h('strong', {}, `Tramo ${renglon.perfil.tramos.indexOf(tramo) + 1}: `), describirCorteLaser(tramo.corteLaser)));
@@ -132,20 +130,22 @@ export async function pantallaImpresion(contenedor, notaId) {
       h('tr', { class: 'fila-principal' },
         h('td', {}, h('span', { class: 'numero-en-hoja' }, `${i + 1}.`), ' ', c.descripcion),
         h('td', { class: 'col-codigo' }, c.codigo || 'PENDIENTE'),
-        h('td', { class: 'col-cantidad' }, String(renglon.cantidad))),
+        h('td', { class: 'col-piezas' }, String(c.cantidad.piezas)),
+        h('td', { class: 'col-cantidad' }, c.cantidad.unidad === 'chapas' ? c.cantidad.texto : `${c.cantidad.texto} u.`)),
       // Tapas y boquetas puestas en la canaleta: se facturan con su propio código (pedido de la empresa).
       (c.codigosAdicionales || []).map((extra) => h('tr', { class: 'fila-adicional' },
         h('td', {}, `   + ${extra.descripcion} (puesta en la canaleta)`),
         h('td', { class: 'col-codigo' }, extra.codigo),
-        h('td', { class: 'col-cantidad' }, String(extra.cantidad)))),
-      h('tr', { class: 'fila-dibujo' }, h('td', { colspan: 3 },
-        h('div', { class: 'hoja-dibujos' },
+        h('td', { class: 'col-piezas' }, ''),
+        h('td', { class: 'col-cantidad' }, `${extra.cantidad} u.`))),
+      h('tr', { class: 'fila-dibujo' }, h('td', { colspan: 4 },
+        h('div', { class: `hoja-dibujos${con3d ? '' : ' sin-3d'}` },
           h('div', { class: 'hoja-2d', html: dibujo2d }),
-          h('div', { class: 'hoja-3d', 'data-renglon': renglon.id }),
+          con3d ? h('div', { class: 'hoja-3d', 'data-renglon': renglon.id }) : null,
           h('ul', { class: 'hoja-detalles' }, detalles)))),
       // Vistas extra (corte láser, desde arriba, caras con cortes, tapas) en otra fila:
       // así un renglón largo puede seguir en la hoja siguiente sin dejar la primera vacía.
-      laseres ? h('tr', { class: 'fila-laser' }, h('td', { colspan: 3 }, h('div', { class: 'hoja-laser', html: laseres }))) : null));
+      laseres ? h('tr', { class: 'fila-laser' }, h('td', { colspan: 4 }, h('div', { class: 'hoja-laser', html: laseres }))) : null));
   });
 
   const hoja = h('article', { class: 'hoja-a4' },
@@ -157,10 +157,11 @@ export async function pantallaImpresion(contenedor, notaId) {
   contenedor.replaceChildren(estiloPie, barra, hoja);
   document.title = `NP ${emitida ? nota.numero : 'borrador'} – ${sucursal}`;
 
-  // Imágenes 3D chicas (ayuda visual).
-  const modulo = await cargar3d();
+  // Imágenes 3D chicas (ayuda visual), solo en los renglones que la llevan.
+  const con3d = nota.renglones.filter((r) => mostrar3d(r, nota, datos));
+  const modulo = con3d.length ? await cargar3d() : null;
   if (modulo) {
-    for (const renglon of nota.renglones) {
+    for (const renglon of con3d) {
       const lugar = hoja.querySelector(`.hoja-3d[data-renglon="${renglon.id}"]`);
       try {
         const imagen = modulo.capturarRenglon(renglon, datos, 760, 520);
@@ -169,7 +170,7 @@ export async function pantallaImpresion(contenedor, notaId) {
         console.warn('Imagen 3D para imprimir:', error);
       }
     }
-  } else {
+  } else if (con3d.length) {
     mostrarAviso('Sin 3D: se imprime solo el dibujo 2D (que es la referencia oficial).', 'info');
   }
 
