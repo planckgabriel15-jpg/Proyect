@@ -126,7 +126,30 @@ El 16/10 el catálogo se limitó a los productos que fabrica la empresa (ver pun
 | 75 | **Empalme:** si la pieza mide más que la chapa (2,44 m), se arma con tramos: automático (2,44 + lo que falta), partes iguales (con un tramo más o menos) o a mano (el último se ajusta solo). **Sin solape** entre tramos, como el ejemplo del área comercial (3 m = 2,44 + 0,56). En el 3D se ven las uniones en rojo y cada tramo se puede cambiar tocando su cota. La descripción agrega "empalme 2,44 + 0,56". **Confirmar el solape y cómo se escribe** | `src/logica/empalme.js`; `config.json` → `empalme` |
 | 76 | **Más medidas ajustables:** sombreros (alto del caño, luz, ala, alto del techo, faldón, separación y alto de la H), curva articulada y codo rectangular (radio), ramal (largo del caño y del ramal). Son **opcionales**: los renglones guardados antes siguen con las proporciones de siempre | `catalogo.json` (`opcional: true`), `piezasEspeciales3d.js` |
 
+## H. Gestión de producción (28/10/2026): decisiones tomadas sin poder consultar
+
+Se eligió lo más recomendado en cada caso. Detalle en `docs/PRODUCCION.md` y `docs/AGRUPAMIENTO.md`.
+
+| # | Decisión o supuesto | Dónde se cambia |
+|---|---|---|
+| 77 | **Cantidad = chapas** = piezas × largo ÷ 2,44 con 2 decimales. Los productos sin largo (boquetas sueltas, artículos) siguen en unidades, igual que las tapas y boquetas puestas. Las **notas emitidas antes** también muestran la cantidad de chapas (calculada con su foto, sin cambiar código ni descripción) y la columna Piezas conserva lo de antes. **Confirmar que facturación cobra por esa cantidad** | `logica/chapas.js`; `config.json` → `cantidadDeChapas` |
+| 78 | La **estimación física** (tiras enteras sin reutilizar recortes y tiras por ancho de chapa) se muestra pero **no** cambia la nota. ¿Se reutilizan los recortes? | `chapas.js` → `consumoFisico` |
+| 79 | **3D por defecto apagado** en productos estándar y artículos de reventa; prendido en el resto. Se cambia por nota y por renglón | `config.json` → `vista3d` |
+| 80 | **Modelo de tiempos** = planilla "Modelo MTM Zinguería" v1.0 tal cual (33 parámetros [A VALIDAR] y 30 [SUPUESTO]): plegadora hidráulica, 2 operarios desde 2,5 m, suplemento 20 %, setups de 60 a 600 s. **Cronometrar** (informe MTM, sección 13) | Producción → Parámetros de tiempos |
+| 81 | **Lectura del dibujo** para el modelo: SIMPLE = 90° ± 1°; INVERSO = el pliegue gira al revés que el anterior; dobladillo = cierre 180°; ESTANDAR = producto estándar o perfil del catálogo sin cambios; con pendiente = ESPECIAL; tapa = 1 TAPA; boqueta = 1 corte + 1 soldadura; corte = 1 tijera (+1 soldadura con pared); empalme = 4 remaches + sellado por unión | parámetros `q_…` |
+| 82 | **Productos sin perfil** (boquetas sueltas, caños por unidad, tapas, sombreros, artículos): tiempo propio por grupo (ej. sombrero 300 s de setup + 900 s por pieza; artículo 30 s) | Parámetros → "Productos sin perfil" |
+| 83 | **Máquinas** (1 guillotina, 2 plegadoras, 1 cilindradora, 3 bancos, depósito) y **10 operarios genéricos** en dos turnos de 450 min, lunes a viernes. **Pasar la lista real** | `datos/produccion.json`; Producción → Operarios |
+| 84 | Sin fecha de entrega cargada: emisión + **5 días hábiles**. Alerta "en riesgo" a 1 día hábil | `produccion.json` |
+| 85 | **Agrupamiento**: perfil, desarrollo (± 5 mm), material, pliegues y herramental activos; similitud mínima 60 %; ventana de 3 días; urgentes solo con urgentes; hasta 240 min y 15 renglones por lote | Producción → Lotes → "Guardar criterios" |
+| 86 | Un renglón se asigna **entero a un operario** (aunque el modelo diga 2 operarios para piezas largas: se avisa en la tarjeta del operario) | `produccionAsignacion.js` |
+| 87 | **Roles sin seguridad real**: el jefe entra con la clave `jefe2026`; el operario elige su nombre. Con Google, los roles salen de la cuenta | `produccion.json` → `claveJefeProduccion` |
+| 88 | Tiempo real **solo con la casilla HECHA** = desde la HECHA anterior del operario ese día o el inicio del turno (incluye esperas). Se recomienda Iniciar/Terminar | `logica/produccion.js` → `tiempoRealPorCasilla` |
+| 89 | **Excel** = CSV con punto y coma y coma decimal (sin librerías); **PDF** = imprimir del navegador | `logica/exportar.js` |
+| 90 | **Demo**: 500 notas con semilla fija 20261028, número `D-…`, sin usar los contadores; ritmo simulado por operario de 80 % a 115 % | `logica/demo.js` |
+| 91 | La producción vive en el navegador como las notas: jefe y operarios en el mismo equipo hasta pasar a Google | `almacenamiento.js` |
+
 ## G. Para cuando se pase a Google (Apps Script)
 
 - La numeración tiene que hacerse en el servidor con `LockService`, que es un candado para que dos vendedores no saquen el mismo número a la vez.
 - Las notas emitidas no se modifican: en Sheets conviene una hoja de solo lectura.
+- Producción: registros, lotes e incidencias a hojas de Sheets; el operario marca HECHA desde su celular con su cuenta; el jefe con permisos de su cuenta (no con clave fija).

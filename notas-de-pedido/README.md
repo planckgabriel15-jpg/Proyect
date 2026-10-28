@@ -8,11 +8,14 @@ Programa web que reemplaza la nota de pedido en papel. El vendedor:
    los plegados pueden ser **con pendiente**: se cargan las medidas de las dos puntas y el 3D muestra cómo cambia la pieza a lo largo;
    a cualquier plegado se le pueden hacer **cortes** (con pared o aletas alrededor); las canaletas llevan **tapas** (también a medida) y **boquetas** de cualquier tipo, en el fondo o en una tapa, y la chapa queda cortada donde van; si la pieza mide más que la chapa, se arma el **empalme** (2,44 + resto, partes iguales o a mano);
 4. obtiene solo el **desarrollo**, la **banda** y el **código** (de la tabla de facturación o, si el producto no está, un código genérico como CL1010N);
-5. elige material, calibre, color y cantidad;
-6. emite e imprime (o guarda en PDF) una nota prolija para producción.
+5. elige material, calibre, color y cantidad de piezas (la nota muestra además la **cantidad de chapas** = piezas × largo ÷ 2,44 y el **tiempo estándar** de fabricación);
+6. emite e imprime (o guarda en PDF) una nota prolija para producción (el 3D es opcional por nota y por renglón).
+
+Y en **Producción** (sección 8), el jefe de producción ve el tablero de estados, agrupa renglones de distintas notas en **lotes** para hacer el setup una sola vez, asigna a los operarios por día y turno, mide la **eficiencia** y la chapa necesaria; cada operario marca sus trabajos como **HECHA** desde el celular.
 
 > **Para probarlo en 10 minutos:** seguí [`GUIA-PRUEBA-10-MIN.md`](GUIA-PRUEBA-10-MIN.md).
 > **Lo que falta confirmar con la empresa:** [`PENDIENTES.md`](PENDIENTES.md).
+> **Producción por dentro:** [`docs/PRODUCCION.md`](docs/PRODUCCION.md) y [`docs/AGRUPAMIENTO.md`](docs/AGRUPAMIENTO.md).
 
 ---
 
@@ -103,7 +106,7 @@ Sin frameworks y sin "paso de compilación": HTML + CSS + JavaScript moderno (m�
 
 | Capa | Carpeta | Qué hace | Regla |
 |---|---|---|---|
-| Lógica | `src/logica/` | Cálculos puros: desarrollo, banda, código, geometría, cotas, pendiente, cortes, accesorios de canaleta, empalme, corte láser, descripción, validaciones, numeración | No usa el navegador ni Three.js. Todo se prueba con `node --test` |
+| Lógica | `src/logica/` | Cálculos puros: desarrollo, banda, código, geometría, cotas, pendiente, cortes, accesorios de canaleta, empalme, corte láser, descripción, validaciones, numeración, chapas, tiempos MTM, agrupamiento, producción, demo | No usa el navegador ni Three.js. Todo se prueba con `node --test` |
 | Datos | `src/datos/almacenamiento.js` | **Única puerta** para guardar y leer | Nadie más usa `localStorage`. Todas sus funciones son `async` |
 | Interfaz | `src/pantallas/`, `src/vistas2d/`, `src/vistas3d/`, `src/estilos/` | Pantallas, dibujos 2D (SVG) y 3D (Three.js) | Llama a la lógica y al almacenamiento; no calcula reglas de negocio |
 
@@ -116,14 +119,19 @@ src/app.js                     arranque y elección de pantalla según la direcc
 recursos/logo.png              logo oficial de Abasto Soluciones
 src/pantallas/
   atajos.js                    atajos de teclado (F1 muestra la lista)
-  inicio.js                    ingreso (elegir vendedor) e inicio (lista de notas de la sucursal)
+  inicio.js                    ingreso (comercial, jefe de producción u operario) e inicio (lista de notas de la sucursal)
   nota.js                      nota de pedido: encabezado, renglones, autoguardado, emisión
   asistente.js                 "Agregar pieza" en 3 pasos (galería → medidas y dibujo → material)
   editorTramos.js              tabla de tramos (Enter, deshacer/rehacer, atajos, corte láser, columnas de la punta final)
   editor3d.js                  editor 3D a pantalla completa: herramientas, propiedades de la parte elegida, resumen
   panelesPieza.js              paneles de tapas (también a medida), boquetas, cortes y empalme (paso 2 y editor 3D)
   impresion.js                 hoja A4 para imprimir o guardar en PDF
-  produccion.js                lista de notas emitidas para el taller
+  produccion.js                centro de producción (pestañas según el rol)
+  produccionTablero.js, produccionLotes.js, produccionAsignacion.js, produccionOperarios.js,
+  produccionIndicadores.js (material, KPIs, incidencias), produccionParametros.js, produccionDemo.js
+  contextoProduccion.js        junta notas, registros, lotes y tiempos para esas pestañas
+  operario.js                  trabajos del día del operario (HECHA, iniciar, pausar)
+  hojaRuta.js                  hoja de ruta imprimible por operario o lote
   configuracion.js             sucursales, último número, importar códigos, copias de seguridad
   util.js, estado.js           herramientas chicas y datos compartidos
 src/vistas2d/
@@ -147,6 +155,8 @@ src/vistas3d/
 src/logica/                    (ver tabla de arriba)
 datos/*.json                   configuración del negocio (ver sección 4)
 herramientas/generar-codigos-ejemplo.js
+herramientas/importar-modelo-mtm.py    planilla "Modelo MTM Zinguería" → datos/tiempos-mtm.json
+docs/PRODUCCION.md, docs/AGRUPAMIENTO.md  cómo funciona producción y por qué se agrupa así
 tests/                         pruebas automáticas
 docs/ESPECIFICACION.md         la especificación original
 ```
@@ -162,7 +172,10 @@ docs/ESPECIFICACION.md         la especificación original
 | Quiero… | Archivo | Qué tocar |
 |---|---|---|
 | Cambiar los límites de banda (30/60/120) | `config.json` | `bandas` |
-| Cambiar el largo máximo (aviso de empalme) | `config.json` | `largoMaximoChapaCm` |
+| Cambiar la medida de la chapa (largo: empalme y cantidad de chapas; ancho) | `config.json` | `largoMaximoChapaCm`, `anchoChapaCm` |
+| Cambiar qué productos llevan 3D por defecto | `config.json` | `vista3d.gruposApagadosPorDefecto` |
+| Cambiar operarios, máquinas, turnos, plazo por defecto, causas de incidencias, clave del jefe | `produccion.json` (los operarios también desde Producción → Operarios) | `operarios`, `maquinas`, `turnos`, `plazoPorDefectoDiasHabiles`, `causasIncidencia`, `claveJefeProduccion` |
+| Cambiar parámetros de tiempos (setup, velocidades, suplementos…) | pantalla **Producción → Parámetros de tiempos** (o `tiempos-mtm.json`) | ver sección 8 |
 | Cambiar los mínimos del corte láser (3,6 cm) | `config.json` | `corteLaser.anchoMinimoCaraCm`, `corteLaser.alturaMinimaOndaCm` |
 | Cambiar el solape de caños y boquetas | `config.json` | `solapeEngrafeCm` |
 | Cambiar el solape entre tramos de un empalme | `config.json` | `empalme.solapeCm` (hoy 0: 2,44 + 0,56 = 3,00) |
@@ -198,6 +211,8 @@ El prototipo guarda las notas **en el navegador de cada equipo** (localStorage).
 
 - cada PC o celular tiene **sus propias** notas y su **propia** numeración;
 - si se borran los datos del navegador, se pierden las notas: en **Configuración → Datos** se puede bajar una copia de seguridad;
+- lo de producción (asignaciones, HECHA, lotes, incidencias, parámetros editados) también queda en el navegador: el jefe y los operarios tienen que usar **el mismo equipo** hasta pasar a Google;
+- los datos de demostración ocupan unos 2 MB (el navegador da unos 5 MB): se borran desde Producción → Datos de demostración;
 - los borradores se guardan solos cada 5 segundos, y también la pieza que se está cargando. Si se corta la luz o internet, al volver a abrir la nota aparece "Quedó una pieza sin terminar → Recuperarla".
 
 Esto se resuelve en la versión con Google (ver "Próximos pasos").
@@ -221,13 +236,40 @@ Esto se resuelve en la versión con Google (ver "Próximos pasos").
 1. **Conexión a Google Apps Script + Sheets + Drive.** Reemplazar el interior de `src/datos/almacenamiento.js` por llamadas a `google.script.run` (cada función ya es `async`, así que las pantallas no cambian). Las notas van a una hoja de Sheets y el PDF a una carpeta de Drive, nombrado con la letra de la sucursal y el número.
 2. **Numeración segura entre varios vendedores:** el número se asigna en el servidor con `LockService`, un candado para que dos vendedores que emiten a la vez no saquen el mismo número.
 3. **Ingreso con la cuenta de Google** de la empresa, en lugar de elegir el nombre de una lista.
-4. **Estados de producción:** pendiente, en producción, terminado y entregado.
+4. **Producción compartida entre equipos:** hoy el tablero, las asignaciones y las HECHAS viven en un solo navegador; con Google quedan en Sheets y cada operario marca desde su celular.
 5. **Integración con el sistema de facturación**, para traer la factura y los códigos automáticamente.
 6. **Trabajo sin internet con sincronización** posterior.
 
 ---
 
-## 8. Fuentes de los datos de ejemplo
+## 8. Producción (jefe de producción y operarios)
+
+**Entrar:** en "¿Quién sos?" se elige el rol. Comercial (vendedor), **jefe de producción** (clave `jefe2026`, en `datos/produccion.json`) u **operario** (elige su nombre). No es seguridad real: es un prototipo.
+
+**Pestañas del jefe** (Producción):
+
+| Pestaña | Para qué |
+|---|---|
+| Tablero | Estado de cada nota (pendiente, programada, en curso, hecha, demorada), filtros, alertas y orden de la cola (arrastrar o ↑ ↓). "Detalle" muestra los renglones y el historial |
+| Lotes (agrupar) | Criterios (perfil, desarrollo, material, producto, largo, pliegues, herramental), pesos, nivel de similitud y restricciones → "Proponer lotes" → aceptar, sacar, mover, dividir o deshacer. Muestra el setup ahorrado en minutos y % |
+| Asignación | Carga por operario y día y por máquina (tiempo estándar ÷ capacidad), asignar a mano o automáticamente, reprogramar y hoja de ruta |
+| Operarios y eficiencia | Eficiencia (estándar ÷ real) por día, semana o mes, evolución, y la lista de operarios |
+| Material | Chapa necesaria para lo pendiente, por material, calibre y color |
+| Indicadores | Entregas a tiempo, eficiencia, pendiente, demoradas, ahorro por lotes, incidencias, desvío; bajar a Excel o imprimir |
+| Incidencias | Retrabajos, demoras e incidentes con su causa |
+| Parámetros de tiempos | Los valores del modelo MTM con unidad, fuente y estado (ver abajo) |
+| Datos de demostración | Cargar o borrar 50 notas por local (no tocan las reales) |
+| Notas emitidas | La lista de antes, para abrir e imprimir |
+
+El comercial ve el Tablero (para saber cuándo está lista una nota) y las notas emitidas. El **operario** ve sus trabajos del día con el dibujo y marca **HECHA** (la hora se guarda sola); si quiere, usa Iniciar / Pausar / Reanudar para que el tiempo real sea exacto.
+
+**Editar los parámetros de tiempos:** Producción → Parámetros de tiempos. Cada fila tiene el valor, la unidad, el estado (DATO, [SUPUESTO] o [A VALIDAR]) y la fuente; arriba se ve cómo cambia el ejemplo EJ1 de la planilla. "Guardar cambios" los aplica a todos los tiempos; "Volver a los valores del estudio" los descarta. Para traer los valores de la planilla de Google: hoja PARAMETROS_API → Archivo → Descargar → CSV → "Importar CSV de PARAMETROS_API". Para regenerar todo el archivo desde la planilla (también actividades, materiales, pliegues y detalles): `python3 -I herramientas/importar-modelo-mtm.py "Modelo MTM Zinguería.xlsx"`.
+
+**Recalibrar:** los tiempos son estimaciones hasta cronometrar en planta. En Parámetros → "Recalibración con lo real" se ve el desvío de cada nota terminada (semáforo ±5 % / ±10 %) y la eficiencia observada, que se puede cargar como `p_eficiencia`. Orden recomendado (informe MTM, secciones 11 y 13): primero revisar si el método real coincide con el modelado; después cronometrar y cargar los parámetros [A VALIDAR] que más pesan (setup de plegadora y guillotina, ciclo por golpe, umbral de dos operarios, detalles); con 30 notas o más, ajustar por regresión. Conviene usar los tiempos del cronómetro: los de la casilla HECHA sola incluyen esperas.
+
+---
+
+## 9. Fuentes de los datos de ejemplo
 
 Todas las fuentes están en la sección 14 de `docs/ESPECIFICACION.md` y cada plantilla tiene su campo `referencia` en `datos/catalogo.json`. Las principales:
 
@@ -240,4 +282,5 @@ Todas las fuentes están en la sección 14 de `docs/ESPECIFICACION.md` y cada pl
 - Documentación de Three.js: [ExtrudeGeometry](https://threejs.org/docs/pages/ExtrudeGeometry.html), [OrbitControls](https://threejs.org/docs/#examples/en/controls/OrbitControls) y [OrthographicCamera](https://threejs.org/docs/#api/en/cameras/OrthographicCamera) (vistas de frente y lateral sin perspectiva).
 - Editor 3D y plegados con pendiente (chapa entre dos perfiles): [Autodesk Inventor – Lofted Flange](https://help.autodesk.com/cloudhelp/2026/ENU/Inventor-Help/files/GUID-B6271A15-FD68-4672-9461-C86F8D55DA87.htm), [Inventor – lofted flange de plegadora](https://help.autodesk.com/cloudhelp/2014/ENU/Inventor/files/GUID-85FE3FCA-16B6-4310-B900-925291A73FA1.htm), [Onshape – Sheet Metal Loft](https://cad.onshape.com/help/es/Content/PartStudio/sheet_metal_loft.htm) y [Onshape – Loft (misma cantidad de vértices en los dos perfiles)](https://cad.onshape.com/help/Content/loft.htm?cshid=loft).
 - Productos estándar: fotos de la pantalla de la plegadora Delem DA-66T de la empresa (15/04/2026): CUMBRERA D30 CH30, MEDIA CUMBRERA D33, LIMAHOYA CH30, CANALETA HIPER, ESQ AMER CH30, BABETA T101~SINUS y CUM ART T101 PREP MACHO. Pasadas de mm a cm.
+- Modelo de tiempos: planilla e informe "Modelo MTM Zinguería" v1.0 (28/10/2026), con sus fuentes (tarjetas MTM-1, MTM-MEK y MTM-SD de MTM ASSOCIATION e.V.; OIT, Kanawaty 1992; fichas Durma HAP 30120 y CORMAK NC SHARK) y el paper de Almeida y Ferreira (FAIM 2009). Agrupamiento: ver las fuentes de `docs/AGRUPAMIENTO.md`.
 - Pendientes de canaletas como referencia (no se aplicó ningún mínimo): [Victorian Building Authority – Box Gutters (1:200 a 1:40)](https://www.bpc.vic.gov.au/__data/assets/pdf_file/0009/22005/Plumbing_RP-02_Box-Gutters_CURRENT_01-Aug-2023.pdf) y [BRANZ – Internal gutter design](https://prod.branz.co.nz/documents/3986/BU556-Internal-gutter-design.pdf).
