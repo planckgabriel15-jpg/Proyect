@@ -11,6 +11,8 @@
   },
   "largoMaximoChapaCm": 244,
   "_largoMaximoChapaCm": "SUPUESTO: largo de la chapa y de la plegadora de referencia. Más largo → aviso de empalme.",
+  "anchoChapaCm": 122,
+  "_anchoChapaCm": "Ancho de la chapa estándar (1,22 × 2,44 m, informe del rubro). Junto con largoMaximoChapaCm es la ÚNICA fuente de la medida de la chapa: la usan las bandas, la cantidad de chapas y el modelo de tiempos.",
   "solapeEngrafeCm": 1,
   "_solapeEngrafeCm": "SUPUESTO: solape que se suma al perímetro de boquetas y caños.",
   "anguloPorDefecto": 90,
@@ -147,5 +149,20 @@
     "_leeme": "Piezas más largas que la chapa: se arman con varios tramos de chapa. SUPUESTO: sin solape (2,44 + 0,56 = 3,00 m, como el ejemplo del área comercial).",
     "solapeCm": 0,
     "toleranciaCm": 0.5
+  },
+  "cantidadDeChapas": {
+    "_leeme": "Columna \"Cantidad\" de la nota = CANTIDAD DE CHAPAS = piezas × largo ÷ largoMaximoChapaCm (pedido de la empresa). Una canaleta de 2,44 m da 1; una de 1,22 m da 0,5. Los productos sin largo (por unidad) muestran unidades.",
+    "decimales": 2,
+    "_decimales": "SUPUESTO: se muestran 2 decimales (1,5 m × 2 piezas = 1,23 chapas).",
+    "margenEscuadreCm": 1,
+    "_margenEscuadreCm": "SUPUESTO (estudio MTM, p_margen_escuadre_mm = 10 mm): despunte al escuadrar la chapa. Solo se usa en la ESTIMACIÓN física (no en la cantidad de la nota)."
+  },
+  "vista3d": {
+    "_leeme": "Imagen 3D en la nota (pantalla, impresión y PDF). Cada renglón puede elegir sí/no; si no elige, manda la opción de la nota y, si la nota está en \"automática\", esta regla.",
+    "gruposApagadosPorDefecto": [
+      "estandar",
+      "articulos"
+    ],
+    "_gruposApagadosPorDefecto": "SUPUESTO: los productos estándar y los artículos de reventa ya los conoce el taller, así que por defecto no llevan 3D (la hoja queda más corta). El resto sí."
   }
 }
