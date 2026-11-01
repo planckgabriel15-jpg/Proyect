@@ -1,0 +1,1166 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mantenimiento T-WOOD</title>
+<style>
+:root{
+  --fondo:#f4f6f5; --panel:#ffffff; --texto:#1f2a27; --suave:#5d6b67; --borde:#d9e0dd;
+  --marca:#1d6b52; --marca-claro:#e3f1eb; --marca-fuerte:#14503d;
+  --rojo:#c0392b; --rojo-claro:#fbe9e7; --amarillo:#b7791f; --amarillo-claro:#fdf3e1;
+  --verde:#2e7d4f; --verde-claro:#e6f4ea; --gris-claro:#eef1f0; --sombra:0 1px 3px rgba(20,40,30,.08);
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--fondo);color:var(--texto);font:15px/1.45 "Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+header{background:var(--marca-fuerte);color:#fff;padding:12px 20px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+header h1{font-size:18px;margin:0;font-weight:600;letter-spacing:.2px}
+header .sub{font-size:13px;opacity:.8}
+nav{display:flex;gap:4px;padding:0 12px;background:var(--marca);overflow-x:auto;position:sticky;top:0;z-index:5}
+nav button{background:none;border:0;color:#dcefe7;padding:12px 14px;font:inherit;font-size:14px;cursor:pointer;border-bottom:3px solid transparent;white-space:nowrap}
+nav button:hover{color:#fff}
+nav button.activo{color:#fff;border-bottom-color:#9fe0c4;font-weight:600}
+main{max-width:1180px;margin:0 auto;padding:20px 16px 60px}
+h2{font-size:21px;margin:4px 0 4px}
+h3{font-size:16px;margin:22px 0 8px}
+p.intro{color:var(--suave);margin:0 0 16px}
+.tarjetas{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin:12px 0}
+.tarjeta{background:var(--panel);border:1px solid var(--borde);border-radius:10px;padding:12px 14px;box-shadow:var(--sombra)}
+.tarjeta .et{font-size:13px;color:var(--suave);display:flex;align-items:center;gap:6px}
+.tarjeta .val{font-size:26px;font-weight:600;margin-top:4px}
+.tarjeta .det{font-size:12px;color:var(--suave)}
+.tarjeta.alerta{border-color:#e9b3ac;background:var(--rojo-claro)}
+.tarjeta.aviso{border-color:#efd29d;background:var(--amarillo-claro)}
+.caja{background:var(--panel);border:1px solid var(--borde);border-radius:10px;padding:14px 16px;box-shadow:var(--sombra);margin-bottom:14px}
+.dos{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media (max-width:820px){.dos{grid-template-columns:1fr}}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{text-align:left;padding:7px 8px;border-bottom:1px solid var(--borde);vertical-align:top}
+th{font-size:12px;text-transform:uppercase;letter-spacing:.4px;color:var(--suave);font-weight:600;background:var(--gris-claro);position:sticky;top:0}
+.tabla{overflow:auto;max-height:560px;border:1px solid var(--borde);border-radius:8px;background:var(--panel)}
+td.num,th.num{text-align:right;white-space:nowrap}
+button,.btn{font:inherit;font-size:14px;border-radius:7px;border:1px solid var(--borde);background:#fff;color:var(--texto);padding:7px 12px;cursor:pointer}
+button:hover{border-color:var(--marca)}
+button.prim{background:var(--marca);border-color:var(--marca);color:#fff}
+button.prim:hover{background:var(--marca-fuerte)}
+button.peligro{color:var(--rojo);border-color:#e9b3ac}
+button.chico{padding:3px 8px;font-size:13px}
+.fila-botones{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:10px 0}
+label{display:block;font-size:13px;color:var(--suave);margin-bottom:3px}
+input,select,textarea{font:inherit;font-size:14px;width:100%;padding:7px 9px;border:1px solid var(--borde);border-radius:7px;background:#fff;color:var(--texto)}
+input:focus,select:focus,textarea:focus{outline:2px solid #9fd6bf;border-color:var(--marca)}
+.form{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.form .ancho{grid-column:1/-1}
+.filtros{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:12px}
+.chip{display:inline-block;font-size:12px;padding:2px 8px;border-radius:12px;background:var(--gris-claro);color:var(--suave);white-space:nowrap}
+.chip.rojo{background:var(--rojo-claro);color:var(--rojo)}
+.chip.amarillo{background:var(--amarillo-claro);color:var(--amarillo)}
+.chip.verde{background:var(--verde-claro);color:var(--verde)}
+.chip.azul{background:#e8eef9;color:#2d4f8a}
+.segmento{display:inline-flex;border:1px solid var(--borde);border-radius:8px;overflow:hidden;flex-wrap:wrap}
+.segmento button{border:0;border-radius:0;border-right:1px solid var(--borde)}
+.segmento button:last-child{border-right:0}
+.segmento button.sel{background:var(--marca);color:#fff}
+.barra-fila{display:grid;grid-template-columns:minmax(110px,240px) 1fr 130px;gap:8px;align-items:center;font-size:13px;margin:5px 0}
+.barra-fila .num{text-align:right;white-space:nowrap}
+.barra-fila .nom{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.barra{height:18px;background:var(--gris-claro);border-radius:4px;overflow:hidden}
+.barra div{height:100%;background:var(--marca)}
+.barra div.vital{background:#c46a2d}
+.vacio{color:var(--suave);font-style:italic;padding:10px 0}
+.ayuda{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;border:1px solid #9bb0a8;background:#fff;color:var(--marca);font-size:12px;font-weight:700;padding:0;cursor:pointer;line-height:1;flex:none}
+.burbuja{position:absolute;z-index:50;max-width:340px;background:#20302b;color:#fff;font-size:13px;line-height:1.5;padding:10px 12px;border-radius:8px;box-shadow:0 6px 20px rgba(0,0,0,.25)}
+.burbuja b{color:#a8e6cc}
+.modal-fondo{position:fixed;inset:0;background:rgba(20,30,26,.45);display:flex;align-items:flex-start;justify-content:center;z-index:40;padding:40px 12px;overflow:auto}
+.modal{background:#fff;border-radius:12px;max-width:760px;width:100%;padding:20px 22px;box-shadow:0 10px 40px rgba(0,0,0,.25)}
+.modal h2{margin-top:0}
+.aviso-ok{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:#20302b;color:#fff;padding:10px 18px;border-radius:8px;z-index:60;font-size:14px;box-shadow:0 6px 20px rgba(0,0,0,.25)}
+.maquinas{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}
+.maquina{background:#fff;border:1px solid var(--borde);border-radius:10px;padding:12px 14px;cursor:pointer;box-shadow:var(--sombra);border-left:5px solid var(--verde)}
+.maquina:hover{border-color:var(--marca)}
+.maquina.rojo{border-left-color:var(--rojo)}
+.maquina.amarillo{border-left-color:#e0a030}
+.maquina .cod{font-size:12px;color:var(--suave)}
+.maquina .nom{font-weight:600;margin:2px 0 6px}
+.maquina .lin{font-size:13px;color:var(--suave)}
+.pregunta{margin:12px 0}
+.pregunta .ops{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}
+.pregunta .ops button.sel{background:var(--marca);color:#fff;border-color:var(--marca)}
+.nota{font-size:13px;color:var(--suave);margin:6px 0}
+.mensaje{padding:10px 12px;border-radius:8px;margin:10px 0;font-size:14px}
+.mensaje.info{background:#e8f1fb;color:#24476e}
+.mensaje.ok{background:var(--verde-claro);color:#1f5c38}
+.mensaje.mal{background:var(--rojo-claro);color:#8a2a1f}
+.mensaje.cuidado{background:var(--amarillo-claro);color:#7a5212}
+svg text{font-family:inherit}
+.grafico-cont{overflow-x:auto}
+.grafico{width:100%;min-width:600px;height:auto;background:#fff;border:1px solid var(--borde);border-radius:8px}
+.leyenda{font-size:12px;color:var(--suave);display:flex;gap:14px;flex-wrap:wrap;margin-top:6px}
+.semana{margin-bottom:10px}
+.semana h4{margin:8px 0 4px;font-size:14px;color:var(--marca-fuerte)}
+@media print{
+  header,nav,.no-imprimir,.fila-botones,.ayuda{display:none!important}
+  body{background:#fff}
+  .caja,.tabla{box-shadow:none;border:0;max-height:none}
+  main{padding:0}
+}
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <h1>Mantenimiento · Línea T-WOOD</h1>
+    <div class="sub">Circularis · registro, plan y análisis en un solo lugar</div>
+  </div>
+</header>
+<nav id="nav"></nav>
+<main id="vista"></main>
+
+<script>
+/* ======================================================================
+   Datos de arranque (planillas de la empresa)
+   ====================================================================== */
+const MAQUINAS_INICIALES = [
+  {codigo:"AGR-001", nombre:"Agrumadora Frankie (motor y cuchillas)", sector:"Preprocesado", funcion:"Reducción de volumen de plástico", horasDia:8, alias:["Agrumadora Frankie"], crit:{prod:5,infl:4,cal:2,seg:5,amb:5,sust:1}},
+  {codigo:"AGR-002", nombre:"Agrumadora Nupieri (volante de inercia)", sector:"Preprocesado", funcion:"Reducción de volumen de plástico", horasDia:8, alias:["Agrumadora Nupieri"], crit:{prod:5,infl:4,cal:2,seg:5,amb:5,sust:1}},
+  {codigo:"MOL-001", nombre:"Moledora 1", sector:"Preprocesado", funcion:"Molienda previa de scrap plástico", horasDia:4, alias:[], crit:{prod:1,infl:2,cal:2,seg:3,amb:1,sust:4}},
+  {codigo:"TRI-001", nombre:"Trituradora 1", sector:"Preprocesado", funcion:"Reducción de volumen de descartes diversos", horasDia:4, alias:[], crit:{prod:1,infl:2,cal:2,seg:3,amb:1,sust:4}},
+  {codigo:"LAV-001", nombre:"Cuba de lavado 1", sector:"Lavado", funcion:"Lavado y eliminación de impurezas", horasDia:6, alias:[], crit:{prod:5,infl:4,cal:4,seg:3,amb:1,sust:4}},
+  {codigo:"SEC-001", nombre:"Secadora industrial 1", sector:"Secado", funcion:"Eliminación de humedad del material post-lavado", horasDia:6, alias:["Secadora"], crit:{prod:3,infl:2,cal:4,seg:3,amb:1,sust:4}},
+  {codigo:"MEZ-001", nombre:"Mezcladora", sector:"Formulación", funcion:"Mezcla del material seco con tintas y aditivos", horasDia:null, alias:[], crit:null},
+  {codigo:"EXT-001", nombre:"Línea de extrusión", sector:"Extrusión", funcion:"Fundido y colado en moldes de los durmientes", horasDia:null, alias:[], crit:null},
+  {codigo:"ENF-001", nombre:"Enfardadora Circularis", sector:"Acondicionamiento", funcion:"Compactación y acondicionamiento para transporte", horasDia:4, alias:[], crit:{prod:3,infl:2,cal:2,seg:1,amb:1,sust:1}},
+  {codigo:"ENF-002", nombre:"Enfardadora Refire", sector:"Acondicionamiento", funcion:"Compactación y acondicionamiento para transporte", horasDia:4, alias:["Prensa Refire"], crit:{prod:3,infl:2,cal:2,seg:1,amb:1,sust:1}}
+];
+/* Registro de tareas de mantenimiento, marzo y abril de 2026 (planilla Mantenimiento.xlsx).
+   Columnas: fecha, operario, tipo de tarea, máquina o elemento, centro, tarea realizada, duración (h),
+   repuestos, causa, observaciones, pendientes. */
+const HISTORIAL_INICIAL = [["2026-03-04","Francisco","Armaduras","1,5m","T-Wood","Armado",5.83,"","","",""],["2026-03-05","Benjamin","Armaduras","2,0m","T-Wood","Armado",0.5,"","","",""],["2026-03-02","Joel","Mantenimiento Máquinas","Afilado Cuchillas Agrumadora","T-Wood","",2.0,"","","",""],["2026-03-03","Joel","Mantenimiento Máquinas","Afilado Cuchillas Agrumadora","T-Wood","Cambio y afilado de cuchillas",2.0,"","","",""],["2026-03-04","Joel","Mantenimiento Máquinas","Afilado Cuchillas Agrumadora","T-Wood","",1.75,"","","",""],["2026-03-05","Joel","Mantenimiento Máquinas","Afilado Cuchillas Agrumadora","T-Wood","Afilado",1.33,"","","",""],["2026-03-25","Joel","Mantenimiento Máquinas","Afiladora","T-Wood","MAntenimiento y limpieza",0.5,"","","",""],["2026-03-09","Joel","Mantenimiento Máquinas","Agrumadora","T-Wood","Afilado y cambio de cuchillas",2.75,"","","",""],["2026-03-11","Joel","Mantenimiento Máquinas","Agrumadora Frankie","T-Wood","Cambio de Cuchillas y afilado",3.0,"","","Se hace cambio de bateria en vehículos, y se lleva material al predio de al lado",""],["2026-03-12","Joel","Mantenimiento Máquinas","Agrumadora Frankie","T-Wood","Se fabrican protectores de cuchilla VER OBSERVACIÓN",3.5,"","Entre medio se re para vidrio de puerta Lifan","",""],["2026-03-13","Joel","Mantenimiento Máquinas","Agrumadora Frankie","T-Wood","CAmbio de cuchillas y fabricación de protectores",2.25,"","","",""],["2026-03-16","Joel","Mantenimiento Máquinas","Agrumadora Frankie","T-Wood","Afilado de cuchillas",1.0,"","","",""],["2026-03-17","Joel","Mantenimiento Máquinas","Agrumadora Frankie","T-Wood","Cambio de cuchillas y afilado",1.5,"","","",""],["2026-03-19","Joel","Mantenimiento Máquinas","Agrumadora Frankie","T-Wood","CAmbio de cuchillas",1.5,"","","",""],["2026-03-20","Joel","Mantenimiento Máquinas","Agrumadora Frankie","T-Wood","Afilado y cambio de cuchillas",1.5,"","","",""],["2026-03-23","Joel","Mantenimiento Máquinas","Agrumadora Frankie","T-Wood","Afilado y cambio de cuchillas",1.5,"","","",""],["2026-03-25","Joel","Mantenimiento Máquinas","Agrumadora Frankie","T-Wood","Afilado y cambio de cuchillas",1.5,"","","",""],["2026-03-25","Francisco","Mantenimiento Máquinas","Agrumadora Frankie","T-Wood","Levanta tacho y despega material",0.5,"","","",""],["2026-03-26","Joel","Mantenimiento Máquinas","Agrumadora Frankie","T-Wood","Alargamiento de Cuchillas Gastadas",1.75,"","","",""],["2026-03-27","Joel","Mantenimiento Máquinas","Agrumadora Frankie","T-Wood","Cambio y afilado de cuchillas",1.5,"","","",""],["2026-03-30","Francisco","Mantenimiento Máquinas","Agrumadora Frankie","T-Wood","Se despega plastico solido del tacho",1.5,"","","",""],["2026-03-30","Joel","Mantenimiento Máquinas","Agrumadora Frankie","T-Wood","Cambio de cuchillas",1.0,"","","",""],["2026-03-31","Joel","Mantenimiento Máquinas","Agrumadora Frankie","T-Wood","Afilado y alargado de cuchillas",2.25,"","","",""],["2026-04-06","Joel","Mantenimiento Máquinas","Agrumadora Frankie","T-Wood","Cambio y afilado de cuchillas",1.5,"","","",""],["2026-04-07","Joel","Mantenimiento Máquinas","Agrumadora Frankie","T-Wood","Afilado y cambio de cuchillas",2.0,"","","",""],["2026-04-09","Joel","Mantenimiento Máquinas","Agrumadora Frankie","T-Wood","Limpieza de eje, afilado y cambio de cuchillas",4.5,"","","",""],["2026-04-10","Joel","Mantenimiento Máquinas","Agrumadora Frankie","T-Wood","Reparación cuchillas quebrada",2.5,"","","",""],["2026-04-13","Joel","Mantenimiento Máquinas","Agrumadora Frankie","T-Wood","Cambio y afilado de cuchillas",1.5,"","","",""],["2026-04-15","Joel","Mantenimiento Máquinas","Agrumadora Frankie","T-Wood","Cambio y afilado de cuchillas",1.5,"","","",""],["2026-03-10","Francisco","Mantenimiento Máquinas","Agrumadora Nupieri","T-Wood","Puesta manguera",0.5,"","","",""],["2026-03-11","Joel","Mantenimiento Máquinas","Agrumadora Nupieri","T-Wood","Cambio de Cuchillas y afilado",3.0,"","","Se hace cambio de bateria en vehículos, y se lleva material al predio de al lado",""],["2026-03-13","Joel","Mantenimiento Máquinas","Agrumadora Nupieri","T-Wood","CAmbio de cuchillas y fabricación de protectores",2.25,"","","",""],["2026-03-16","Joel","Mantenimiento Máquinas","Agrumadora Nupieri","T-Wood","Afilado de cuchillas",1.0,"","","",""],["2026-03-17","Joel","Mantenimiento Máquinas","Agrumadora Nupieri","T-Wood","Cambio de cuchillas y afilado",1.5,"","","",""],["2026-03-20","Joel","Mantenimiento Máquinas","Agrumadora Nupieri","T-Wood","Afilado y cambio de cuchillas",1.5,"","","",""],["2026-03-23","Joel","Mantenimiento Máquinas","Agrumadora Nupieri","T-Wood","Afilado y cambio de cuchillas",1.5,"","","",""],["2026-03-25","Joel","Mantenimiento Máquinas","Agrumadora Nupieri","T-Wood","Afilado y cambio de cuchillas",1.5,"","","",""],["2026-03-26","Joel","Mantenimiento Máquinas","Agrumadora Nupieri","T-Wood","Alargamiento de Cuchillas Gastadas",1.75,"","","",""],["2026-03-27","Joel","Mantenimiento Máquinas","Agrumadora Nupieri","T-Wood","Cambio y afilado de cuchillas",1.5,"","","",""],["2026-03-31","Joel","Mantenimiento Máquinas","Agrumadora Nupieri","T-Wood","Afilado y alargado de cuchillas",2.25,"","","",""],["2026-04-01","Joel","Mantenimiento Máquinas","Agrumadora Nupieri","T-Wood","CAmbio cuchillas",1.0,"","","",""],["2026-04-06","Joel","Mantenimiento Máquinas","Agrumadora Nupieri","T-Wood","Cambio y afilado de cuchillas",1.5,"","","",""],["2026-04-08","Joel","Mantenimiento Máquinas","Agrumadora Nupieri","T-Wood","Reparación manija y compuerta de salida",3.0,"","","",""],["2026-04-13","Joel","Mantenimiento Máquinas","Agrumadora Nupieri","T-Wood","Cambio y afilado de cuchillas",1.5,"","","",""],["2026-04-15","Joel","Mantenimiento Máquinas","Agrumadora Nupieri","T-Wood","Cambio y afilado de cuchillas",1.5,"","","",""],["2026-03-04","Facundo","Mantenimiento Eléctrico","Alargue","T-Wood","Reparación Alargue",0.17,"","NEutro desconectado","",""],["2026-03-03","Joel","Traslado","Arias","Logística","BUsca Bazar y Bazar Molido",5.0,"","","",""],["2026-03-04","Joel","Traslado","Arias","Logística","Lleva Bazar",2.5,"","","",""],["2026-03-05","Francisco","Armaduras","armadura","T-Wood","",4.0,"","","",""],["2026-03-02","Francisco","Armaduras","Armaduras","T-Wood","Enderezado de hierros y 30 rejas",2.5,"","","",""],["2026-03-09","Francisco","Armaduras","Armaduras","T-Wood","Fabricación de armaduras",7.0,"","","Entre medio, repara motosierra-repara motoguadaña-ayuda a sacar un arbol",""],["2026-03-10","Francisco","Armaduras","Armaduras","T-Wood","soldado de armaduras",5.0,"","","",""],["2026-03-17","Francisco","Armaduras","Armaduras","T-Wood","Corte hierro 4,2 y limpieza",5.0,"","","",""],["2026-03-18","Francisco","Armaduras","Armaduras","T-Wood","108 rejas",5.5,"","","",""],["2026-03-19","Francisco","Armaduras","Armaduras","T-Wood","",5.0,"","","",""],["2026-03-20","Francisco","Armaduras","Armaduras","T-Wood","",3.0,"","","",""],["2026-03-23","Francisco","Armaduras","Armaduras","T-Wood","100 Armaduras",5.0,"","","",""],["2026-03-25","Francisco","Armaduras","Armaduras","T-Wood","80 Armaduras",4.5,"","","",""],["2026-03-26","Francisco","Armaduras","Armaduras","T-Wood","80 armaduras",4.5,"","","",""],["2026-03-26","Joel","Armaduras","Armaduras","T-Wood","Corte de mallas a 25cm",1.5,"","","",""],["2026-03-27","Francisco","Armaduras","Armaduras","T-Wood","100 Armaduras",6.0,"","","",""],["2026-03-27","Joel","Armaduras","Armaduras","T-Wood","Corte de mallas a 25cm",3.0,"","","",""],["2026-03-30","Francisco","Armaduras","Armaduras","T-Wood","Corrección de portabolsones y armado de 100 armaduras",5.5,"","","",""],["2026-03-31","Francisco","Armaduras","Armaduras","T-Wood","85",3.0,"","","",""],["2026-04-07","Francisco","Armaduras","Armaduras","T-Wood","paso de alambre a rollo chico y 100 rejas",6.5,"","","",""],["2026-04-08","Francisco","Armaduras","Armaduras","T-Wood","80",1.5,"","","",""],["2026-04-09","Francisco","Armaduras","Armaduras","T-Wood","80",1.5,"","","",""],["2026-04-09","Joel","Armaduras","Armaduras","T-Wood","",3.5,"","","",""],["2026-04-10","Francisco","Armaduras","Armaduras","T-Wood","108",5.0,"","","",""],["2026-04-10","Joel","Armaduras","Armaduras","T-Wood","",2.0,"","","",""],["2026-04-13","Francisco","Armaduras","Armaduras","T-Wood","corte de hierros 4,2 y armado de 100 rejas",5.0,"","","",""],["2026-03-02","Franco","Mantenimiento Vehículos","Autoelevador Chery","Logística","Cambio de manguera hidráulica",1.5,"","Se rompio cruzando el porton en logística","",""],["2026-03-02","Joel","Traslado","Autoelevador Chery","Logística","Se lleva mula a RFG",0.75,"","","",""],["2026-03-11","Joel","Mantenimiento Vehículos","Autoelevador Liugong","T-Wood","Se repara problema electrico que dejaba pegado el burro (los conectores hacían mal contacto)",1.67,"","","",""],["2026-03-19","Francisco","Mantenimiento Vehículos","Autoelevador Liugong","T-Wood","Cambio de luces",0.5,"","","",""],["2026-03-30","Joel","Mantenimiento Vehículos","Autoelevador Liugong","T-Wood","CAmbio de aceite y filtros- Cambio aceite hidráulico",6.0,"","","",""],["2026-03-06","Joel","Mantenimiento Eléctrico","bandejas Eléctricas","T-Wood","Colocación de bandejas",3.33,"","","",""],["2026-03-05","Facundo","Mantenimiento Edilicio","Bandejas Eléctricas","T-Wood","Colocación de bandejas electricas, galpon de producción primaria",3.0,"","","",""],["2026-03-05","Joel","Mantenimiento Edilicio","Bandejas Eléctricas","T-Wood","Colocación de bandejas electricas, galpon de producción primaria",4.0,"","","",""],["2026-03-05","Facundo","Mantenimiento Edilicio","Bandejas Eléctricas","T-Wood","",0.75,"","","",""],["2026-03-06","Facundo","Mantenimiento Eléctrico","bandejas Eléctricas","T-Wood","Colocación de bandejas",2.0,"","","",""],["2026-03-04","Facundo","Mantenimiento Edilicio","Bomba de Agua","T-Wood","Revisión bomba tanque de agua, casa predio nuevo",0.5,"","Problema electrico, y bomba trancada","Se cambia por la bomba de la lavadora","Arreglar alargue de calidad"],["2026-03-04","Facundo","Mantenimiento Edilicio","Bomba de Agua","T-Wood","Cambio de bomba por la bomba de la lavadora",0.5,"","","No sale agua del pozo, ponemos un bins de 1000lts",""],["2026-03-04","Facundo","Mantenimiento Edilicio","Bomba de Agua","T-Wood","Reparación bombe de agua sacada de la casa del predio nuevo",1.5,"","","",""],["2026-04-01","Joel","Mantenimiento Máquinas","Bomba de vacío","T-Wood","Se saco repario y volvio a colocar la bomba de vacío",7.0,"","","",""],["2026-04-15","Joel","Mantenimiento Máquinas","Bomba de Vacío","T-Wood","Desarme",2.0,"","","",""],["2026-03-05","Facundo","Mantenimiento Edilicio","Camaras","T-Wood","REactivación por corte de luz",0.33,"","","",""],["2026-03-05","Joel","Mantenimiento Máquinas","Cambio Cuchillas Agrumadora","T-Wood","CAmbio de cuchillas",1.5,"","","",""],["2026-03-02","Franco","Mantenimiento Edilicio","Casa Predio Nuevo","T-Wood","REparación y colocación de puestas y ventanas",5.0,"","","",""],["2026-03-06","Francisco","Mantenimiento Edilicio","Casa Predio Nuevo","T-Wood","PAsadores en puesta casa de darío",3.5,"","","",""],["2026-03-02","Benjamin","Fabricación","Casillas Ecogas","Comercial","Corte de materiales",8.5,"","","",""],["2026-03-02","Franco","Fabricación","Casillas Ecogas","Comercial","Marcado de caños",1.5,"","","",""],["2026-03-03","Benjamin","Fabricación","Casillas Ecogas","Comercial","Corte de materiales",3.0,"","","",""],["2026-03-03","Benjamin","Fabricación","Casillas Ecogas","Comercial","Corte de Materiales",2.0,"","","",""],["2026-03-03","Benjamin","Fabricación","Casillas Ecogas","Comercial","Soldadura",3.5,"","","",""],["2026-03-03","Franco","Fabricación","Casillas Ecogas","Comercial","Cortes caños",3.0,"","","",""],["2026-03-03","Franco","Fabricación","Casillas Ecogas","Comercial","Marcado a 45 y corte de caños",2.0,"","","",""],["2026-03-03","Franco","Fabricación","Casillas Ecogas","Comercial","Armado de base",2.5,"","","",""],["2026-03-04","Benjamin","Fabricación","Casillas Ecogas","Comercial","Soldadura",4.0,"","","",""],["2026-03-04","Benjamin","Fabricación","Casillas Ecogas","Comercial","Flapeo",1.25,"","","",""],["2026-03-04","Benjamin","Fabricación","Casillas Ecogas","Comercial","Cortes Piso",1.83,"","","",""],["2026-03-04","Francisco","Fabricación","Casillas Ecogas","Comercial","Cortes Piso",1.0,"","","",""],["2026-03-04","Franco","Fabricación","Casillas Ecogas","Comercial","Armado estructura",5.0,"","","",""],["2026-03-05","Franco","Fabricación","Casillas Ecogas","Comercial","Armado de pisos",1.5,"","","",""],["2026-03-05","Francisco","Fabricación","Casillas Ecogas","Comercial","Asistencia en el armado",0.5,"","","",""],["2026-03-05","Franco","Fabricación","Casillas Ecogas","Comercial","corte y armado de estructura",5.0,"","","",""],["2026-03-05","Benjamin","Fabricación","Casillas Ecogas","Comercial","Corte de angulos y armado",7.67,"","","",""],["2026-03-06","Benjamin","Fabricación","Casillas Ecogas","Comercial","Armado",7.0,"","","",""],["2026-03-06","Franco","Fabricación","Casillas Ecogas","Comercial","Armado",7.0,"","","",""],["2026-03-09","Franco","Fabricación","Casillas Ecogas","Comercial","Corte y soldado",8.0,"","","",""],["2026-03-09","Benjamin","Fabricación","Casillas Ecogas","T-Wood","COrte y soldado de Caños",8.0,"","","",""],["2026-03-10","Benjamin","Fabricación","Casillas Ecogas","Comercial","Armado de pisos y limpieza de taller",8.5,"","","",""],["2026-03-10","Franco","Fabricación","Casillas Ecogas","Comercial","Armado de pisos y limpieza de taller",8.5,"","","",""],["2026-03-11","Franco","Fabricación","Casillas Ecogas","Comercial","Se pone malla en el piso de las casillas",7.0,"","","",""],["2026-03-11","Benjamin","Fabricación","Casillas Ecogas","Comercial","Se pone malla en el piso de las casillas",8.0,"","","",""],["2026-03-12","Franco","Fabricación","Casillas Ecogas","Comercial","Terminado de Pisos y armado de cubas",8.0,"","","",""],["2026-03-13","Franco","Fabricación","Casillas Ecogas","Comercial","Armado de cubas y techo",7.5,"","REvisa Laser de marcación de durmientes","",""],["2026-03-13","Benjamin","Fabricación","Casillas Ecogas","Comercial","Armado de cubas y techo",7.5,"","","",""],["2026-03-16","Benjamin","Fabricación","Casillas Ecogas","Comercial","Armado de Puertas",8.5,"","","",""],["2026-03-16","Francisco","Fabricación","Casillas Ecogas","Comercial","Flapeo cubas",0.67,"","","",""],["2026-03-16","Franco","Fabricación","Casillas Ecogas","Comercial","Armado de puestar",8.5,"","","",""],["2026-03-17","Benjamin","Fabricación","Casillas Ecogas","Comercial","Cortes para techo. Armado de cuba y puerta",8.5,"","","",""],["2026-03-17","Franco","Fabricación","Casillas Ecogas","Comercial","Cortes para techo. Armado de cuba y puerta",8.5,"","","",""],["2026-03-17","Francisco","Fabricación","Casillas Ecogas","Comercial","Flapeo de Cubas",1.0,"","","",""],["2026-03-18","Franco","Fabricación","Casillas Ecogas","Comercial","puestas casillas, y tachos de basura",9.5,"","","",""],["2026-03-18","Benjamin","Fabricación","Casillas Ecogas","Comercial","puestas casillas, y tachos de basura",9.5,"","","",""],["2026-03-19","Benjamin","Fabricación","Casillas Ecogas","Comercial","puestas casillas, y tachos de basura",6.0,"","","",""],["2026-03-20","Francisco","Fabricación","Casillas Ecogas","Comercial","Fapeo de cubas",1.5,"","","",""],["2026-03-20","Benjamin","Fabricación","Casillas Ecogas","Comercial","MArco de cubas y pintura",8.5,"","","",""],["2026-03-20","Franco","Fabricación","Casillas Ecogas","Comercial","Soldado de cubas chicas",8.5,"","","",""],["2026-03-23","Benjamin","Fabricación","Casillas Ecogas","Comercial","Pintado y armado",8.5,"","","",""],["2026-03-23","Franco","Fabricación","Casillas Ecogas","Comercial","MArco de cubas y pintura",8.5,"","","",""],["2026-03-25","Franco","Fabricación","Casillas Ecogas","Comercial","Pintura",8.5,"","","",""],["2026-03-26","Franco","Fabricación","Casillas Ecogas","Comercial","Pintado, una mano cuba grande completa + limpieza",8.5,"","","",""],["2026-03-27","Franco","Fabricación","Casillas Ecogas","Comercial","Armado cubas chicas",8.5,"","","",""],["2026-03-30","Franco","Fabricación","Casillas Ecogas","Comercial","Pintado y limpieza",8.5,"","","",""],["2026-03-30","Benjamin","Fabricación","Casillas Ecogas","Comercial","Colocacion de laterales y puertas",8.5,"","","",""],["2026-03-31","Benjamin","Fabricación","Casillas Ecogas","Comercial","Soldadura en cubas chicas",8.5,"","","",""],["2026-04-01","Benjamin","Fabricación","Casillas Ecogas","T-Wood","Colocación de pegamento en juntas, cerramiento casillas chicas",8.5,"","","",""],["2026-04-01","Franco","Fabricación","Casillas Ecogas","T-Wood","Colocación de pegamento en juntas, cerramiento casillas chicas",8.5,"","","",""],["2026-04-06","Franco","Fabricación","Casillas Ecogas","Comercial","Puertas cubas chicas",8.5,"","","",""],["2026-04-06","Benjamin","Fabricación","Casillas Ecogas","Comercial","Terminado cubas inferiores",8.5,"","","",""],["2026-04-07","Franco","Fabricación","Casillas Ecogas","Comercial","Puertas y laterales",8.5,"","","",""],["2026-04-07","Benjamin","Fabricación","Casillas Ecogas","Comercial","Cubas y laterales",8.0,"","","",""],["2026-04-08","Benjamin","Fabricación","Casillas Ecogas","Comercial","",8.5,"","","",""],["2026-04-08","Franco","Fabricación","Casillas Ecogas","Comercial","",8.5,"","","",""],["2026-04-09","Benjamin","Fabricación","Casillas Ecogas","Comercial","",8.5,"","","",""],["2026-04-09","Franco","Fabricación","Casillas Ecogas","Comercial","",8.5,"","","",""],["2026-04-10","Benjamin","Fabricación","Casillas Ecogas","Comercial","",7.5,"","","",""],["2026-04-10","Franco","Fabricación","Casillas Ecogas","Comercial","",7.5,"","","",""],["2026-04-13","Franco","Fabricación","Casillas Ecogas","Comercial","",8.5,"","","",""],["2026-04-13","Benjamin","Fabricación","Casillas Ecogas","Comercial","",8.5,"","","",""],["2026-03-04","Francisco","Mantenimiento Edilicio","Cerco","T-Wood","Corte de caños",0.25,"","","",""],["2026-03-04","Franco","Fabricación","Cestos Coca","Comercial","Corte y armado de estructura",2.0,"","","",""],["2026-03-04","Franco","Fabricación","Cestos Coca","Comercial","Corte placa de tetra",1.75,"","","",""],["2026-03-05","Franco","Fabricación","Cestos Coca","Comercial","Armado de Tapa",0.75,"","","",""],["2026-04-07","Francisco","Mantenimiento Máquinas","Cinta Molino Chino","T-Wood","REparación rolo superior y estructura partida",1.75,"","","",""],["2026-03-19","Joel","Traslado","Circularis","Logística","Movimiento de materiales carton y pet",4.0,"","","",""],["2026-03-19","Joel","Mantenimiento Edilicio","Circularis","Logística","Reparación Escalera",1.5,"","","",""],["2026-03-25","Francisco","Mantenimiento Máquinas","Compresor","T-Wood","Soldado manómetro",2.5,"","","Se espera a los muleros y se suelda un riel en la plastificadora",""],["2026-03-25","Joel","Mantenimiento Máquinas","Compresor Central","T-Wood","Colocacion pulmon final de linea",3.0,"","","",""],["2026-03-02","Franco","Mantenimiento Vehículos","Control Autoelevador","T-Wood","Revisión de fluidos y filtros",0.5,"","","",""],["2026-03-03","Franco","Mantenimiento Vehículos","Control Autoelevador","T-Wood","Revisión de Fluidos y filtros",0.5,"","","",""],["2026-03-04","Franco","Mantenimiento Vehículos","Control Autoelevador","T-Wood","Revisión Fluidos y Filtros",0.5,"","","AUtoelevador nuevo con 250 horas",""],["2026-03-06","Franco","Mantenimiento Vehículos","Control Autoelevador","T-Wood","Fluidos y filtros",0.42,"","","",""],["2026-04-01","Francisco","Fabricación","Cuba DISE","Comercial","extracción refuerzo - modificación",6.0,"","","",""],["2026-03-11","Francisco","Mantenimiento Edilicio","Estacionamiento","T-Wood","Armado techo para colgar bicicletas",5.0,"","","",""],["2026-03-16","Francisco","Mantenimiento Edilicio","Estacionamiento","T-Wood","TEcho para bicicletas",3.5,"","","",""],["2026-03-23","Francisco","Mantenimiento Edilicio","Estacionamiento","T-Wood","Techo para bicicletas",3.0,"","","",""],["2026-03-09","Facundo","Mantenimiento Máquinas","Extrusora Plastificadora","T-Wood","Reemplazo conector RJ45 del mando control de termocuplas, y revisión de termocuplas",8.0,"","","",""],["2026-03-02","Joel","Mantenimiento Vehículos","F350","T-Wood","Control de Fluidos",0.42,"","","",""],["2026-03-02","Joel","Traslado","F350","Logística","Reparación de rueda pinchada en recorrido",2.83,"","","Lo tuvo que esperar a Raul para que le lleve las herramientas para desarmar",""],["2026-03-05","Facundo","Mantenimiento Vehículos","F350","T-Wood","Reparación Rueda pinchada",0.5,"","","SE lleva a reparar a pucheta",""],["2026-03-05","Joel","Mantenimiento Vehículos","F350","T-Wood","Rueda pinchada",0.67,"","","",""],["2026-03-06","Joel","Mantenimiento Vehículos","f350","T-Wood","Parche rueda delantera",0.33,"","","",""],["2026-03-10","Joel","Mantenimiento Vehículos","F350","T-Wood","Limpieza interior y de plancha",1.0,"","","",""],["2026-03-12","Joel","Traslado","F350","Logística","Se lleva tarjetas molidas y se traen medidores",3.0,"","","",""],["2026-03-16","Joel","Traslado","f350","Logística","Arias Bazar y Baja - Lorenzini baja y soplado",5.5,"","Reparación mangueras de combustible","",""],["2026-03-26","Joel","Mantenimiento Vehículos","F350","Logística","Busqueda de material planta de reciclaje, se lleva mula",3.25,"","","",""],["2026-04-07","Joel","Traslado","F350","Logística","VIaje centro verde Lorenzini y tramax",6.5,"","","",""],["2026-04-08","Joel","Traslado","F350","Logística","Arias Centro Verde Chaco",null,"","","",""],["2026-04-10","Joel","Mantenimiento Vehículos","F350","T-Wood","Lavado",2.67,"","","",""],["2026-04-10","Joel","Mantenimiento Vehículos","F350","T-Wood","Reparación de puertas colocación guardabarro",2.5,"","","",""],["2026-04-13","Joel","Traslado","F350","Logística","Busqueda de medidores y traslado de cajones",2.67,"","","",""],["2026-04-14","Joel","Traslado","F350","Logística","Lorenzinbi 2 viajes y RFG",10.0,"","","",""],["2026-04-15","Joel","Traslado","F350","Logística","Desempantanar mula y medidores",3.0,"","","",""],["2026-03-04","Joel","Traslado","Frigo","Logística","Busca Baja",1.67,"","","",""],["2026-03-02","Francisco","Mantenimiento Edilicio","Galpon Medidores","T-Wood","Cerrado y refuerzo agujero por donde entraron a robar",5.25,"","","",""],["2026-03-18","Francisco","Fabricación","Insertos","Comercial","Armado de planchuelas con insertos",2.0,"","","",""],["2026-03-09","Joel","Mantenimiento Máquinas","Lavadora","T-Wood","Control funcionamiento de motores- vaciado y limpieza de tanque y cuba-Limpieza centrifugadora",5.0,"","","FAlta control centrifugadora",""],["2026-03-10","Joel","Mantenimiento Vehículos","Lifan","Logística","BUsqueda en mecánico-Retiro tachon en RFG-Cambio de Batería-Busca combustible",3.0,"","","",""],["2026-03-11","Franco","Mantenimiento Vehículos","Lifan","Logística","Controlde fluidos y revisión tambor autoelevador",1.5,"","","",""],["2026-03-02","Franco","Mantenimiento Edilicio","Limpieza","T-Wood","Limpieza taller",0.33,"","","",""],["2026-03-04","Benjamin","Mantenimiento Edilicio","Limpieza","T-Wood","Limpieza del taller",0.4,"","","",""],["2026-03-06","Benjamin","Mantenimiento Edilicio","Limpieza","T-Wood","Limpieza herrería",0.5,"","","",""],["2026-03-09","Franco","Mantenimiento Edilicio","Limpieza","T-Wood","Limpieza taller",0.5,"","","",""],["2026-03-09","Benjamin","Mantenimiento Edilicio","Limpieza","T-Wood","Limpieza Taller",0.5,"","","",""],["2026-03-09","Francisco","Mantenimiento Edilicio","Limpieza","T-Wood","Limpieza Taller",0.5,"","","",""],["2026-03-10","Francisco","Mantenimiento Edilicio","Limpieza","T-Wood","Limpieza taller",0.5,"","","",""],["2026-03-11","Francisco","Mantenimiento Edilicio","Limpieza","T-Wood","Limpieza",0.25,"","","",""],["2026-03-11","Benjamin","Mantenimiento Edilicio","Limpieza","T-Wood","Limpieza",0.5,"","","",""],["2026-03-12","Joel","Mantenimiento Edilicio","Limpieza","T-Wood","Limpieza",2.0,"","","",""],["2026-03-13","Francisco","Mantenimiento Edilicio","Limpieza","T-Wood","Limpieza",1.0,"","","",""],["2026-03-25","Francisco","Mantenimiento Edilicio","Limpieza","T-Wood","Lipieza",0.5,"","","",""],["2026-03-26","Francisco","Mantenimiento Edilicio","Limpieza","T-Wood","Lipieza",0.5,"","","",""],["2026-03-27","Francisco","Mantenimiento Edilicio","Limpieza","T-Wood","Lipieza",0.5,"","","",""],["2026-03-27","Joel","Mantenimiento Edilicio","Limpieza","T-Wood","Lipieza",0.5,"","","",""],["2026-03-31","Joel","Mantenimiento Edilicio","Limpieza","T-Wood","Pañol",1.0,"","","",""],["2026-03-06","Joel","Mantenimiento Edilicio","Limpieza Pañol","T-Wood","limpieza Pañol",0.83,"","","",""],["2026-03-02","Joel","Traslado","Lorenzini","Logística","Lleva y trae material",2.75,"","","",""],["2026-03-04","Joel","Traslado","Lorenzini","Logística","Busca baja",1.67,"","","Al llegar a T-Wood se pincha rueda delantera",""],["2026-03-04","Facundo","Compras","Malacate","T-Wood","Compra bridas para malacate",0.25,"10 bridas de 3/8\"","Rotura Cable percha malacate exterior","",""],["2026-03-03","Franco","Mantenimiento Máquinas","Malacate Desmolde","T-Wood","Prolongación percha de cable",0.5,"","","",""],["2026-03-16","Francisco","Mantenimiento Máquinas","Malacate Desmolde","T-Wood","Se cortaron los cables de los capacitores",1.0,"","","",""],["2026-03-04","Franco","Mantenimiento Máquinas","Malacate Salida","T-Wood","Cambio cable percha",0.5,"Cable de acero 6mm","","",""],["2026-03-16","Francisco","Mantenimiento Máquinas","Malacate Tren de Tiro","T-Wood","Reparación cable de acero",0.5,"","Corta la parte pelada y usa el mismo cable","",""],["2026-03-20","Francisco","Mantenimiento Máquinas","Malacate Tren de Tiro","T-Wood","CAmbio de cable",1.5,"","","",""],["2026-03-12","Francisco","Mantenimiento Edilicio","Medidores","T-Wood","Se repara mesa para romper medidores",4.5,"","","",""],["2026-03-13","Francisco","Mantenimiento Edilicio","Medidores","T-Wood","Soldadura de tableros y cambio de posición morzas - Cableado y puesta de enchufes",7.5,"","","",""],["2026-03-13","Joel","Mantenimiento Edilicio","Medidores","T-Wood","Puesta de tablero eléctrico",2.5,"","","",""],["2026-03-05","Francisco","Mantenimiento Moldes","Molde Ancha","T-Wood","Reparación UPN",1.0,"","","",""],["2026-03-05","Francisco","Mantenimiento Moldes","Molde ancha","T-Wood","Reparación UPN",2.5,"","","",""],["2026-04-10","Francisco","Mantenimiento Moldes","Molde Ancha","T-Wood","3 de ancha 2 angosta",2.5,"","","",""],["2026-03-06","Francisco","Mantenimiento Moldes","Molde angosta","T-Wood","Reparación de 2 moldes",1.33,"","","",""],["2026-03-20","Joel","Mantenimiento Máquinas","Molino","T-Wood","Cambio de cuchillas",4.0,"","","",""],["2026-03-23","Joel","Mantenimiento Máquinas","Molino","T-Wood","Entro un metal y desplazo las cuchillas, tambien las marco",1.5,"","","",""],["2026-03-23","Joel","Mantenimiento Máquinas","Molino","T-Wood","Afilado",3.5,"","","",""],["2026-04-06","Joel","Mantenimiento Máquinas","Molino Chino","T-Wood","Cambio de cuchillas y tornillos",5.0,"","","",""],["2026-04-07","Joel","Mantenimiento Máquinas","Molino Chino","T-Wood","Afilado de cuchillas",2.5,"","","",""],["2026-04-08","Joel","Mantenimiento Máquinas","Motobomba","T-Wood","Chapas para cubrir del agua",2.0,"","","",""],["2026-03-31","Francisco","Mantenimiento Máquinas","Motobombas","T-Wood","Revisión",1.5,"","","",""],["2026-04-01","Francisco","Mantenimiento Máquinas","Motobombas","T-Wood","REvisión y limpieza",0.75,"","","",""],["2026-04-02","Francisco","Mantenimiento Máquinas","Motobombas","T-Wood","REvisión y limpieza",0.25,"","","",""],["2026-03-17","Joel","Mantenimiento Edilicio","Oficina","T-Wood","CAmbio y colocación de luminarias nuevas",5.5,"","","",""],["2026-03-18","Joel","Mantenimiento Edilicio","Oficina","T-Wood","Corregir Colocación de luminarias",7.0,"","","",""],["2026-03-19","Joel","Mantenimiento Edilicio","Oficina","T-Wood","Corregir Colocación de luminarias",1.0,"","","",""],["2026-03-27","Joel","Mantenimiento Edilicio","Oficina","T-Wood","atornillado cable canal",1.0,"","","",""],["2026-03-09","Joel","Mantenimiento Edilicio","Pañol","T-Wood","Limpieza",0.5,"","","",""],["2026-03-05","Facundo","Mantenimiento Máquinas","Plastificadora","T-Wood","Reparación de contacto termocupla 24 y 29",0.25,"","","",""],["2026-03-30","Joel","Mantenimiento Máquinas","Plastificadora","T-Wood","Colocación tablero trinchador",1.0,"","","",""],["2026-04-08","Francisco","Mantenimiento Máquinas","Plastificadora","T-Wood","Ajuste cable malacate-soldado percha-enyape manguera trinchador-cambio de bridas pulmon norte",5.0,"","","",""],["2026-03-26","Francisco","Fabricación","Portabolsones","Comercial","armado",3.0,"","","",""],["2026-03-27","Francisco","Fabricación","Portabolsones","T-Wood","",null,"","","",""],["2026-03-30","Francisco","Fabricación","Portabolsones","Comercial","Pintado 6 portabolsones 30x30",1.5,"","","",""],["2026-04-08","Francisco","Fabricación","Portabolsones","Comercial","Pintado",2.5,"","","",""],["2026-03-10","Francisco","Mantenimiento Edilicio","Portón","Logística","Acomodar el prorton chocado con la mula para que cierre",2.0,"","","",""],["2026-03-11","Francisco","Mantenimiento Edilicio","Portón","Logística","Cambio de angulo guía",3.0,"","","Hay que cambiar 2 ruedas",""],["2026-03-05","Facundo","Mantenimiento Máquinas","Pote","T-Wood","Colocación embolos del pote",0.25,"","Corte de Luz","",""],["2026-03-04","Francisco","Mantenimiento Edilicio","Predio","T-Wood","ZAnja salida comedor",0.5,"","","",""],["2026-03-09","Francisco","Mantenimiento Edilicio","Predio T-Wood","T-Wood","Se saca el caño puesto para desague del patioifrente al comedor, se suelda y se vuelve a colocar",1.0,"","","",""],["2026-03-20","Francisco","Mantenimiento Edilicio","Predio T-Wood","T-Wood","zanja salida agrumadoras, limpieza",1.0,"","","",""],["2026-03-02","Facundo","Mantenimiento Clientes","Prensa","Comercial","Reparación final de carrera inferior",11.83,"","","3 horas de espera para acceder a la mula.","Cambio de Aceite"],["2026-03-05","Franco","Mantenimiento Máquinas","Prensa","T-Wood","Acomodar la prensa Refire que se movio contra la pared",0.5,"","","",""],["2026-03-05","Benjamin","Mantenimiento Máquinas","Prensa Plastificadora","T-Wood","Cambio pico de Aire",0.17,"Acople rapido de 8mm","","",""],["2026-03-05","Joel","Mantenimiento Máquinas","Prensa Refire","T-Wood","Reubicación prensa Refire",0.5,"","","",""],["2026-03-05","Benjamin","Armaduras","Rejas chile","T-Wood","Armado",0.25,"","","",""],["2026-03-03","Joel","Traslado","RFG","Logística","Busca carro con material que solicita RFG",1.33,"","","Pasa abuscar repuestos a Cattaneo",""],["2026-03-10","Joel","Mantenimiento Máquinas","Secadora","T-Wood","Control de funcionamiento-Limpieza-Engrasado-Sacar chimango",3.0,"","","",""],["2026-03-06","Francisco","Mantenimiento Moldes","Tornillos","T-Wood","Armado tornillos para moldes",2.0,"","","",""],["2026-03-12","Francisco","Mantenimiento Moldes","Tornillos p Moldes","T-Wood","Se relizaron 24 tornillos, y se repararon tuercas",3.0,"","","",""],["2026-03-16","Francisco","Mantenimiento Moldes","Tornillos p Moldes","T-Wood","Armado de 5 tornillos y 2 UPN",2.5,"","","",""],["2026-03-17","Francisco","Mantenimiento Moldes","Tornillos p Moldes","T-Wood","16 tornillos",2.5,"","","",""],["2026-03-19","Francisco","Mantenimiento Moldes","Tornillos p Moldes","T-Wood","Fabricacion tornillos punta de moldes",3.0,"","","",""],["2026-03-31","Francisco","Mantenimiento Moldes","Tornillos p Moldes","T-Wood","Revisión pulmon y soldado - fabricción tornillos extremos",3.5,"","","",""],["2026-04-01","Francisco","Mantenimiento Moldes","Tornillos p Moldes","T-Wood","Tornillos extremos",1.5,"","","",""],["2026-04-09","Francisco","Mantenimiento Moldes","Tornillos p Moldes","T-Wood","12 laterales 4 extremos",3.0,"","","",""],["2026-04-13","Francisco","Mantenimiento Moldes","Tornillos p Moldes","T-Wood","16 laterales 12 extremos",0.75,"","","",""]];
+
+const AREAS = ["Mantenimiento Máquinas","Mantenimiento Eléctrico","Mantenimiento Edilicio","Mantenimiento Vehículos",
+  "Mantenimiento Moldes","Mantenimiento Clientes","Fabricación","Armaduras","Traslado","Compras","Otro"];
+const CLASES = ["Correctivo","Preventivo","Mejora","Otro","Sin clasificar"];
+const CLASE_TXT = {
+  "Correctivo":"Correctivo (por falla)",
+  "Preventivo":"Preventivo (programado)",
+  "Mejora":"Mejora o modificación",
+  "Otro":"Otro (no es de una máquina)",
+  "Sin clasificar":"Sin clasificar"
+};
+
+/* Criticidad: seis preguntas, cada una de 1 a 5, con su peso. Resultado de 0 a 100. */
+const CRITERIOS = [
+  {k:"prod", peso:.30, t:"Impacto en producción: ¿cuánto se usa la máquina?",
+   ops:[[5,"Más del 80 % del turno"],[3,"Entre 50 % y 80 %"],[1,"Menos del 50 %"]]},
+  {k:"infl", peso:.20, t:"Si se para, ¿cuánto afecta al resto de la planta?",
+   ops:[[5,"Para toda la planta"],[4,"Importante"],[2,"Relativo"],[1,"Solo a esa máquina"]]},
+  {k:"cal", peso:.15, t:"¿Cuánto influye en la calidad del durmiente?",
+   ops:[[5,"Decisiva"],[4,"Importante (retrabajo)"],[2,"Relativa"],[1,"Nula"]]},
+  {k:"seg", peso:.15, t:"Si falla, ¿qué riesgo hay para las personas?",
+   ops:[[5,"Riesgo para el operario"],[3,"Riesgo para el equipo"],[1,"Sin riesgo relevante"]]},
+  {k:"amb", peso:.10, t:"Si falla, ¿qué impacto tiene en el ambiente?",
+   ops:[[5,"Grave"],[3,"Relativo"],[1,"Nulo"]]},
+  {k:"sust", peso:.10, t:"Si se para, ¿se puede reemplazar rápido?",
+   ops:[[5,"Sin posibilidad"],[4,"Con un recurso externo"],[2,"Con stock propio"],[1,"Hay otra igual"]]}
+];
+
+/* Textos de ayuda (burbujas) */
+const AYUDA = {
+  horas_mant:"Suma de la duración de todas las tareas registradas en el período. Muestra cuánto tiempo del equipo de mantenimiento se usó.",
+  fallas:"Cantidad de tareas marcadas como <b>Correctivo</b>: algo se rompió o dejó de funcionar y hubo que arreglarlo.",
+  vencidas:"Tareas del plan preventivo cuya fecha ya pasó y todavía no se marcaron como hechas.",
+  stock:"Repuestos con stock igual o menor al mínimo que cargaste. Conviene pedirlos antes de que hagan falta.",
+  pendientes:"Lo que quedó anotado en la columna <b>Pendientes</b> de cada tarea y todavía no se resolvió.",
+  clase:"Sirve para separar lo que fue una falla (<b>Correctivo</b>) de lo programado (<b>Preventivo</b>) y de las mejoras. Los indicadores de cada máquina usan solo los correctivos.",
+  parada:"Horas que la máquina estuvo sin poder producir por esta falla, incluida la espera del repuesto o del técnico. Si lo dejás vacío se usa la duración de la tarea.",
+  mtbf:"<b>Tiempo medio entre fallas.</b> Horas de trabajo de la máquina en el período divididas por la cantidad de fallas. Cuanto más alto, mejor: la máquina aguanta más sin romperse.",
+  mttr:"<b>Tiempo medio de reparación.</b> Promedio de las horas de parada por falla. Cuanto más bajo, mejor: se vuelve a producir más rápido.",
+  disponibilidad:"Porcentaje del tiempo de trabajo en que la máquina estuvo en condiciones de producir: (horas de trabajo − horas paradas por falla) / horas de trabajo.",
+  horas_trabajo:"Se calculan con las horas por día de la máquina y los días de trabajo por semana que configures en Datos.",
+  criticidad:"Qué tan importante es la máquina para la planta, de 0 a 100. Se arma con seis preguntas: producción (30 %), influencia en la planta (20 %), calidad (15 %), seguridad (15 %), ambiente (10 %) y posibilidad de reemplazo (10 %). Sirve para decidir dónde poner primero el esfuerzo de mantenimiento.",
+  alias:"Nombres con los que esta máquina aparece escrita en el registro (por ejemplo, \"Agrumadora Frankie\"). Así sus tareas se juntan en esta ficha aunque se hayan escrito distinto.",
+  pareto:"Ordena de mayor a menor. En general, unos pocos elementos se llevan la mayor parte de las horas: en color naranja están los que suman el primer 80 %. Ahí conviene mirar primero.",
+  weibull:"Con las fechas de las fallas de una máquina se estima <b>cómo</b> falla. Cada punto es una falla; si los puntos siguen una recta, el modelo describe bien los datos. La pendiente de la recta (<b>β</b>) dice si son fallas tempranas, al azar o por desgaste.",
+  beta:"<b>β (forma).</b> Menor que 1: fallas tempranas (montaje, repuesto, arranque). Cerca de 1: fallas al azar, la edad no influye. Mayor que 1: desgaste, el riesgo crece con el uso y conviene un cambio programado.",
+  eta:"<b>η (vida característica).</b> Tiempo de trabajo al que ya falló el 63 % de las veces. Es una referencia de cuánto dura en general.",
+  papel:"Es un gráfico logarítmico: el tiempo va en escala logarítmica y la probabilidad de falla en una escala especial donde el modelo queda como una recta. <b>Cómo se lee:</b> la línea punteada horizontal es el 63,2 %; donde la corta la recta, se baja al eje y se lee η. Las guías azules que salen del punto de la izquierda tienen distintas pendientes: la que va paralela a la recta da β. La línea roja muestra la lectura para el tiempo que elijas.",
+  intervalo:"Tiempo de trabajo hasta el que la máquina llega sin fallar con la confiabilidad que elegiste. Sirve como punto de partida para fijar la frecuencia de un cambio o revisión. Solo tiene sentido si hay desgaste (β mayor que 1).",
+  confiabilidad:"Probabilidad de llegar a ese tiempo sin fallar. 90 % quiere decir que 9 de cada 10 veces la máquina llega sin romperse.",
+  plan:"Cada tarea tiene una frecuencia en días. La próxima fecha es la última vez que se hizo más la frecuencia. Al marcarla como hecha queda registrada en el historial.",
+  respaldo:"Los datos se guardan en este navegador, en esta computadora. Descargá un respaldo cada tanto (por ejemplo, una vez por semana) y guardalo en el Drive: con ese archivo se recupera todo en cualquier computadora.",
+  importar:"Copiá las filas de la planilla de mantenimiento en Excel o Google Sheets (con o sin la fila de títulos) y pegalas acá. Las columnas tienen que estar en el mismo orden que la planilla: Fecha, Operario, Tipo de Tarea, Máquina/Elemento, Centro, Tarea Realizada, Duración, Repuestos, Causa, Observaciones, Pendientes. Las filas repetidas no se cargan dos veces."
+};
+
+/* ======================================================================
+   Guardado
+   ====================================================================== */
+const CLAVE = "circularis_mantenimiento_v1";
+let D = null;
+function nuevoId(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,8); }
+function guardar(){
+  try { localStorage.setItem(CLAVE, JSON.stringify(D)); }
+  catch(e){ avisar("No se pudo guardar en este navegador. Descargá un respaldo desde Datos."); }
+}
+function cargar(){
+  try { const t = localStorage.getItem(CLAVE); if (t) return JSON.parse(t); } catch(e) {}
+  return null;
+}
+function datosVacios(){
+  return {version:1, config:{diasSemana:5, operarios:[]}, maquinas:[], registros:[], plan:[], repuestos:[], ultimoRespaldo:null};
+}
+function maquinasIniciales(){
+  return MAQUINAS_INICIALES.map(m => ({id:nuevoId(), ...JSON.parse(JSON.stringify(m))}));
+}
+function registroDesdeFila(f){
+  return {id:nuevoId(), fecha:f[0], operario:f[1], area:f[2], maquina:f[3], centro:f[4], tarea:f[5],
+          duracion:f[6], repuestos:f[7], causa:f[8], obs:f[9], pendiente:f[10], pendienteHecho:false,
+          clase: sugerirClase(f[2], f[5], f[8]), paradaH:null, componente:""};
+}
+/* Sugerencia de clase para las filas importadas: solo cuando el texto es claro. */
+function sugerirClase(area, tarea, causa){
+  const a = norm(area), t = norm(tarea + " " + causa);
+  if (!a.startsWith("mantenimiento")) return "Otro";
+  if (/(repar|rotur|romp|quebr|fall|no funciona|no anda|fuga|pinch|trab|desconect|corte de luz|cambio de manguera)/.test(t)) return "Correctivo";
+  if (/(fabric|instal|colocaci|reubic|armado)/.test(t)) return "Mejora";
+  if (/(control|limpieza|engras|lubric|revisi|afilad|cambio de cuchilla|cambio y afilado|afilado y cambio|mantenimiento)/.test(t)) return "Preventivo";
+  return "Sin clasificar";
+}
+
+/* ======================================================================
+   Utilidades
+   ====================================================================== */
+function esc(s){ return String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+function norm(s){ return String(s ?? "").normalize("NFD").replace(/[̀-ͯ]/g,"").toLowerCase().trim().replace(/\s+/g," "); }
+function hoyISO(){ const d = new Date(); return iso(d); }
+function iso(d){ return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
+function aFecha(s){ const [a,m,d] = s.split("-").map(Number); return new Date(a, m-1, d); }
+function fechaTxt(s){ if(!s) return "—"; const [a,m,d] = s.split("-"); return d+"/"+m+"/"+a; }
+function sumarDias(s, n){ const d = aFecha(s); d.setDate(d.getDate()+n); return iso(d); }
+function difDias(a, b){ return Math.round((aFecha(b) - aFecha(a)) / 86400000); }
+function num(x, dec=0){ if (x === null || x === undefined || !isFinite(x)) return "—";
+  return x.toLocaleString("es-AR", {minimumFractionDigits:dec, maximumFractionDigits:dec}); }
+function pct(x, dec=1){ return (x === null || !isFinite(x)) ? "—" : num(100*x, dec) + " %"; }
+function horasTxt(h){ if (h === null || h === undefined || !isFinite(h)) return "—";
+  const hh = Math.floor(h), mm = Math.round((h - hh) * 60);
+  return mm === 60 ? (hh+1)+" h" : (mm ? hh+" h "+String(mm).padStart(2,"0")+" min" : hh+" h"); }
+function leerHoras(s){
+  s = String(s ?? "").trim().replace(",", ".");
+  if (!s) return null;
+  if (s.includes(":")){ const p = s.split(":").map(Number); if (p.some(isNaN)) return null;
+    return p[0] + (p[1]||0)/60 + (p[2]||0)/3600; }
+  const v = parseFloat(s); return isNaN(v) ? null : v;
+}
+function leerFecha(s){
+  s = String(s ?? "").trim();
+  let m = s.match(/^(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{2,4})$/);
+  if (m){ let a = +m[3]; if (a < 100) a += 2000; return a+"-"+String(+m[2]).padStart(2,"0")+"-"+String(+m[1]).padStart(2,"0"); }
+  m = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  return m ? m[0] : null;
+}
+function avisar(t){
+  const v = document.createElement("div"); v.className = "aviso-ok"; v.textContent = t;
+  document.body.appendChild(v); setTimeout(() => v.remove(), 2600);
+}
+function ayuda(k){ return `<button type="button" class="ayuda" data-ayuda="${k}" aria-label="Ayuda">?</button>`; }
+function descargar(nombre, contenido, tipo){
+  const b = new Blob([contenido], {type:tipo}); const a = document.createElement("a");
+  a.href = URL.createObjectURL(b); a.download = nombre; document.body.appendChild(a); a.click();
+  setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 500);
+}
+
+/* Burbujas de ayuda */
+document.addEventListener("click", e => {
+  const vieja = document.querySelector(".burbuja");
+  const b = e.target.closest(".ayuda");
+  if (vieja && (!b || vieja.dataset.k === b.dataset.ayuda)) { vieja.remove(); if (b) return; }
+  else if (vieja) vieja.remove();
+  if (!b) return;
+  const caja = document.createElement("div"); caja.className = "burbuja"; caja.dataset.k = b.dataset.ayuda;
+  caja.innerHTML = AYUDA[b.dataset.ayuda] || "";
+  document.body.appendChild(caja);
+  const r = b.getBoundingClientRect();
+  const izq = Math.min(window.scrollX + r.left, window.scrollX + document.documentElement.clientWidth - caja.offsetWidth - 10);
+  caja.style.left = Math.max(10, izq) + "px";
+  caja.style.top = (window.scrollY + r.bottom + 6) + "px";
+});
+
+/* ======================================================================
+   Cálculos
+   ====================================================================== */
+function criticidad(c){
+  if (!c) return null;
+  let s = 0; for (const k of CRITERIOS){ if (c[k.k] == null) return null; s += k.peso * (c[k.k] - 1) / 4; }
+  return 100 * s;
+}
+function esDeMaquina(m, r){
+  const n = norm(r.maquina);
+  if (!n) return false;
+  return n === norm(m.codigo) || n === norm(m.nombre) || (m.alias || []).some(a => norm(a) === n);
+}
+function maquinaDeRegistro(r){ return D.maquinas.find(m => esDeMaquina(m, r)); }
+function esLaborable(d){
+  const dia = d.getDay(); // 0 domingo
+  const n = D.config.diasSemana || 5;
+  if (n >= 7) return true;
+  if (n === 6) return dia !== 0;
+  return dia >= 1 && dia <= 5;
+}
+/* Días de trabajo entre dos fechas: cuenta desde el día siguiente a "desde" hasta "hasta" inclusive. */
+function diasTrabajo(desde, hasta){
+  let n = 0; const d = aFecha(desde), f = aFecha(hasta);
+  d.setDate(d.getDate()+1);
+  while (d <= f){ if (esLaborable(d)) n++; d.setDate(d.getDate()+1); }
+  return n;
+}
+function horasTrabajo(m, desde, hasta){
+  const dias = diasTrabajo(sumarDias(desde, -1), hasta);
+  return m.horasDia ? dias * m.horasDia : null;
+}
+function indicadores(m, desde, hasta){
+  const regs = D.registros.filter(r => esDeMaquina(m, r) && r.fecha >= desde && r.fecha <= hasta);
+  const fallas = regs.filter(r => r.clase === "Correctivo");
+  const paradas = fallas.map(r => r.paradaH != null ? r.paradaH : (r.duracion || 0));
+  const horasParada = paradas.reduce((a,b) => a+b, 0);
+  const ht = horasTrabajo(m, desde, hasta);
+  return {
+    tareas: regs.length, horasMant: regs.reduce((a,r) => a + (r.duracion || 0), 0),
+    fallas: fallas.length, horasParada, horasTrabajo: ht,
+    mtbf: (ht && fallas.length) ? ht / fallas.length : null,
+    mttr: fallas.length ? horasParada / fallas.length : null,
+    disp: ht ? Math.max(0, (ht - horasParada) / ht) : null
+  };
+}
+function estadoPlan(t){
+  if (!t.ultima) return {cod:"rojo", txt:"Sin fecha", prox:null};
+  const prox = sumarDias(t.ultima, +t.frecuencia || 0);
+  const dif = difDias(hoyISO(), prox);
+  if (dif < 0) return {cod:"rojo", txt:"Vencida hace " + (-dif) + (dif === -1 ? " día" : " días"), prox};
+  if (dif <= 7) return {cod:"amarillo", txt: dif === 0 ? "Vence hoy" : "En " + dif + (dif === 1 ? " día" : " días"), prox};
+  return {cod:"verde", txt:"Al día", prox};
+}
+function estadoMaquina(m){
+  const motivos = []; let cod = "verde";
+  const vencidas = D.plan.filter(t => t.maquina === m.id && estadoPlan(t).cod === "rojo");
+  if (vencidas.length){ cod = "rojo"; motivos.push(vencidas.length + (vencidas.length === 1 ? " tarea vencida" : " tareas vencidas")); }
+  const desde = sumarDias(hoyISO(), -30);
+  const f30 = D.registros.filter(r => esDeMaquina(m, r) && r.clase === "Correctivo" && r.fecha >= desde).length;
+  if (f30 >= 3){ cod = "rojo"; motivos.push(f30 + " fallas en 30 días"); }
+  else if (f30 > 0){ if (cod !== "rojo") cod = "amarillo"; motivos.push(f30 + (f30 === 1 ? " falla" : " fallas") + " en 30 días"); }
+  const prontas = D.plan.filter(t => t.maquina === m.id && estadoPlan(t).cod === "amarillo");
+  if (prontas.length){ if (cod === "verde") cod = "amarillo"; motivos.push(prontas.length + " tarea(s) esta semana"); }
+  const pend = D.registros.filter(r => esDeMaquina(m, r) && r.pendiente && !r.pendienteHecho).length;
+  if (pend){ if (cod === "verde") cod = "amarillo"; motivos.push(pend + " pendiente(s)"); }
+  return {cod, motivos};
+}
+
+/* ---------- Weibull ---------- */
+/* obs: [{t, falla:true|false}]. Rangos ajustados (fallas y equipos que siguen andando) y F(i) = (i − 0,3)/(N + 0,4). */
+function rangosWeibull(obs){
+  const datos = obs.filter(o => o.t > 0).sort((a,b) => a.t - b.t || (a.falla ? -1 : 1));
+  const n = datos.length; let ant = 0; const salida = [];
+  datos.forEach((o, k) => {
+    if (!o.falla) return;
+    ant += (n + 1 - ant) / (1 + (n - k));
+    salida.push({t:o.t, i:ant, F:(ant - 0.3) / (n + 0.4)});
+  });
+  return salida;
+}
+function ajustarWeibull(obs){
+  const p = rangosWeibull(obs);
+  if (p.length < 2) return {puntos:p, beta:null, eta:null};
+  const x = p.map(q => Math.log(q.t)), y = p.map(q => Math.log(-Math.log(1 - q.F)));
+  const n = p.length, my = y.reduce((a,b)=>a+b)/n, mx = x.reduce((a,b)=>a+b)/n;
+  let sxy = 0, syy = 0, sxx = 0;
+  for (let k = 0; k < n; k++){ sxy += (x[k]-mx)*(y[k]-my); syy += (y[k]-my)**2; sxx += (x[k]-mx)**2; }
+  if (syy === 0 || sxx === 0) return {puntos:p, beta:null, eta:null};
+  const b = sxy / syy, a = mx - b * my; // x = a + b·y
+  return {puntos:p, beta:1/b, eta:Math.exp(a), r2:(sxy*sxy)/(sxx*syy)};
+}
+function Fw(t, beta, eta){ return 1 - Math.exp(-Math.pow(t/eta, beta)); }
+function yW(F){ F = Math.min(Math.max(F, 1e-6), 1 - 1e-6); return Math.log(-Math.log(1 - F)); }
+function lecturaBeta(beta){
+  if (beta < 0.9) return {tit:"Fallas tempranas", txt:"Las fallas aparecen al poco tiempo de un arreglo o un cambio. Suelen venir del montaje, de la calidad del repuesto o de los arranques. Cambiar antes no ayuda: conviene revisar cómo se instala y qué repuesto se usa."};
+  if (beta <= 1.1) return {tit:"Fallas al azar", txt:"La edad no influye: puede fallar en cualquier momento. Un cambio programado no las evita. Conviene inspeccionar con frecuencia y buscar la causa (lubricación, sobrecarga, forma de operar)."};
+  return {tit:"Desgaste", txt:"El riesgo de falla crece con el uso. Conviene un cambio o una revisión programada antes de que falle. El intervalo de abajo es un buen punto de partida."};
+}
+
+/* Papel de Weibull en SVG */
+function papelWeibull(aj, unidad, tLectura){
+  const W = 760, H = 470, mi = 64, md = 30, ms = 44, mb = 52;
+  const pts = aj.puntos;
+  const xs = pts.map(p => p.t); if (aj.eta) xs.push(aj.eta); if (tLectura) xs.push(tLectura);
+  if (!xs.length) return "";
+  let lo = Math.floor(Math.log10(Math.min(...xs))), hi = Math.ceil(Math.log10(Math.max(...xs)) + 1e-9);
+  if (hi - lo < 2) hi = lo + 2;
+  const fMin = Math.min(0.01, ...pts.map(p => p.F * 0.7)), fMax = Math.max(0.99, ...pts.map(p => 1 - (1 - p.F) * 0.7));
+  const y0 = yW(fMin), y1 = yW(fMax);
+  const X = t => mi + (Math.log10(t) - lo) / (hi - lo) * (W - mi - md);
+  const Y = y => H - mb - (y - y0) / (y1 - y0) * (H - ms - mb);
+  let s = `<svg class="grafico" viewBox="0 0 ${W} ${H}" role="img" aria-label="Papel de Weibull">`;
+  // grilla
+  for (let d = lo; d <= hi; d++){
+    for (let k = 1; k <= 9; k++){
+      const t = k * Math.pow(10, d); if (t > Math.pow(10, hi)) break;
+      s += `<line x1="${X(t)}" x2="${X(t)}" y1="${Y(y0)}" y2="${Y(y1)}" stroke="${k===1?'#5a9a72':'#cfe5d6'}" stroke-width="${k===1?1.3:1}"/>`;
+    }
+    s += `<text x="${X(Math.pow(10,d))}" y="${H-mb+18}" font-size="12" text-anchor="middle" fill="#a33">${num(Math.pow(10,d), d<0?-d:0)}</text>`;
+  }
+  const marcasF = [0.01,0.02,0.05,0.1,0.2,0.3,0.5,0.632,0.8,0.9,0.99].filter(f => f >= fMin && f <= fMax);
+  for (const f of [0.01,0.02,0.03,0.05,0.07,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,0.95,0.99]){
+    if (f < fMin || f > fMax) continue;
+    s += `<line x1="${mi}" x2="${W-md}" y1="${Y(yW(f))}" y2="${Y(yW(f))}" stroke="#cfe5d6"/>`;
+  }
+  for (const f of marcasF){
+    s += `<text x="${mi-6}" y="${Y(yW(f))+4}" font-size="11.5" text-anchor="end" fill="#a33">${f===0.632?"63,2":num(100*f, f<0.1&&f*100%1?1:0)}</text>`;
+  }
+  s += `<rect x="${mi}" y="${ms}" width="${W-mi-md}" height="${H-ms-mb}" fill="none" stroke="#6b7c76"/>`;
+  s += `<text x="${(mi+W-md)/2}" y="${H-12}" font-size="12.5" text-anchor="middle" fill="#5d6b67">Tiempo de trabajo (${unidad}), escala logarítmica</text>`;
+  s += `<text x="16" y="${(ms+H-mb)/2}" font-size="12.5" text-anchor="middle" fill="#5d6b67" transform="rotate(-90 16 ${(ms+H-mb)/2})">Probabilidad de falla F(t) (%)</text>`;
+  // polo y guías de β
+  const t0 = Math.pow(10, lo);
+  for (const b of [5,3,2,1.5,1,0.7,0.5]){
+    const tTop = t0 * Math.exp(y1 / b); if (tTop > Math.pow(10, hi)) continue;
+    s += `<line x1="${X(t0)}" y1="${Y(0)}" x2="${X(tTop)}" y2="${Y(y1)}" stroke="#4459a8" stroke-dasharray="4 3" stroke-width="1"><title>Guía de β = ${num(b,1)}</title></line>`;
+    s += `<text x="${X(tTop)}" y="${ms-6}" font-size="11" text-anchor="middle" fill="#4459a8">${num(b,1)}</text>`;
+  }
+  s += `<text x="${mi-6}" y="${ms-6}" font-size="13" text-anchor="end" fill="#4459a8" font-weight="700">β</text>`;
+  s += `<line x1="${mi}" x2="${W-md}" y1="${Y(0)}" y2="${Y(0)}" stroke="#333" stroke-dasharray="6 4"><title>63,2 %: donde la recta corta esta línea se lee η</title></line>`;
+  s += `<circle cx="${X(t0)}" cy="${Y(0)}" r="4.5" fill="#fff" stroke="#333" stroke-width="1.5"><title>Punto de partida de las guías de β</title></circle>`;
+  // recta y lecturas
+  if (aj.beta){
+    const tA = t0, tB = Math.pow(10, hi);
+    let path = "", dentro = false;
+    for (let k = 0; k <= 120; k++){
+      const t = tA * Math.pow(tB/tA, k/120), yy = yW(Fw(t, aj.beta, aj.eta));
+      if (yy < y0 || yy > y1){ dentro = false; continue; }
+      path += (dentro ? "L" : "M") + X(t).toFixed(1) + " " + Y(yy).toFixed(1); dentro = true;
+    }
+    s += `<path d="${path}" fill="none" stroke="#1f2a27" stroke-width="2.4"/>`;
+    s += `<line x1="${X(aj.eta)}" x2="${X(aj.eta)}" y1="${Y(0)}" y2="${Y(y0)}" stroke="#1f2a27" stroke-width="2"/>`;
+    s += `<text x="${X(aj.eta)+6}" y="${Y(y0)-8}" font-size="13" font-weight="700" fill="#1f2a27">η = ${num(aj.eta)} ${unidad}</text>`;
+    const yb = y1 * 0.85, tb = Math.min(t0 * Math.exp(yb / aj.beta), Math.pow(10, hi));
+    s += `<line x1="${X(t0)}" y1="${Y(0)}" x2="${X(tb)}" y2="${Y(aj.beta*Math.log(tb/t0))}" stroke="#1f2a27" stroke-width="2"/>`;
+    s += `<text x="${X(tb)+6}" y="${Y(aj.beta*Math.log(tb/t0))+4}" font-size="13" font-weight="700" fill="#1f2a27">β = ${num(aj.beta,2)}</text>`;
+    if (tLectura){
+      const F = Fw(tLectura, aj.beta, aj.eta), yy = yW(F);
+      if (yy > y0 && yy < y1){
+        s += `<polyline points="${X(tLectura)},${Y(y0)} ${X(tLectura)},${Y(yy)} ${mi},${Y(yy)}" fill="none" stroke="#c0392b" stroke-width="1.8" stroke-dasharray="7 3 2 3"/>`;
+        s += `<text x="${X(tLectura)+6}" y="${Y(yy)+16}" font-size="12.5" fill="#c0392b">t = ${num(tLectura)} ${unidad}: falla ${pct(F)} · sin falla ${pct(1-F)}</text>`;
+      }
+    }
+  }
+  for (const p of pts){
+    s += `<circle cx="${X(p.t)}" cy="${Y(yW(p.F))}" r="6" fill="#d9483b" stroke="#7a1d14"><title>t = ${num(p.t)} ${unidad} · F = ${pct(p.F)}</title></circle>`;
+  }
+  return s + "</svg>";
+}
+
+/* Barras horizontales con el 80 % marcado */
+function barras(items, fmt, conPareto){
+  if (!items.length) return `<div class="vacio">Sin datos en el período.</div>`;
+  const max = Math.max(...items.map(i => i.v)), tot = items.reduce((a,i) => a + i.v, 0);
+  let acum = 0;
+  return items.map(i => {
+    const antes = acum; acum += i.v;
+    const vital = conPareto && antes / tot < 0.8;
+    return `<div class="barra-fila"><div class="nom" title="${esc(i.n)}">${esc(i.n)}</div>
+      <div class="barra"><div class="${vital?'vital':''}" style="width:${max ? 100*i.v/max : 0}%"></div></div>
+      <div class="num">${fmt(i.v)}${conPareto ? ` <span class="chip">${num(100*i.v/tot,0)} %</span>` : ""}</div></div>`;
+  }).join("");
+}
+
+/* ======================================================================
+   Navegación
+   ====================================================================== */
+const VISTAS = [
+  ["inicio","Inicio"],["registrar","Registrar tarea"],["historial","Historial"],["maquinas","Máquinas"],
+  ["plan","Plan preventivo"],["repuestos","Repuestos"],["analisis","Análisis"],["datos","Datos"]
+];
+let vistaActual = "inicio", maquinaAbierta = null;
+function ir(v, extra){ vistaActual = v; if (v === "maquina") maquinaAbierta = extra; dibujar(); window.scrollTo(0,0); }
+function dibujarNav(){
+  const activa = vistaActual === "maquina" ? "maquinas" : vistaActual;
+  document.getElementById("nav").innerHTML = VISTAS.map(([k,t]) =>
+    `<button class="${k===activa?'activo':''}" data-ir="${k}">${t}</button>`).join("");
+}
+document.getElementById("nav").addEventListener("click", e => { const b = e.target.closest("[data-ir]"); if (b) ir(b.dataset.ir); });
+function dibujar(){
+  dibujarNav();
+  const v = document.getElementById("vista");
+  ({inicio:vInicio, registrar:vRegistrar, historial:vHistorial, maquinas:vMaquinas, maquina:vMaquina,
+    plan:vPlan, repuestos:vRepuestos, analisis:vAnalisis, datos:vDatos}[vistaActual])(v);
+}
+
+/* ======================================================================
+   Inicio
+   ====================================================================== */
+function vInicio(v){
+  const hoy = hoyISO(), mes = hoy.slice(0,7);
+  const regMes = D.registros.filter(r => r.fecha.startsWith(mes));
+  const ultimoMesConDatos = D.registros.length ? D.registros.map(r => r.fecha).sort().pop().slice(0,7) : mes;
+  const refMes = regMes.length ? mes : ultimoMesConDatos;
+  const regRef = D.registros.filter(r => r.fecha.startsWith(refMes));
+  const horas = regRef.reduce((a,r) => a + (r.duracion||0), 0);
+  const fallas = regRef.filter(r => r.clase === "Correctivo").length;
+  const vencidas = D.plan.filter(t => estadoPlan(t).cod === "rojo");
+  const semana = D.plan.filter(t => estadoPlan(t).cod === "amarillo");
+  const bajos = D.repuestos.filter(r => r.minimo != null && r.stock <= r.minimo);
+  const pend = D.registros.filter(r => r.pendiente && !r.pendienteHecho);
+  const nombreMes = aFecha(refMes + "-01").toLocaleDateString("es-AR", {month:"long", year:"numeric"});
+  const sinClasificar = D.registros.filter(r => r.clase === "Sin clasificar").length;
+  let h = `<h2>Resumen</h2><p class="intro">${refMes === mes ? "Este mes" : "Último mes con registros: " + nombreMes}. Tocá cualquier máquina para ver su ficha.</p>
+  <div class="tarjetas">
+    <div class="tarjeta"><div class="et">Horas de mantenimiento ${ayuda("horas_mant")}</div><div class="val">${num(horas,0)} h</div><div class="det">${regRef.length} tareas en ${nombreMes}</div></div>
+    <div class="tarjeta ${fallas?'aviso':''}"><div class="et">Fallas ${ayuda("fallas")}</div><div class="val">${fallas}</div><div class="det">tareas por falla en ${nombreMes}</div></div>
+    <div class="tarjeta ${vencidas.length?'alerta':''}"><div class="et">Preventivos vencidos ${ayuda("vencidas")}</div><div class="val">${vencidas.length}</div><div class="det">${semana.length} para esta semana</div></div>
+    <div class="tarjeta ${bajos.length?'alerta':''}"><div class="et">Repuestos para pedir ${ayuda("stock")}</div><div class="val">${bajos.length}</div><div class="det">en el mínimo o debajo</div></div>
+    <div class="tarjeta ${pend.length?'aviso':''}"><div class="et">Pendientes ${ayuda("pendientes")}</div><div class="val">${pend.length}</div><div class="det">anotados en las tareas</div></div>
+  </div>`;
+  if (sinClasificar) h += `<div class="mensaje cuidado">Hay ${sinClasificar} tareas sin clasificar (falla, preventivo, mejora). Clasificalas en <a href="#" data-ir-h="sin">Historial</a> para que los indicadores de cada máquina sean correctos.</div>`;
+  h += `<h3>Estado de las máquinas</h3><div class="maquinas">` + D.maquinas.map(m => {
+    const e = estadoMaquina(m), c = criticidad(m.crit);
+    return `<div class="maquina ${e.cod}" data-maq="${m.id}"><div class="cod">${esc(m.codigo)} · ${esc(m.sector||"")}</div>
+      <div class="nom">${esc(m.nombre)}</div>
+      <div class="lin">${e.motivos.length ? esc(e.motivos.join(" · ")) : "Sin novedades"}</div>
+      <div class="lin">Criticidad: ${c == null ? "sin evaluar" : num(c,1) + " / 100"}</div></div>`;
+  }).join("") + `</div>`;
+  h += `<div class="dos"><div><h3>Para hacer</h3>`;
+  const lista = [...vencidas, ...semana].sort((a,b) => (estadoPlan(a).prox||"") < (estadoPlan(b).prox||"") ? -1 : 1);
+  h += lista.length ? `<div class="tabla"><table><tr><th>Tarea</th><th>Máquina</th><th>Estado</th><th></th></tr>` + lista.map(t => {
+    const e = estadoPlan(t), m = D.maquinas.find(x => x.id === t.maquina);
+    return `<tr><td>${esc(t.tarea)}</td><td>${esc(m ? m.codigo : "—")}</td><td><span class="chip ${e.cod}">${e.txt}</span></td>
+      <td><button class="chico prim" data-hecha="${t.id}">Hecha</button></td></tr>`;
+  }).join("") + `</table></div>` : `<div class="vacio">No hay preventivos vencidos ni para esta semana.</div>`;
+  h += `</div><div><h3>Pendientes anotados</h3>`;
+  h += pend.length ? `<div class="tabla" style="max-height:330px"><table><tr><th>Fecha</th><th>Elemento</th><th>Pendiente</th><th></th></tr>` +
+    pend.sort((a,b) => a.fecha < b.fecha ? 1 : -1).map(r => `<tr><td>${fechaTxt(r.fecha)}</td><td>${esc(r.maquina)}</td><td>${esc(r.pendiente)}</td>
+      <td><button class="chico" data-resuelto="${r.id}">Resuelto</button></td></tr>`).join("") + `</table></div>` : `<div class="vacio">No hay pendientes.</div>`;
+  h += `</div></div>`;
+  h += `<h3>Últimas tareas registradas</h3>` + tablaRegistros(D.registros.slice().sort(ordenFecha).slice(0,8), false);
+  v.innerHTML = h;
+  v.querySelectorAll("[data-maq]").forEach(el => el.onclick = () => ir("maquina", el.dataset.maq));
+  v.querySelectorAll("[data-hecha]").forEach(el => el.onclick = () => marcarHecha(el.dataset.hecha));
+  v.querySelectorAll("[data-resuelto]").forEach(el => el.onclick = () => {
+    const r = D.registros.find(x => x.id === el.dataset.resuelto); r.pendienteHecho = true; guardar(); avisar("Pendiente marcado como resuelto"); dibujar(); });
+  const enl = v.querySelector("[data-ir-h]"); if (enl) enl.onclick = e => { e.preventDefault(); filtroH = {...filtroVacio(), clase:"Sin clasificar"}; ir("historial"); };
+  activarFilasRegistro(v);
+}
+function ordenFecha(a, b){ return a.fecha < b.fecha ? 1 : a.fecha > b.fecha ? -1 : 0; }
+
+/* ======================================================================
+   Registrar / editar tarea
+   ====================================================================== */
+function opcionesMaquinas(){
+  const nombres = new Set();
+  D.maquinas.forEach(m => { nombres.add(m.nombre); (m.alias||[]).forEach(a => nombres.add(a)); });
+  D.registros.forEach(r => r.maquina && nombres.add(r.maquina));
+  return [...nombres].sort((a,b) => a.localeCompare(b, "es")).map(n => `<option value="${esc(n)}">`).join("");
+}
+function opcionesOperarios(){
+  const s = new Set(D.config.operarios || []); D.registros.forEach(r => r.operario && s.add(r.operario));
+  return [...s].sort().map(n => `<option value="${esc(n)}">`).join("");
+}
+function formRegistro(r){
+  r = r || {fecha:hoyISO(), operario:"", area:"Mantenimiento Máquinas", maquina:"", centro:"T-Wood", tarea:"", duracion:null,
+            repuestos:"", causa:"", obs:"", pendiente:"", clase:"Correctivo", paradaH:null, componente:""};
+  return `<div class="form">
+    <div><label>Fecha</label><input type="date" name="fecha" value="${esc(r.fecha)}" required></div>
+    <div><label>Operario</label><input name="operario" list="lista-operarios" value="${esc(r.operario)}" placeholder="Quién hizo la tarea" required></div>
+    <div><label>Máquina o elemento</label><input name="maquina" list="lista-maquinas" value="${esc(r.maquina)}" placeholder="Elegí o escribí" required></div>
+    <div><label>Tipo de tarea</label><select name="area">${AREAS.map(a => `<option ${a===r.area?"selected":""}>${a}</option>`).join("")}${AREAS.includes(r.area)?"":`<option selected>${esc(r.area)}</option>`}</select></div>
+    <div class="ancho"><label>¿Qué fue? ${ayuda("clase")}</label><div class="segmento" id="seg-clase">${CLASES.filter(c => c !== "Sin clasificar" || r.clase === "Sin clasificar").map(c => `<button type="button" data-clase="${c}" class="${c===r.clase?'sel':''}">${CLASE_TXT[c]}</button>`).join("")}</div>
+      <input type="hidden" name="clase" value="${esc(r.clase)}"></div>
+    <div class="ancho"><label>Tarea realizada</label><input name="tarea" value="${esc(r.tarea)}" placeholder="Por ejemplo: cambio y afilado de cuchillas" required></div>
+    <div><label>Componente (opcional)</label><input name="componente" value="${esc(r.componente)}" placeholder="Cuchillas, rodamiento, correa..."></div>
+    <div><label>Duración de la tarea (h:mm)</label><input name="duracion" value="${r.duracion != null ? horasAhm(r.duracion) : ""}" placeholder="1:30"></div>
+    <div class="solo-falla"><label>Horas de máquina parada ${ayuda("parada")}</label><input name="paradaH" value="${r.paradaH != null ? horasAhm(r.paradaH) : ""}" placeholder="Igual a la duración"></div>
+    <div><label>Centro</label><input name="centro" value="${esc(r.centro)}"></div>
+    <div><label>Repuestos utilizados</label><input name="repuestos" value="${esc(r.repuestos)}"></div>
+    <div><label>Causa</label><input name="causa" value="${esc(r.causa)}" placeholder="Por qué pasó"></div>
+    <div><label>Observaciones</label><input name="obs" value="${esc(r.obs)}"></div>
+    <div><label>Pendientes</label><input name="pendiente" value="${esc(r.pendiente)}" placeholder="Lo que quedó por hacer"></div>
+  </div>
+  <datalist id="lista-maquinas">${opcionesMaquinas()}</datalist><datalist id="lista-operarios">${opcionesOperarios()}</datalist>`;
+}
+function horasAhm(h){ const hh = Math.floor(h), mm = Math.round((h-hh)*60); return hh + ":" + String(mm).padStart(2,"0"); }
+function activarForm(cont){
+  const seg = cont.querySelector("#seg-clase"), oculto = cont.querySelector("[name=clase]");
+  const ver = () => cont.querySelectorAll(".solo-falla").forEach(x => x.style.display = oculto.value === "Correctivo" ? "" : "none");
+  seg.onclick = e => { const b = e.target.closest("[data-clase]"); if (!b) return;
+    seg.querySelectorAll("button").forEach(x => x.classList.remove("sel")); b.classList.add("sel"); oculto.value = b.dataset.clase; ver(); };
+  ver();
+}
+function leerForm(cont, base){
+  const g = n => cont.querySelector(`[name=${n}]`).value.trim();
+  const err = [];
+  if (!g("fecha")) err.push("la fecha"); if (!g("operario")) err.push("el operario");
+  if (!g("maquina")) err.push("la máquina o elemento"); if (!g("tarea")) err.push("la tarea realizada");
+  const dur = leerHoras(g("duracion")), par = leerHoras(g("paradaH"));
+  if (g("duracion") && dur === null) err.push("una duración válida (por ejemplo 1:30)");
+  if (g("paradaH") && par === null) err.push("horas de parada válidas");
+  if (err.length) return {error:"Falta " + err.join(", ") + "."};
+  return {...(base||{id:nuevoId(), pendienteHecho:false}), fecha:g("fecha"), operario:g("operario"), area:g("area"), maquina:g("maquina"),
+    centro:g("centro"), tarea:g("tarea"), duracion:dur, repuestos:g("repuestos"), causa:g("causa"), obs:g("obs"),
+    pendiente:g("pendiente"), clase:g("clase"), paradaH:g("clase") === "Correctivo" ? par : null, componente:g("componente")};
+}
+function vRegistrar(v){
+  v.innerHTML = `<h2>Registrar tarea</h2><p class="intro">Las mismas columnas que la planilla de mantenimiento. Solo son obligatorios la fecha, el operario, la máquina y la tarea.</p>
+    <div class="caja" id="f-reg">${formRegistro()}<div class="fila-botones"><button class="prim" id="b-guardar">Guardar tarea</button><span id="msg-reg"></span></div></div>`;
+  const f = v.querySelector("#f-reg"); activarForm(f);
+  v.querySelector("#b-guardar").onclick = () => {
+    const r = leerForm(f);
+    if (r.error){ v.querySelector("#msg-reg").innerHTML = `<span class="mensaje mal">${r.error}</span>`; return; }
+    D.registros.push(r); guardar(); avisar("Tarea guardada"); vRegistrar(v);
+  };
+}
+function editarRegistro(id){
+  const r = D.registros.find(x => x.id === id); if (!r) return;
+  modal(`<h2>Editar tarea</h2><div id="f-ed">${formRegistro(r)}</div>
+    <div class="fila-botones"><button class="prim" id="m-ok">Guardar cambios</button><button id="m-no">Cancelar</button>
+    <button class="peligro" id="m-borrar" style="margin-left:auto">Borrar tarea</button><span id="m-msg"></span></div>`, cont => {
+    const f = cont.querySelector("#f-ed"); activarForm(f);
+    cont.querySelector("#m-ok").onclick = () => {
+      const n = leerForm(f, r); if (n.error){ cont.querySelector("#m-msg").innerHTML = `<span class="mensaje mal">${n.error}</span>`; return; }
+      Object.assign(r, n); guardar(); cerrarModal(); avisar("Cambios guardados"); dibujar(); };
+    cont.querySelector("#m-no").onclick = cerrarModal;
+    cont.querySelector("#m-borrar").onclick = () => { if (!confirm("¿Borrar esta tarea del historial?")) return;
+      D.registros = D.registros.filter(x => x.id !== id); guardar(); cerrarModal(); avisar("Tarea borrada"); dibujar(); };
+  });
+}
+function modal(html, alAbrir){
+  cerrarModal();
+  const f = document.createElement("div"); f.className = "modal-fondo"; f.id = "modal";
+  f.innerHTML = `<div class="modal">${html}</div>`; document.body.appendChild(f);
+  f.addEventListener("mousedown", e => { if (e.target === f) cerrarModal(); });
+  alAbrir && alAbrir(f);
+}
+function cerrarModal(){ const m = document.getElementById("modal"); if (m) m.remove(); }
+document.addEventListener("keydown", e => { if (e.key === "Escape") cerrarModal(); });
+
+/* ======================================================================
+   Historial
+   ====================================================================== */
+function filtroVacio(){ return {texto:"", maquina:"", operario:"", area:"", clase:"", desde:"", hasta:""}; }
+let filtroH = filtroVacio();
+function tablaRegistros(lista, conClase){
+  if (!lista.length) return `<div class="vacio">No hay tareas para mostrar.</div>`;
+  return `<div class="tabla"><table><thead><tr><th>Fecha</th><th>Operario</th><th>Máquina o elemento</th><th>Tarea realizada</th>
+    <th class="num">Duración</th><th>Clase</th>${conClase?"":""}</tr></thead><tbody>` + lista.map(r => `<tr data-reg="${r.id}" style="cursor:pointer" title="Tocá para editar">
+    <td>${fechaTxt(r.fecha)}</td><td>${esc(r.operario)}</td><td>${esc(r.maquina)}</td>
+    <td>${esc(r.tarea)}${r.causa ? `<div class="nota">Causa: ${esc(r.causa)}</div>` : ""}${r.pendiente ? `<div class="nota">Pendiente: ${esc(r.pendiente)}${r.pendienteHecho ? " (resuelto)" : ""}</div>` : ""}</td>
+    <td class="num">${horasTxt(r.duracion)}</td>
+    <td>${conClase ? `<select class="sel-clase" data-id="${r.id}">${CLASES.map(c => `<option ${c===r.clase?"selected":""}>${c}</option>`).join("")}</select>`
+      : `<span class="chip ${r.clase==="Correctivo"?"rojo":r.clase==="Preventivo"?"verde":r.clase==="Mejora"?"azul":""}">${esc(r.clase)}</span>`}</td></tr>`).join("") + `</tbody></table></div>`;
+}
+function activarFilasRegistro(cont){
+  cont.querySelectorAll("tr[data-reg]").forEach(tr => tr.addEventListener("click", e => {
+    if (e.target.closest("select")) return; editarRegistro(tr.dataset.reg); }));
+  cont.querySelectorAll(".sel-clase").forEach(s => s.onchange = () => {
+    const r = D.registros.find(x => x.id === s.dataset.id); r.clase = s.value; guardar(); avisar("Clase actualizada"); });
+}
+function filtrarRegistros(f){
+  const t = norm(f.texto);
+  return D.registros.filter(r =>
+    (!f.maquina || (f.maquina.startsWith("#") ? esDeMaquina(D.maquinas.find(m => m.id === f.maquina.slice(1)), r) : r.maquina === f.maquina)) &&
+    (!f.operario || r.operario === f.operario) && (!f.area || r.area === f.area) && (!f.clase || r.clase === f.clase) &&
+    (!f.desde || r.fecha >= f.desde) && (!f.hasta || r.fecha <= f.hasta) &&
+    (!t || norm([r.maquina, r.tarea, r.causa, r.obs, r.pendiente, r.repuestos, r.componente, r.operario].join(" ")).includes(t)));
+}
+function vHistorial(v){
+  const ops = [...new Set(D.registros.map(r => r.operario).filter(Boolean))].sort();
+  const elems = [...new Set(D.registros.map(r => r.maquina).filter(Boolean))].sort((a,b) => a.localeCompare(b, "es"));
+  const areas = [...new Set(D.registros.map(r => r.area).filter(Boolean))].sort();
+  const sel = (n, lista, val, todos) => `<select data-f="${n}"><option value="">${todos}</option>${lista.map(x =>
+    Array.isArray(x) ? `<option value="${esc(x[0])}" ${x[0]===val?"selected":""}>${esc(x[1])}</option>` : `<option ${x===val?"selected":""}>${esc(x)}</option>`).join("")}</select>`;
+  const lista = filtrarRegistros(filtroH).sort(ordenFecha);
+  const horas = lista.reduce((a,r) => a + (r.duracion||0), 0);
+  v.innerHTML = `<h2>Historial</h2><p class="intro">Todas las tareas registradas. Tocá una fila para editarla. Podés cambiar la clase directamente en la tabla.</p>
+  <div class="filtros">
+    <div><label>Buscar</label><input data-f="texto" value="${esc(filtroH.texto)}" placeholder="Cuchilla, correa, malacate..."></div>
+    <div><label>Máquina o elemento</label>${sel("maquina", [...D.maquinas.map(m => ["#"+m.id, m.codigo+" (todas sus tareas)"]), ...elems], filtroH.maquina, "Todas")}</div>
+    <div><label>Operario</label>${sel("operario", ops, filtroH.operario, "Todos")}</div>
+    <div><label>Tipo de tarea</label>${sel("area", areas, filtroH.area, "Todos")}</div>
+    <div><label>Clase</label>${sel("clase", CLASES, filtroH.clase, "Todas")}</div>
+    <div><label>Desde</label><input type="date" data-f="desde" value="${filtroH.desde}"></div>
+    <div><label>Hasta</label><input type="date" data-f="hasta" value="${filtroH.hasta}"></div>
+  </div>
+  <div class="fila-botones"><span><b>${lista.length}</b> tareas · <b>${num(horas,1)} h</b></span>
+    <button id="b-limpiar">Limpiar filtros</button><button id="b-exp">Exportar lo filtrado a Excel</button></div>
+  ${tablaRegistros(lista, true)}`;
+  v.querySelectorAll("[data-f]").forEach(el => el.addEventListener(el.tagName === "INPUT" && el.type !== "date" ? "input" : "change", () => {
+    filtroH[el.dataset.f] = el.value;
+    if (el.dataset.f === "texto"){ clearTimeout(vHistorial.t); vHistorial.t = setTimeout(() => { vHistorial(v); const i = v.querySelector('[data-f="texto"]'); i.focus(); i.setSelectionRange(i.value.length, i.value.length); }, 300); }
+    else vHistorial(v);
+  }));
+  v.querySelector("#b-limpiar").onclick = () => { filtroH = filtroVacio(); vHistorial(v); };
+  v.querySelector("#b-exp").onclick = () => exportarCSV(lista);
+  activarFilasRegistro(v);
+}
+
+/* ======================================================================
+   Máquinas
+   ====================================================================== */
+function vMaquinas(v){
+  const orden = D.maquinas.slice().sort((a,b) => (criticidad(b.crit) ?? -1) - (criticidad(a.crit) ?? -1));
+  v.innerHTML = `<h2>Máquinas</h2><p class="intro">Ordenadas por criticidad ${ayuda("criticidad")}. Tocá una para ver su ficha, sus indicadores y su análisis de fallas.</p>
+    <div class="fila-botones"><button class="prim" id="b-nueva">Agregar máquina</button></div>
+    <div class="maquinas">` + orden.map(m => {
+      const e = estadoMaquina(m), c = criticidad(m.crit), n = D.registros.filter(r => esDeMaquina(m, r)).length;
+      return `<div class="maquina ${e.cod}" data-maq="${m.id}"><div class="cod">${esc(m.codigo)} · ${esc(m.sector||"")}</div>
+        <div class="nom">${esc(m.nombre)}</div>
+        <div class="lin">Criticidad: <b>${c == null ? "sin evaluar" : num(c,1)}</b>${c == null ? "" : " / 100"}</div>
+        <div class="barra" style="height:6px;margin:6px 0"><div style="width:${c||0}%"></div></div>
+        <div class="lin">${n} tareas registradas · ${m.horasDia ? m.horasDia + " h por día" : "faltan horas por día"}</div></div>`;
+    }).join("") + `</div>`;
+  v.querySelectorAll("[data-maq]").forEach(el => el.onclick = () => ir("maquina", el.dataset.maq));
+  v.querySelector("#b-nueva").onclick = () => editarMaquina(null);
+}
+function editarMaquina(id){
+  const m = id ? D.maquinas.find(x => x.id === id) : {codigo:"", nombre:"", sector:"", funcion:"", horasDia:null, alias:[], crit:null};
+  const c = {...(m.crit || {})};
+  const preguntas = CRITERIOS.map(k => `<div class="pregunta"><div>${k.t} <span class="chip">${num(100*k.peso,0)} %</span></div>
+    <div class="ops" data-k="${k.k}">${k.ops.map(([val, txt]) => `<button type="button" data-v="${val}" class="${c[k.k]===val?'sel':''}">${txt}</button>`).join("")}</div></div>`).join("");
+  modal(`<h2>${id ? "Editar máquina" : "Nueva máquina"}</h2>
+    <div class="form">
+      <div><label>Código</label><input name="codigo" value="${esc(m.codigo)}" placeholder="EXT-001"></div>
+      <div><label>Nombre</label><input name="nombre" value="${esc(m.nombre)}"></div>
+      <div><label>Sector</label><input name="sector" value="${esc(m.sector)}" placeholder="Preprocesado, Lavado..."></div>
+      <div><label>Horas de trabajo por día ${ayuda("horas_trabajo")}</label><input name="horasDia" type="number" min="0" max="24" step="0.5" value="${m.horasDia ?? ""}"></div>
+      <div class="ancho"><label>Función</label><input name="funcion" value="${esc(m.funcion)}"></div>
+      <div class="ancho"><label>Otros nombres en el registro, separados por coma ${ayuda("alias")}</label><input name="alias" value="${esc((m.alias||[]).join(", "))}"></div>
+    </div>
+    <h3>Criticidad ${ayuda("criticidad")} <span id="crit-val" class="chip verde"></span></h3>${preguntas}
+    <div class="fila-botones"><button class="prim" id="m-ok">Guardar</button><button id="m-no">Cancelar</button>
+      ${id ? `<button class="peligro" id="m-borrar" style="margin-left:auto">Borrar máquina</button>` : ""}<span id="m-msg"></span></div>`, cont => {
+    const verCrit = () => { const r = criticidad(Object.keys(c).length === 6 ? c : null);
+      cont.querySelector("#crit-val").textContent = r == null ? "Respondé las seis preguntas" : num(r,2) + " / 100"; };
+    cont.querySelectorAll(".ops").forEach(o => o.onclick = e => { const b = e.target.closest("button"); if (!b) return;
+      o.querySelectorAll("button").forEach(x => x.classList.remove("sel")); b.classList.add("sel"); c[o.dataset.k] = +b.dataset.v; verCrit(); });
+    verCrit();
+    cont.querySelector("#m-no").onclick = cerrarModal;
+    cont.querySelector("#m-ok").onclick = () => {
+      const g = n => cont.querySelector(`[name=${n}]`).value.trim();
+      if (!g("codigo") || !g("nombre")){ cont.querySelector("#m-msg").innerHTML = `<span class="mensaje mal">Falta el código o el nombre.</span>`; return; }
+      const datos = {codigo:g("codigo"), nombre:g("nombre"), sector:g("sector"), funcion:g("funcion"),
+        horasDia: g("horasDia") ? +g("horasDia") : null, alias: g("alias").split(",").map(x => x.trim()).filter(Boolean),
+        crit: Object.keys(c).length === 6 ? c : (m.crit || null)};
+      if (id) Object.assign(m, datos); else D.maquinas.push({id:nuevoId(), ...datos});
+      guardar(); cerrarModal(); avisar("Máquina guardada"); dibujar();
+    };
+    const bb = cont.querySelector("#m-borrar");
+    if (bb) bb.onclick = () => { if (!confirm("¿Borrar la máquina? Sus tareas quedan en el historial.")) return;
+      D.maquinas = D.maquinas.filter(x => x.id !== id); D.plan = D.plan.filter(t => t.maquina !== id);
+      guardar(); cerrarModal(); ir("maquinas"); };
+  });
+}
+let periodoFicha = 90, comp = "", tLecturaFicha = null, confFicha = 0.9;
+function vMaquina(v){
+  const m = D.maquinas.find(x => x.id === maquinaAbierta); if (!m){ ir("maquinas"); return; }
+  const hoy = hoyISO(), desde = sumarDias(hoy, -periodoFicha + 1);
+  const regsTodos = D.registros.filter(r => esDeMaquina(m, r));
+  const ultimaFecha = regsTodos.length ? regsTodos.map(r => r.fecha).sort().pop() : hoy;
+  const refHasta = regsTodos.some(r => r.fecha >= desde) ? hoy : ultimaFecha;
+  const refDesde = sumarDias(refHasta, -periodoFicha + 1);
+  const k = indicadores(m, refDesde, refHasta), c = criticidad(m.crit), e = estadoMaquina(m);
+  let h = `<div class="fila-botones no-imprimir"><button id="b-volver">Volver a máquinas</button><button id="b-editar">Editar datos y criticidad</button><button id="b-tarea">Registrar tarea de esta máquina</button></div>
+  <h2>${esc(m.codigo)} · ${esc(m.nombre)}</h2><p class="intro">${esc(m.sector||"")}${m.funcion ? " · " + esc(m.funcion) : ""} · ${m.horasDia ? m.horasDia + " h de trabajo por día" : "cargá las horas por día para calcular los indicadores"}</p>
+  <div class="mensaje ${e.cod==="rojo"?"mal":e.cod==="amarillo"?"cuidado":"ok"}">${e.motivos.length ? esc(e.motivos.join(" · ")) : "Sin novedades: sin preventivos vencidos ni fallas en los últimos 30 días."}</div>
+  <div class="fila-botones"><span class="nota">Indicadores de</span><div class="segmento" id="seg-per">${[30,90,180,365].map(d => `<button data-d="${d}" class="${d===periodoFicha?'sel':''}">${d===365?"1 año":d+" días"}</button>`).join("")}</div>
+    ${refHasta !== hoy ? `<span class="nota">(hasta el ${fechaTxt(refHasta)}, último registro)</span>` : ""}</div>
+  <div class="tarjetas">
+    <div class="tarjeta"><div class="et">Criticidad ${ayuda("criticidad")}</div><div class="val">${c == null ? "—" : num(c,1)}</div><div class="det">${c == null ? "sin evaluar" : "sobre 100"}</div></div>
+    <div class="tarjeta"><div class="et">Fallas ${ayuda("fallas")}</div><div class="val">${k.fallas}</div><div class="det">${num(k.horasParada,1)} h de parada</div></div>
+    <div class="tarjeta"><div class="et">MTBF ${ayuda("mtbf")}</div><div class="val">${k.mtbf ? num(k.mtbf,0) + " h" : "—"}</div><div class="det">${k.horasTrabajo ? num(k.horasTrabajo,0) + " h de trabajo" : "faltan horas por día"}</div></div>
+    <div class="tarjeta"><div class="et">MTTR ${ayuda("mttr")}</div><div class="val">${k.mttr != null ? num(k.mttr,1) + " h" : "—"}</div><div class="det">por falla</div></div>
+    <div class="tarjeta"><div class="et">Disponibilidad ${ayuda("disponibilidad")}</div><div class="val">${pct(k.disp)}</div><div class="det">del tiempo de trabajo</div></div>
+    <div class="tarjeta"><div class="et">Horas de mantenimiento ${ayuda("horas_mant")}</div><div class="val">${num(k.horasMant,1)} h</div><div class="det">${k.tareas} tareas</div></div>
+  </div>`;
+  // análisis de fallas
+  const comps = [...new Set(regsTodos.filter(r => r.clase === "Correctivo" && r.componente).map(r => r.componente))];
+  h += `<div class="caja"><h3 style="margin-top:0">Análisis de fallas (papel de Weibull) ${ayuda("weibull")}</h3>`;
+  const fallas = regsTodos.filter(r => r.clase === "Correctivo" && (!comp || r.componente === comp)).map(r => r.fecha).sort();
+  if (comps.length) h += `<div class="fila-botones"><span class="nota">Componente:</span><select id="sel-comp" style="width:auto"><option value="">Todas las fallas</option>${comps.map(x => `<option ${x===comp?"selected":""}>${esc(x)}</option>`).join("")}</select></div>`;
+  const usaHoras = !!m.horasDia, unidad = usaHoras ? "h" : "días";
+  const obs = [];
+  for (let i = 1; i < fallas.length; i++){
+    const dt = diasTrabajo(fallas[i-1], fallas[i]); obs.push({t: usaHoras ? dt * m.horasDia : dt, falla:true});
+  }
+  if (fallas.length){ const dt = diasTrabajo(fallas[fallas.length-1], hoy); if (dt > 0) obs.push({t: usaHoras ? dt*m.horasDia : dt, falla:false}); }
+  const nTbf = obs.filter(o => o.falla && o.t > 0).length;
+  if (nTbf < 3){
+    h += `<div class="mensaje info">Hacen falta al menos 4 fallas registradas como <b>Correctivo</b>${comp ? " de este componente" : ""} para estimar cómo falla (hay ${fallas.length}). Mientras tanto, podés probar con datos propios en <a href="#" id="a-anal">Análisis</a>.</div>`;
+  } else {
+    h += bloqueWeibull(obs, unidad, nTbf < 6, "ficha");
+  }
+  h += `</div>`;
+  // plan de la máquina
+  const tareas = D.plan.filter(t => t.maquina === m.id);
+  h += `<div class="dos"><div><h3>Plan preventivo de esta máquina ${ayuda("plan")}</h3>` + (tareas.length ? tablaPlan(tareas, false) : `<div class="vacio">Sin tareas programadas. Agregalas en Plan preventivo.</div>`) + `</div>`;
+  const rep = D.repuestos.filter(r => r.maquina === m.id);
+  h += `<div><h3>Repuestos de esta máquina</h3>` + (rep.length ? `<div class="tabla"><table><tr><th>Repuesto</th><th class="num">Stock</th><th class="num">Mínimo</th></tr>` +
+    rep.map(r => `<tr><td>${esc(r.nombre)}</td><td class="num">${num(r.stock)}</td><td class="num">${r.minimo ?? "—"}</td></tr>`).join("") + `</table></div>` : `<div class="vacio">Sin repuestos cargados.</div>`) + `</div></div>`;
+  h += `<h3>Tareas registradas</h3>` + tablaRegistros(regsTodos.slice().sort(ordenFecha), true);
+  v.innerHTML = h;
+  v.querySelector("#b-volver").onclick = () => ir("maquinas");
+  v.querySelector("#b-editar").onclick = () => editarMaquina(m.id);
+  v.querySelector("#b-tarea").onclick = () => { ir("registrar"); document.querySelector("[name=maquina]").value = m.alias?.[0] || m.nombre; };
+  v.querySelector("#seg-per").onclick = e => { const b = e.target.closest("[data-d]"); if (b){ periodoFicha = +b.dataset.d; vMaquina(v); } };
+  const sc = v.querySelector("#sel-comp"); if (sc) sc.onchange = () => { comp = sc.value; vMaquina(v); };
+  const aa = v.querySelector("#a-anal"); if (aa) aa.onclick = e => { e.preventDefault(); ir("analisis"); };
+  activarWeibull(v, "ficha", () => vMaquina(v));
+  activarPlan(v);
+  activarFilasRegistro(v);
+}
+
+/* Bloque de resultados de Weibull reutilizable */
+const estadoW = {ficha:{t:null, conf:0.9}, calc:{t:null, conf:0.9}};
+function bloqueWeibull(obs, unidad, poco, clave){
+  const aj = ajustarWeibull(obs);
+  if (!aj.beta) return `<div class="mensaje info">Con estos datos no se puede trazar la recta (hacen falta al menos dos tiempos distintos).</div>`;
+  const st = estadoW[clave];
+  const lect = lecturaBeta(aj.beta);
+  const tInt = aj.beta > 1.1 ? aj.eta * Math.pow(-Math.log(st.conf), 1/aj.beta) : null;
+  const tL = st.t || null;
+  const RtL = tL ? 1 - Fw(tL, aj.beta, aj.eta) : null;
+  let h = poco ? `<div class="mensaje cuidado">Con tan pocas fallas el resultado es orientativo: se va a ajustar a medida que se registren más.</div>` : "";
+  h += `<div class="tarjetas">
+    <div class="tarjeta"><div class="et">β, forma ${ayuda("beta")}</div><div class="val">${num(aj.beta,2)}</div><div class="det">${lect.tit}</div></div>
+    <div class="tarjeta"><div class="et">η, vida característica ${ayuda("eta")}</div><div class="val">${num(aj.eta,0)} ${unidad}</div><div class="det">de trabajo entre fallas</div></div>
+    <div class="tarjeta"><div class="et">Intervalo sugerido ${ayuda("intervalo")}</div><div class="val">${tInt ? num(tInt,0) + " " + unidad : "—"}</div>
+      <div class="det">${tInt ? "para llegar sin falla el " + num(100*st.conf,0) + " % de las veces" : "no aplica: no hay desgaste"}</div></div>
+    <div class="tarjeta"><div class="et">Fallas usadas</div><div class="val">${aj.puntos.length}</div><div class="det">tiempos entre fallas${obs.some(o => !o.falla) ? " + tiempo actual sin falla" : ""}</div></div>
+  </div>
+  <div class="mensaje ${aj.beta > 1.1 ? "ok" : "info"}"><b>${lect.tit}.</b> ${lect.txt}</div>
+  <div class="fila-botones"><span class="nota">Leer en el gráfico a</span><input id="t-${clave}" type="number" min="0" style="width:110px" value="${tL ?? ""}" placeholder="${unidad}"><span class="nota">${unidad}</span>
+    ${RtL != null ? `<span class="chip verde">Llega sin fallar el ${pct(RtL)} de las veces</span>` : ""}
+    <span class="nota" style="margin-left:12px">Confiabilidad buscada ${ayuda("confiabilidad")}</span>
+    <select id="c-${clave}" style="width:auto">${[0.8,0.85,0.9,0.95].map(c => `<option value="${c}" ${c===st.conf?"selected":""}>${num(100*c,0)} %</option>`).join("")}</select></div>
+  <div class="grafico-cont">${papelWeibull(aj, unidad, tL)}</div>
+  <div class="leyenda"><span>Cómo leer el gráfico ${ayuda("papel")}</span><span>Puntos rojos: fallas</span><span>Línea negra: recta ajustada</span><span>Guías azules: escala de β</span></div>`;
+  return h;
+}
+function activarWeibull(v, clave, redibujar){
+  const t = v.querySelector("#t-" + clave), c = v.querySelector("#c-" + clave);
+  if (t) t.onchange = () => { estadoW[clave].t = t.value ? +t.value : null; redibujar(); };
+  if (c) c.onchange = () => { estadoW[clave].conf = +c.value; redibujar(); };
+}
+
+/* ======================================================================
+   Plan preventivo
+   ====================================================================== */
+function tablaPlan(tareas, conMaquina){
+  const ord = tareas.slice().sort((a,b) => (estadoPlan(a).prox || "") < (estadoPlan(b).prox || "") ? -1 : 1);
+  return `<div class="tabla"><table><tr>${conMaquina ? "<th>Máquina</th>" : ""}<th>Tarea</th><th class="num">Cada</th><th>Última vez</th><th>Próxima</th><th>Estado</th><th></th></tr>` +
+    ord.map(t => { const e = estadoPlan(t), m = D.maquinas.find(x => x.id === t.maquina);
+      return `<tr>${conMaquina ? `<td>${esc(m ? m.codigo : "—")}</td>` : ""}<td>${esc(t.tarea)}${t.responsable ? `<div class="nota">${esc(t.responsable)}</div>` : ""}</td>
+        <td class="num">${t.frecuencia} días</td><td>${fechaTxt(t.ultima)}</td><td>${fechaTxt(e.prox)}</td><td><span class="chip ${e.cod}">${e.txt}</span></td>
+        <td style="white-space:nowrap"><button class="chico prim" data-hecha="${t.id}">Hecha</button> <button class="chico" data-edplan="${t.id}">Editar</button></td></tr>`; }).join("") + `</table></div>`;
+}
+function activarPlan(v){
+  v.querySelectorAll("[data-hecha]").forEach(b => b.onclick = () => marcarHecha(b.dataset.hecha));
+  v.querySelectorAll("[data-edplan]").forEach(b => b.onclick = () => editarPlan(b.dataset.edplan));
+}
+function marcarHecha(id){
+  const t = D.plan.find(x => x.id === id), m = D.maquinas.find(x => x.id === t.maquina);
+  modal(`<h2>Marcar como hecha</h2><p class="intro">${esc(t.tarea)} · ${esc(m ? m.nombre : "")}. Queda registrada en el historial como preventivo.</p>
+    <div class="form"><div><label>Fecha</label><input type="date" name="fecha" value="${hoyISO()}"></div>
+    <div><label>Operario</label><input name="operario" list="lista-operarios" value="${esc(t.responsable||"")}"></div>
+    <div><label>Duración (h:mm)</label><input name="duracion" placeholder="0:45"></div>
+    <div class="ancho"><label>Observaciones</label><input name="obs"></div></div>
+    <datalist id="lista-operarios">${opcionesOperarios()}</datalist>
+    <div class="fila-botones"><button class="prim" id="m-ok">Guardar</button><button id="m-no">Cancelar</button><span id="m-msg"></span></div>`, c => {
+    c.querySelector("#m-no").onclick = cerrarModal;
+    c.querySelector("#m-ok").onclick = () => {
+      const g = n => c.querySelector(`[name=${n}]`).value.trim();
+      if (!g("fecha") || !g("operario")){ c.querySelector("#m-msg").innerHTML = `<span class="mensaje mal">Falta la fecha o el operario.</span>`; return; }
+      t.ultima = g("fecha");
+      D.registros.push({id:nuevoId(), fecha:g("fecha"), operario:g("operario"), area:"Mantenimiento Máquinas",
+        maquina: m ? (m.alias?.[0] || m.nombre) : "", centro:"T-Wood", tarea:t.tarea, duracion:leerHoras(g("duracion")),
+        repuestos:"", causa:"", obs:g("obs"), pendiente:"", pendienteHecho:false, clase:"Preventivo", paradaH:null, componente:""});
+      guardar(); cerrarModal(); avisar("Tarea registrada"); dibujar();
+    };
+  });
+}
+const PLANTILLAS = ["Lubricación de rodamientos y guías","Ajuste de torque de cuchillas y fijaciones","Inspección visual (fugas, ruidos, vibraciones, temperatura)",
+  "Limpieza de tablero y ventilación de motores","Control de correas y acoples","Cambio y afilado de cuchillas","Control de nivel y estado del aceite hidráulico"];
+function editarPlan(id){
+  const t = id ? D.plan.find(x => x.id === id) : {maquina:"", tarea:"", frecuencia:"", ultima:hoyISO(), responsable:""};
+  modal(`<h2>${id ? "Editar tarea programada" : "Nueva tarea programada"}</h2>
+    <div class="form">
+      <div><label>Máquina</label><select name="maquina">${D.maquinas.map(m => `<option value="${m.id}" ${m.id===t.maquina?"selected":""}>${esc(m.codigo)} · ${esc(m.nombre)}</option>`).join("")}</select></div>
+      <div><label>Cada cuántos días</label><input name="frecuencia" type="number" min="1" value="${t.frecuencia}"></div>
+      <div class="ancho"><label>Tarea</label><input name="tarea" list="lista-plantillas" value="${esc(t.tarea)}" placeholder="Elegí una sugerencia o escribí"></div>
+      <div><label>Última vez que se hizo</label><input name="ultima" type="date" value="${t.ultima || ""}"></div>
+      <div><label>Responsable</label><input name="responsable" list="lista-operarios" value="${esc(t.responsable)}"></div>
+    </div><datalist id="lista-plantillas">${PLANTILLAS.map(p => `<option value="${p}">`).join("")}</datalist><datalist id="lista-operarios">${opcionesOperarios()}</datalist>
+    <div class="fila-botones"><button class="prim" id="m-ok">Guardar</button><button id="m-no">Cancelar</button>
+      ${id ? `<button class="peligro" id="m-borrar" style="margin-left:auto">Borrar</button>` : ""}<span id="m-msg"></span></div>`, c => {
+    c.querySelector("#m-no").onclick = cerrarModal;
+    c.querySelector("#m-ok").onclick = () => {
+      const g = n => c.querySelector(`[name=${n}]`).value.trim();
+      if (!g("tarea") || !(+g("frecuencia") > 0)){ c.querySelector("#m-msg").innerHTML = `<span class="mensaje mal">Falta la tarea o la frecuencia.</span>`; return; }
+      const d = {maquina:g("maquina"), tarea:g("tarea"), frecuencia:+g("frecuencia"), ultima:g("ultima") || null, responsable:g("responsable")};
+      if (id) Object.assign(t, d); else D.plan.push({id:nuevoId(), ...d});
+      guardar(); cerrarModal(); avisar("Plan actualizado"); dibujar();
+    };
+    const b = c.querySelector("#m-borrar");
+    if (b) b.onclick = () => { if (!confirm("¿Borrar esta tarea del plan?")) return; D.plan = D.plan.filter(x => x.id !== id); guardar(); cerrarModal(); dibujar(); };
+  });
+}
+function vPlan(v){
+  if (!D.maquinas.length){ v.innerHTML = `<h2>Plan preventivo</h2><div class="vacio">Primero cargá las máquinas.</div>`; return; }
+  const hoy = hoyISO();
+  let semanas = "";
+  for (let s = 0; s < 4; s++){
+    const ini = sumarDias(hoy, 7*s), fin = sumarDias(hoy, 7*s + 6);
+    const lista = D.plan.filter(t => { const p = estadoPlan(t).prox; return p && (s === 0 ? p <= fin : p >= ini && p <= fin); });
+    semanas += `<div class="semana"><h4>${s === 0 ? "Esta semana (incluye vencidas)" : "Del " + fechaTxt(ini) + " al " + fechaTxt(fin)}</h4>` +
+      (lista.length ? lista.map(t => { const m = D.maquinas.find(x => x.id === t.maquina), e = estadoPlan(t);
+        return `<div class="nota"><span class="chip ${e.cod}">${fechaTxt(e.prox)}</span> ${esc(m ? m.codigo : "")} · ${esc(t.tarea)}</div>`; }).join("") : `<div class="nota">Nada programado.</div>`) + `</div>`;
+  }
+  v.innerHTML = `<h2>Plan preventivo</h2><p class="intro">Tareas que se repiten cada cierta cantidad de días ${ayuda("plan")}. Para elegir la frecuencia podés usar el intervalo sugerido de la ficha de cada máquina.</p>
+    <div class="fila-botones"><button class="prim" id="b-nueva">Agregar tarea</button><button id="b-imp">Imprimir las próximas 4 semanas</button></div>
+    <div class="dos"><div>${D.plan.length ? tablaPlan(D.plan, true) : `<div class="vacio">Todavía no hay tareas programadas. Empezá por las máquinas más críticas.</div>`}</div>
+    <div class="caja" id="calendario"><h3 style="margin-top:0">Próximas 4 semanas</h3>${semanas}</div></div>`;
+  v.querySelector("#b-nueva").onclick = () => editarPlan(null);
+  v.querySelector("#b-imp").onclick = () => window.print();
+  activarPlan(v);
+}
+
+/* ======================================================================
+   Repuestos
+   ====================================================================== */
+function vRepuestos(v){
+  const ord = D.repuestos.slice().sort((a,b) => ((a.minimo != null && a.stock <= a.minimo) ? 0 : 1) - ((b.minimo != null && b.stock <= b.minimo) ? 0 : 1) || a.nombre.localeCompare(b.nombre, "es"));
+  v.innerHTML = `<h2>Repuestos</h2><p class="intro">Stock de repuestos críticos. Los que están en el mínimo o debajo aparecen primero, en rojo.</p>
+    <div class="fila-botones"><button class="prim" id="b-nuevo">Agregar repuesto</button></div>` +
+    (ord.length ? `<div class="tabla"><table><tr><th>Repuesto</th><th>Máquina</th><th class="num">Stock</th><th class="num">Mínimo</th><th>Proveedor</th><th class="num">Demora</th><th>Ajustar stock</th><th></th></tr>` +
+      ord.map(r => { const m = D.maquinas.find(x => x.id === r.maquina), bajo = r.minimo != null && r.stock <= r.minimo;
+        return `<tr><td>${esc(r.nombre)} ${bajo ? `<span class="chip rojo">Pedir</span>` : ""}</td><td>${esc(m ? m.codigo : "—")}</td>
+          <td class="num"><b>${num(r.stock)}</b></td><td class="num">${r.minimo ?? "—"}</td><td>${esc(r.proveedor||"")}</td><td class="num">${r.demora ? r.demora + " días" : "—"}</td>
+          <td style="white-space:nowrap"><button class="chico" data-mas="${r.id}" data-n="-1">Usé 1</button> <button class="chico" data-mas="${r.id}" data-n="1">Entró 1</button></td>
+          <td><button class="chico" data-edrep="${r.id}">Editar</button></td></tr>`; }).join("") + `</table></div>`
+    : `<div class="vacio">Sin repuestos cargados. Empezá por los que paran una máquina crítica si faltan (cuchillas, correas, rodamientos, sellos).</div>`);
+  v.querySelector("#b-nuevo").onclick = () => editarRepuesto(null);
+  v.querySelectorAll("[data-mas]").forEach(b => b.onclick = () => {
+    const r = D.repuestos.find(x => x.id === b.dataset.mas); r.stock = Math.max(0, (r.stock||0) + (+b.dataset.n)); guardar(); vRepuestos(v); });
+  v.querySelectorAll("[data-edrep]").forEach(b => b.onclick = () => editarRepuesto(b.dataset.edrep));
+}
+function editarRepuesto(id){
+  const r = id ? D.repuestos.find(x => x.id === id) : {nombre:"", maquina:"", stock:0, minimo:null, proveedor:"", demora:null};
+  modal(`<h2>${id ? "Editar repuesto" : "Nuevo repuesto"}</h2><div class="form">
+    <div class="ancho"><label>Repuesto</label><input name="nombre" value="${esc(r.nombre)}" placeholder="Cuchilla móvil, correa B-52..."></div>
+    <div><label>Máquina</label><select name="maquina"><option value="">Varias / general</option>${D.maquinas.map(m => `<option value="${m.id}" ${m.id===r.maquina?"selected":""}>${esc(m.codigo)} · ${esc(m.nombre)}</option>`).join("")}</select></div>
+    <div><label>Stock actual</label><input name="stock" type="number" min="0" value="${r.stock ?? 0}"></div>
+    <div><label>Stock mínimo</label><input name="minimo" type="number" min="0" value="${r.minimo ?? ""}"></div>
+    <div><label>Proveedor</label><input name="proveedor" value="${esc(r.proveedor)}"></div>
+    <div><label>Demora de entrega (días)</label><input name="demora" type="number" min="0" value="${r.demora ?? ""}"></div></div>
+    <div class="fila-botones"><button class="prim" id="m-ok">Guardar</button><button id="m-no">Cancelar</button>${id ? `<button class="peligro" id="m-borrar" style="margin-left:auto">Borrar</button>` : ""}<span id="m-msg"></span></div>`, c => {
+    c.querySelector("#m-no").onclick = cerrarModal;
+    c.querySelector("#m-ok").onclick = () => {
+      const g = n => c.querySelector(`[name=${n}]`).value.trim();
+      if (!g("nombre")){ c.querySelector("#m-msg").innerHTML = `<span class="mensaje mal">Falta el nombre del repuesto.</span>`; return; }
+      const d = {nombre:g("nombre"), maquina:g("maquina"), stock:+g("stock")||0, minimo:g("minimo")===""?null:+g("minimo"), proveedor:g("proveedor"), demora:g("demora")===""?null:+g("demora")};
+      if (id) Object.assign(r, d); else D.repuestos.push({id:nuevoId(), ...d});
+      guardar(); cerrarModal(); avisar("Repuesto guardado"); dibujar();
+    };
+    const b = c.querySelector("#m-borrar");
+    if (b) b.onclick = () => { if (!confirm("¿Borrar este repuesto?")) return; D.repuestos = D.repuestos.filter(x => x.id !== id); guardar(); cerrarModal(); dibujar(); };
+  });
+}
+
+/* ======================================================================
+   Análisis
+   ====================================================================== */
+let anal = {periodo:"todo", agrupar:"maquina", tab:"horas"};
+let calc = {unidad:"h", texto:"16\n34\n53\n75\n93\n120"};
+function vAnalisis(v){
+  const tabs = `<div class="segmento" id="tabs-anal" style="margin-bottom:14px">${[["horas","En qué se va el tiempo"],["fallas","Fallas por máquina"],["criticidad","Criticidad"],["weibull","Calculadora de Weibull"]].map(([k,t]) =>
+    `<button data-tab="${k}" class="${anal.tab===k?'sel':''}">${t}</button>`).join("")}</div>`;
+  let h = `<h2>Análisis</h2><p class="intro">Para decidir dónde poner el esfuerzo de mantenimiento.</p>${tabs}`;
+  const hoy = hoyISO();
+  const desde = anal.periodo === "todo" ? "0000" : sumarDias(hoy, -(+anal.periodo) + 1);
+  const regs = D.registros.filter(r => r.fecha >= desde);
+  const selPer = `<div class="fila-botones"><span class="nota">Período</span><div class="segmento" id="seg-per">${[["30","30 días"],["90","90 días"],["365","1 año"],["todo","Todo"]].map(([k,t]) =>
+    `<button data-p="${k}" class="${anal.periodo===k?'sel':''}">${t}</button>`).join("")}</div></div>`;
+  if (anal.tab === "horas"){
+    const grupos = {maquina:["Máquina o elemento", r => r.maquina || "(sin dato)"], area:["Tipo de tarea", r => r.area || "(sin dato)"],
+      operario:["Operario", r => r.operario || "(sin dato)"], clase:["Clase", r => r.clase], mes:["Mes", r => r.fecha.slice(0,7)]};
+    const acc = {}; regs.forEach(r => { const k = grupos[anal.agrupar][1](r); acc[k] = (acc[k]||0) + (r.duracion||0); });
+    let items = Object.entries(acc).map(([n,v]) => ({n, v})).filter(i => i.v > 0);
+    items = anal.agrupar === "mes" ? items.sort((a,b) => a.n < b.n ? -1 : 1).map(i => ({n: aFecha(i.n+"-01").toLocaleDateString("es-AR",{month:"long",year:"numeric"}), v:i.v})) : items.sort((a,b) => b.v - a.v);
+    const tot = items.reduce((a,i) => a + i.v, 0);
+    h += selPer + `<div class="fila-botones"><span class="nota">Agrupar por</span><div class="segmento" id="seg-agr">${Object.entries(grupos).map(([k,[t]]) =>
+      `<button data-a="${k}" class="${anal.agrupar===k?'sel':''}">${t}</button>`).join("")}</div>${anal.agrupar !== "mes" ? ayuda("pareto") : ""}</div>
+      <div class="caja"><div class="nota">Total: <b>${num(tot,1)} h</b> en ${regs.length} tareas.</div>${barras(anal.agrupar === "mes" ? items : items.slice(0, 20), x => num(x,1) + " h", anal.agrupar !== "mes")}
+      ${items.length > 20 && anal.agrupar !== "mes" ? `<div class="nota">Se muestran los 20 primeros de ${items.length}.</div>` : ""}</div>`;
+  } else if (anal.tab === "fallas"){
+    const filas = D.maquinas.map(m => {
+      const fin = hoy, ini = anal.periodo === "todo" ? (D.registros.length ? D.registros.map(r => r.fecha).sort()[0] : hoy) : desde;
+      return {m, k: indicadores(m, ini < "1000" ? hoy : ini, fin)};
+    });
+    h += selPer + `<div class="tabla"><table><tr><th>Máquina</th><th class="num">Fallas ${ayuda("fallas")}</th><th class="num">Horas de parada</th><th class="num">MTBF ${ayuda("mtbf")}</th><th class="num">MTTR ${ayuda("mttr")}</th><th class="num">Disponibilidad ${ayuda("disponibilidad")}</th><th class="num">Horas de mantenimiento</th></tr>` +
+      filas.sort((a,b) => b.k.fallas - a.k.fallas || b.k.horasMant - a.k.horasMant).map(({m,k}) => `<tr data-maq="${m.id}" style="cursor:pointer"><td>${esc(m.codigo)} · ${esc(m.nombre)}</td>
+        <td class="num">${k.fallas}</td><td class="num">${num(k.horasParada,1)}</td><td class="num">${k.mtbf ? num(k.mtbf,0) + " h" : "—"}</td>
+        <td class="num">${k.mttr != null ? num(k.mttr,1) + " h" : "—"}</td><td class="num">${pct(k.disp)}</td><td class="num">${num(k.horasMant,1)}</td></tr>`).join("") + `</table></div>
+      <p class="nota">Solo cuentan las tareas clasificadas como Correctivo. Tocá una fila para abrir la ficha.</p>`;
+  } else if (anal.tab === "criticidad"){
+    const items = D.maquinas.map(m => ({n: m.codigo + " · " + m.nombre, v: criticidad(m.crit)})).filter(i => i.v != null).sort((a,b) => b.v - a.v);
+    const sin = D.maquinas.filter(m => criticidad(m.crit) == null);
+    h += `<div class="caja"><div class="nota">Criticidad de 0 a 100 ${ayuda("criticidad")}. Se edita desde la ficha de cada máquina.</div>${barras(items, x => num(x,2), false)}
+      ${sin.length ? `<div class="mensaje cuidado">Sin evaluar: ${sin.map(m => esc(m.codigo)).join(", ")}. Respondé las seis preguntas en su ficha.</div>` : ""}</div>`;
+  } else {
+    h += `<div class="caja"><h3 style="margin-top:0">Calculadora de Weibull ${ayuda("weibull")}</h3>
+      <p class="nota">Pegá los tiempos de trabajo entre fallas de un mismo componente, uno por renglón (por ejemplo, desde una columna de Excel). Si una pieza se cambió sin haber fallado o todavía sigue andando, escribí una <b>s</b> al lado del número (por ejemplo <b>300 s</b>).</p>
+      <div class="form"><div><label>Tiempos</label><textarea id="calc-txt" rows="9">${esc(calc.texto)}</textarea></div>
+      <div><label>Unidad</label><select id="calc-u"><option value="h" ${calc.unidad==="h"?"selected":""}>horas</option><option value="días" ${calc.unidad==="días"?"selected":""}>días</option><option value="ciclos" ${calc.unidad==="ciclos"?"selected":""}>ciclos</option></select>
+      <p class="nota">Viene cargado un ejemplo de seis fallas para que veas cómo funciona.</p><button class="prim" id="calc-ok">Calcular</button></div></div><div id="calc-res"></div></div>`;
+  }
+  v.innerHTML = h;
+  v.querySelector("#tabs-anal").onclick = e => { const b = e.target.closest("[data-tab]"); if (b){ anal.tab = b.dataset.tab; vAnalisis(v); } };
+  const sp = v.querySelector("#seg-per"); if (sp) sp.onclick = e => { const b = e.target.closest("[data-p]"); if (b){ anal.periodo = b.dataset.p; vAnalisis(v); } };
+  const sa = v.querySelector("#seg-agr"); if (sa) sa.onclick = e => { const b = e.target.closest("[data-a]"); if (b){ anal.agrupar = b.dataset.a; vAnalisis(v); } };
+  v.querySelectorAll("tr[data-maq]").forEach(tr => tr.onclick = () => ir("maquina", tr.dataset.maq));
+  if (anal.tab === "weibull"){
+    const calcular = () => {
+      calc.texto = v.querySelector("#calc-txt").value; calc.unidad = v.querySelector("#calc-u").value;
+      const obs = []; const malos = [];
+      calc.texto.split(/\r?\n/).map(l => l.trim()).filter(Boolean).forEach(l => {
+        const s = /s\s*$/i.test(l), n = parseFloat(l.replace(/s\s*$/i, "").replace(",", "."));
+        if (isNaN(n) || n <= 0) malos.push(l); else obs.push({t:n, falla:!s});
+      });
+      const res = v.querySelector("#calc-res");
+      const nf = obs.filter(o => o.falla).length;
+      let h2 = malos.length ? `<div class="mensaje cuidado">No se entendieron estos renglones: ${malos.map(esc).join(", ")}</div>` : "";
+      if (nf < 3) h2 += `<div class="mensaje info">Hacen falta al menos 3 fallas.</div>`;
+      else h2 += bloqueWeibull(obs, calc.unidad, nf < 6, "calc");
+      res.innerHTML = h2;
+      activarWeibull(res, "calc", calcular);
+    };
+    v.querySelector("#calc-ok").onclick = calcular;
+    calcular();
+  }
+}
+
+/* ======================================================================
+   Datos: respaldo, importación, exportación, ajustes
+   ====================================================================== */
+const COLS = ["Fecha","Operario","Tipo de Tarea","Máquina/Elemento","Centro","Tarea Realizada","Duración","Repuestos utilizados","Causa","Observaciones","Pendientes","Clase","Horas de parada","Componente"];
+function exportarCSV(lista){
+  const celda = x => { const s = String(x ?? ""); return /[;"\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; };
+  const filas = [COLS, ...lista.slice().sort((a,b) => a.fecha < b.fecha ? -1 : 1).map(r => [fechaTxt(r.fecha), r.operario, r.area, r.maquina, r.centro, r.tarea,
+    r.duracion != null ? horasAhm(r.duracion) : "", r.repuestos, r.causa, r.obs, r.pendiente, r.clase, r.paradaH != null ? horasAhm(r.paradaH) : "", r.componente])];
+  descargar("mantenimiento_" + hoyISO() + ".csv", "﻿" + filas.map(f => f.map(celda).join(";")).join("\r\n"), "text/csv;charset=utf-8");
+}
+function partirCSV(texto){
+  const primera = texto.split(/\r?\n/)[0] || "";
+  const sep = primera.includes("\t") ? "\t" : (primera.split(";").length > primera.split(",").length ? ";" : ",");
+  const filas = []; let fila = [], campo = "", q = false;
+  for (let i = 0; i < texto.length; i++){
+    const ch = texto[i];
+    if (q){ if (ch === '"'){ if (texto[i+1] === '"'){ campo += '"'; i++; } else q = false; } else campo += ch; }
+    else if (ch === '"') q = true;
+    else if (ch === sep){ fila.push(campo); campo = ""; }
+    else if (ch === "\n" || ch === "\r"){ if (ch === "\r" && texto[i+1] === "\n") i++; fila.push(campo); filas.push(fila); fila = []; campo = ""; }
+    else campo += ch;
+  }
+  if (campo || fila.length){ fila.push(campo); filas.push(fila); }
+  return filas.filter(f => f.some(c => c.trim()));
+}
+function importarTexto(texto){
+  const filas = partirCSV(texto); let nuevos = 0, repetidos = 0; const malas = [];
+  const clave = r => [r.fecha, norm(r.operario), norm(r.maquina), norm(r.tarea), r.duracion == null ? "" : r.duracion.toFixed(2)].join("|");
+  const existentes = new Set(D.registros.map(clave));
+  filas.forEach((f, i) => {
+    if (i === 0 && norm(f[0]) === "fecha") return;
+    const fecha = leerFecha(f[0]);
+    if (!fecha){ malas.push(i+1); return; }
+    const r = registroDesdeFila([fecha, (f[1]||"").trim(), (f[2]||"").trim(), (f[3]||"").trim(), (f[4]||"").trim(), (f[5]||"").trim(),
+      leerHoras(f[6]), (f[7]||"").trim(), (f[8]||"").trim(), (f[9]||"").trim(), (f[10]||"").trim()]);
+    if (f[11] && CLASES.includes(f[11].trim())) r.clase = f[11].trim();
+    if (f[12]) r.paradaH = leerHoras(f[12]);
+    if (f[13]) r.componente = f[13].trim();
+    const k = clave(r);
+    if (existentes.has(k)){ repetidos++; return; }
+    existentes.add(k); D.registros.push(r); nuevos++;
+  });
+  guardar();
+  return {nuevos, repetidos, malas};
+}
+function vDatos(v){
+  const ult = D.ultimoRespaldo ? fechaTxt(D.ultimoRespaldo) : "nunca";
+  v.innerHTML = `<h2>Datos</h2><p class="intro">Respaldo, carga desde la planilla y ajustes.</p>
+  <div class="dos">
+    <div class="caja"><h3 style="margin-top:0">Respaldo ${ayuda("respaldo")}</h3>
+      <p class="nota">Último respaldo descargado: <b>${ult}</b>.</p>
+      <div class="fila-botones"><button class="prim" id="b-resp">Descargar respaldo</button>
+      <label class="btn" style="margin:0;display:inline-block;color:var(--texto)">Recuperar desde un respaldo<input type="file" id="f-resp" accept=".json,application/json" hidden></label></div>
+      <h3>Exportar</h3><div class="fila-botones"><button id="b-csv">Historial completo a Excel</button></div>
+    </div>
+    <div class="caja"><h3 style="margin-top:0">Ajustes</h3>
+      <label>Días de trabajo por semana ${ayuda("horas_trabajo")}</label>
+      <select id="dias" style="width:auto">${[[5,"5 (lunes a viernes)"],[6,"6 (lunes a sábado)"],[7,"7 (todos los días)"]].map(([d,t]) => `<option value="${d}" ${D.config.diasSemana===d?"selected":""}>${t}</option>`).join("")}</select>
+      <h3>Empezar de cero</h3><p class="nota">Borra todo lo de este navegador. Descargá un respaldo antes.</p>
+      <button class="peligro" id="b-borrar">Borrar todos los datos</button>
+    </div>
+  </div>
+  <div class="caja"><h3 style="margin-top:0">Cargar tareas desde la planilla ${ayuda("importar")}</h3>
+    <textarea id="t-imp" rows="7" placeholder="Pegá acá las filas copiadas de Excel o Google Sheets"></textarea>
+    <div class="fila-botones"><button class="prim" id="b-imp">Cargar filas pegadas</button>
+      <label class="btn" style="margin:0;display:inline-block;color:var(--texto)">O elegir un archivo CSV<input type="file" id="f-csv" accept=".csv,.txt,text/csv" hidden></label>
+      <span id="msg-imp"></span></div></div>`;
+  v.querySelector("#b-resp").onclick = () => { D.ultimoRespaldo = hoyISO(); guardar();
+    descargar("respaldo_mantenimiento_" + hoyISO() + ".json", JSON.stringify(D, null, 1), "application/json"); vDatos(v); };
+  v.querySelector("#f-resp").onchange = e => { const f = e.target.files[0]; if (!f) return; f.text().then(t => {
+    try { const n = JSON.parse(t); if (!n.registros || !n.maquinas) throw 0;
+      if (!confirm("Esto reemplaza los datos actuales por los del respaldo. ¿Seguir?")) return;
+      D = {...datosVacios(), ...n}; guardar(); avisar("Datos recuperados"); ir("inicio"); }
+    catch(_){ alert("El archivo no es un respaldo válido de este programa."); } }); };
+  v.querySelector("#b-csv").onclick = () => exportarCSV(D.registros);
+  v.querySelector("#dias").onchange = e => { D.config.diasSemana = +e.target.value; guardar(); avisar("Ajuste guardado"); };
+  v.querySelector("#b-borrar").onclick = () => { if (!confirm("¿Borrar TODOS los datos de este navegador? No se puede deshacer.")) return;
+    localStorage.removeItem(CLAVE); D = null; inicio(); };
+  const mostrar = res => { v.querySelector("#msg-imp").innerHTML = `<span class="mensaje ${res.nuevos ? "ok" : "info"}">${res.nuevos} tareas nuevas` +
+    (res.repetidos ? `, ${res.repetidos} ya estaban` : "") + (res.malas.length ? `. Sin fecha válida: filas ${res.malas.slice(0,10).join(", ")}` : "") + `.</span>`; };
+  v.querySelector("#b-imp").onclick = () => { const t = v.querySelector("#t-imp").value; if (!t.trim()) return; mostrar(importarTexto(t)); v.querySelector("#t-imp").value = ""; };
+  v.querySelector("#f-csv").onchange = e => { const f = e.target.files[0]; if (f) f.text().then(t => mostrar(importarTexto(t))); };
+}
+
+/* ======================================================================
+   Arranque
+   ====================================================================== */
+function inicio(){
+  D = cargar();
+  if (D){ D = {...datosVacios(), ...D}; dibujar(); recordarRespaldo(); return; }
+  D = datosVacios(); dibujarNav(); document.getElementById("vista").innerHTML = "";
+  modal(`<h2>Bienvenido</h2>
+    <p>Este programa guarda el registro de mantenimiento, el plan preventivo y los repuestos de la línea T-WOOD, y muestra en qué se va el tiempo y cómo fallan las máquinas.</p>
+    <p class="nota">Todo queda guardado en este navegador. No necesita internet ni instalación.</p>
+    <div class="fila-botones" style="flex-direction:column;align-items:stretch">
+      <button class="prim" id="ini-todo">Empezar con las máquinas de la línea y el registro de marzo y abril de 2026 (${HISTORIAL_INICIAL.length} tareas)</button>
+      <button id="ini-maq">Empezar solo con las máquinas de la línea</button>
+      <button id="ini-vacio">Empezar vacío</button>
+      <label class="btn" style="text-align:center;margin:0;color:var(--texto)">Recuperar desde un respaldo<input type="file" id="ini-resp" accept=".json" hidden></label>
+    </div>`, c => {
+    const empezar = (maq, hist) => {
+      if (maq) D.maquinas = maquinasIniciales();
+      if (hist) D.registros = HISTORIAL_INICIAL.map(registroDesdeFila);
+      guardar(); cerrarModal(); ir("inicio");
+    };
+    c.querySelector("#ini-todo").onclick = () => empezar(true, true);
+    c.querySelector("#ini-maq").onclick = () => empezar(true, false);
+    c.querySelector("#ini-vacio").onclick = () => empezar(false, false);
+    c.querySelector("#ini-resp").onchange = e => { const f = e.target.files[0]; if (!f) return; f.text().then(t => {
+      try { const n = JSON.parse(t); if (!n.registros) throw 0; D = {...datosVacios(), ...n}; guardar(); cerrarModal(); ir("inicio"); }
+      catch(_){ alert("El archivo no es un respaldo válido."); } }); };
+  });
+}
+function recordarRespaldo(){
+  const u = D.ultimoRespaldo;
+  if (D.registros.length && (!u || difDias(u, hoyISO()) > 14))
+    setTimeout(() => avisar("Recordatorio: descargá un respaldo en Datos (el último fue " + (u ? "el " + fechaTxt(u) : "nunca") + ")."), 800);
+}
+inicio();
+</script>
+</body>
+</html>
