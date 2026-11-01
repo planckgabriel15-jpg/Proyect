@@ -121,16 +121,16 @@ svg text{font-family:inherit}
    Datos de arranque (planillas de la empresa)
    ====================================================================== */
 const MAQUINAS_INICIALES = [
-  {codigo:"AGR-001", nombre:"Agrumadora Frankie (motor y cuchillas)", sector:"Preprocesado", funcion:"Reducción de volumen de plástico", horasDia:8, alias:["Agrumadora Frankie"], crit:{prod:5,infl:4,cal:2,seg:5,amb:5,sust:1}},
-  {codigo:"AGR-002", nombre:"Agrumadora Nupieri (volante de inercia)", sector:"Preprocesado", funcion:"Reducción de volumen de plástico", horasDia:8, alias:["Agrumadora Nupieri"], crit:{prod:5,infl:4,cal:2,seg:5,amb:5,sust:1}},
-  {codigo:"MOL-001", nombre:"Moledora 1", sector:"Preprocesado", funcion:"Molienda previa de scrap plástico", horasDia:4, alias:[], crit:{prod:1,infl:2,cal:2,seg:3,amb:1,sust:4}},
-  {codigo:"TRI-001", nombre:"Trituradora 1", sector:"Preprocesado", funcion:"Reducción de volumen de descartes diversos", horasDia:4, alias:[], crit:{prod:1,infl:2,cal:2,seg:3,amb:1,sust:4}},
-  {codigo:"LAV-001", nombre:"Cuba de lavado 1", sector:"Lavado", funcion:"Lavado y eliminación de impurezas", horasDia:6, alias:[], crit:{prod:5,infl:4,cal:4,seg:3,amb:1,sust:4}},
-  {codigo:"SEC-001", nombre:"Secadora industrial 1", sector:"Secado", funcion:"Eliminación de humedad del material post-lavado", horasDia:6, alias:["Secadora"], crit:{prod:3,infl:2,cal:4,seg:3,amb:1,sust:4}},
-  {codigo:"MEZ-001", nombre:"Mezcladora", sector:"Formulación", funcion:"Mezcla del material seco con tintas y aditivos", horasDia:null, alias:[], crit:null},
-  {codigo:"EXT-001", nombre:"Línea de extrusión", sector:"Extrusión", funcion:"Fundido y colado en moldes de los durmientes", horasDia:null, alias:[], crit:null},
-  {codigo:"ENF-001", nombre:"Enfardadora Circularis", sector:"Acondicionamiento", funcion:"Compactación y acondicionamiento para transporte", horasDia:4, alias:[], crit:{prod:3,infl:2,cal:2,seg:1,amb:1,sust:1}},
-  {codigo:"ENF-002", nombre:"Enfardadora Refire", sector:"Acondicionamiento", funcion:"Compactación y acondicionamiento para transporte", horasDia:4, alias:["Prensa Refire"], crit:{prod:3,infl:2,cal:2,seg:1,amb:1,sust:1}}
+  {codigo:"AGR-001", nombre:"Agrumadora Frankie (motor y cuchillas)", sector:"Preprocesado", funcion:"Reducción de volumen de plástico", horasDia:8, alias:["Agrumadora Frankie"], piezas:["Cuchillas","Asegurador de cuchilla móvil","Motor"], crit:{prod:5,infl:4,cal:2,seg:5,amb:5,sust:1}},
+  {codigo:"AGR-002", nombre:"Agrumadora Nupieri (volante de inercia)", sector:"Preprocesado", funcion:"Reducción de volumen de plástico", horasDia:8, alias:["Agrumadora Nupieri"], piezas:["Cuchillas","Volante de inercia","Motor"], crit:{prod:5,infl:4,cal:2,seg:5,amb:5,sust:1}},
+  {codigo:"MOL-001", nombre:"Moledora 1", sector:"Preprocesado", funcion:"Molienda previa de scrap plástico", horasDia:4, alias:[], piezas:["Cuchillas móviles","Cuchillas fijas (contracuchillas)","Tornillos de fijación de cuchillas","Rotor portacuchillas","Criba","Correa de transmisión","Rodamientos del eje principal"], crit:{prod:1,infl:2,cal:2,seg:3,amb:1,sust:4}},
+  {codigo:"TRI-001", nombre:"Trituradora 1", sector:"Preprocesado", funcion:"Reducción de volumen de descartes diversos", horasDia:4, alias:[], piezas:["Cuchillas","Contracuchillas","Criba","Correa de transmisión","Rodamientos principales"], crit:{prod:1,infl:2,cal:2,seg:3,amb:1,sust:4}},
+  {codigo:"LAV-001", nombre:"Cuba de lavado 1", sector:"Lavado", funcion:"Lavado y eliminación de impurezas", horasDia:6, alias:[], piezas:["Paletas agitadoras","Rodamientos del eje","Eje agitador","Bomba de recirculación","Válvula de drenaje","Motor agitador"], crit:{prod:5,infl:4,cal:4,seg:3,amb:1,sust:4}},
+  {codigo:"SEC-001", nombre:"Secadora industrial 1", sector:"Secado", funcion:"Eliminación de humedad del material post-lavado", horasDia:6, alias:["Secadora"], piezas:["Filtro de ingreso","Resistencias calefactoras","Ventilador centrífugo","Motor eléctrico"], crit:{prod:3,infl:2,cal:4,seg:3,amb:1,sust:4}},
+  {codigo:"MEZ-001", nombre:"Mezcladora", sector:"Formulación", funcion:"Mezcla del material seco con tintas y aditivos", horasDia:null, alias:[], piezas:["Correa de transmisión","Piñón de accionamiento","Paletas internas","Motor"], crit:null},
+  {codigo:"EXT-001", nombre:"Línea de extrusión", sector:"Extrusión", funcion:"Fundido y colado en moldes de los durmientes", horasDia:null, alias:["Extrusora Plastificadora"], piezas:["Relé de estado sólido (SSR)","Resistencia calefactora","Husillo","Rodamiento del husillo","Matriz","Bomba de agua de enfriamiento"], crit:null},
+  {codigo:"ENF-001", nombre:"Enfardadora Circularis", sector:"Acondicionamiento", funcion:"Compactación y acondicionamiento para transporte", horasDia:4, alias:[], piezas:["Cilindro hidráulico","Sello del vástago","Bomba hidráulica","Filtro hidráulico","Motor eléctrico"], crit:{prod:3,infl:2,cal:2,seg:1,amb:1,sust:1}},
+  {codigo:"ENF-002", nombre:"Enfardadora Refire", sector:"Acondicionamiento", funcion:"Compactación y acondicionamiento para transporte", horasDia:4, alias:["Prensa Refire"], piezas:["Cilindro hidráulico","Sello del vástago","Bomba hidráulica","Filtro hidráulico","Motor eléctrico"], crit:{prod:3,infl:2,cal:2,seg:1,amb:1,sust:1}}
 ];
 /* Registro de tareas de mantenimiento, marzo y abril de 2026 (planilla Mantenimiento.xlsx).
    Columnas: fecha, operario, tipo de tarea, máquina o elemento, centro, tarea realizada, duración (h),
@@ -180,7 +180,8 @@ const AYUDA = {
   criticidad:"Qué tan importante es la máquina para la planta, de 0 a 100. Se arma con seis preguntas: producción (30 %), influencia en la planta (20 %), calidad (15 %), seguridad (15 %), ambiente (10 %) y posibilidad de reemplazo (10 %). Sirve para decidir dónde poner primero el esfuerzo de mantenimiento.",
   alias:"Nombres con los que esta máquina aparece escrita en el registro (por ejemplo, \"Agrumadora Frankie\"). Así sus tareas se juntan en esta ficha aunque se hayan escrito distinto.",
   pareto:"Ordena de mayor a menor. En general, unos pocos elementos se llevan la mayor parte de las horas: en color naranja están los que suman el primer 80 %. Ahí conviene mirar primero.",
-  weibull:"Con las fechas de las fallas de una máquina se estima <b>cómo</b> falla. Cada punto es una falla; si los puntos siguen una recta, el modelo describe bien los datos. La pendiente de la recta (<b>β</b>) dice si son fallas tempranas, al azar o por desgaste.",
+  pieza:"El análisis de fallas se hace <b>por pieza</b> (cuchilla, rodamiento, correa), no por máquina: cada pieza se gasta y falla a su manera. Indicá la pieza en cada tarea y si quedó nueva (se cambió o se reparó a nuevo). Así el programa sabe cuánto duró cada pieza.",
+  weibull:"Con la duración de cada pieza (desde que se puso hasta que falló) se estima <b>cómo</b> falla esa pieza. Las veces que se cambió antes de fallar también cuentan. Cada punto es una falla; si los puntos siguen una recta, el modelo describe bien los datos. La pendiente de la recta (<b>β</b>) dice si son fallas tempranas, al azar o por desgaste.",
   beta:"<b>β (forma).</b> Menor que 1: fallas tempranas (montaje, repuesto, arranque). Cerca de 1: fallas al azar, la edad no influye. Mayor que 1: desgaste, el riesgo crece con el uso y conviene un cambio programado.",
   eta:"<b>η (vida característica).</b> Tiempo de trabajo al que ya falló el 63 % de las veces. Es una referencia de cuánto dura en general.",
   papel:"Es un gráfico logarítmico: el tiempo va en escala logarítmica y la probabilidad de falla en una escala especial donde el modelo queda como una recta. <b>Cómo se lee:</b> la línea punteada horizontal es el 63,2 %; donde la corta la recta, se baja al eje y se lee η. Las guías azules que salen del punto de la izquierda tienen distintas pendientes: la que va paralela a la recta da β. La línea roja muestra la lectura para el tiempo que elijas.",
@@ -206,7 +207,7 @@ function cargar(){
   return null;
 }
 function datosVacios(){
-  return {version:1, config:{diasSemana:5, operarios:[]}, maquinas:[], registros:[], plan:[], repuestos:[], ultimoRespaldo:null};
+  return {version:2, config:{diasSemana:5, operarios:[]}, maquinas:[], registros:[], plan:[], repuestos:[], ultimoRespaldo:null};
 }
 function maquinasIniciales(){
   return MAQUINAS_INICIALES.map(m => ({id:nuevoId(), ...JSON.parse(JSON.stringify(m))}));
@@ -214,7 +215,13 @@ function maquinasIniciales(){
 function registroDesdeFila(f){
   return {id:nuevoId(), fecha:f[0], operario:f[1], area:f[2], maquina:f[3], centro:f[4], tarea:f[5],
           duracion:f[6], repuestos:f[7], causa:f[8], obs:f[9], pendiente:f[10], pendienteHecho:false,
-          clase: sugerirClase(f[2], f[5], f[8]), paradaH:null, componente:""};
+          clase: sugerirClase(f[2], f[5], f[8]), paradaH:null, componente:"", cambioPieza:false, ...sugerirPieza(f[3], f[5], f[8])};
+}
+/* Pieza sugerida para las filas importadas: solo cuchillas de las agrumadoras, que es lo que el texto deja claro. */
+function sugerirPieza(maquina, tarea, causa){
+  const m = norm(maquina), t = norm(tarea + " " + causa);
+  if (!m.includes("agrumadora") || !t.includes("cuchill")) return {};
+  return {componente:"Cuchillas", cambioPieza: /(cambio|quebr|repar)/.test(t)};
 }
 /* Sugerencia de clase para las filas importadas: solo cuando el texto es claro. */
 function sugerirClase(area, tarea, causa){
@@ -571,7 +578,8 @@ function formRegistro(r){
     <div class="ancho"><label>¿Qué fue? ${ayuda("clase")}</label><div class="segmento" id="seg-clase">${CLASES.filter(c => c !== "Sin clasificar" || r.clase === "Sin clasificar").map(c => `<button type="button" data-clase="${c}" class="${c===r.clase?'sel':''}">${CLASE_TXT[c]}</button>`).join("")}</div>
       <input type="hidden" name="clase" value="${esc(r.clase)}"></div>
     <div class="ancho"><label>Tarea realizada</label><input name="tarea" value="${esc(r.tarea)}" placeholder="Por ejemplo: cambio y afilado de cuchillas" required></div>
-    <div><label>Componente (opcional)</label><input name="componente" value="${esc(r.componente)}" placeholder="Cuchillas, rodamiento, correa..."></div>
+    <div><label>Pieza (opcional) ${ayuda("pieza")}</label><input name="componente" list="lista-piezas" value="${esc(r.componente)}" placeholder="Cuchilla, rodamiento, correa..."></div>
+    <div class="solo-pieza"><label>¿Se cambió o se dejó como nueva la pieza?</label><select name="cambioPieza"><option value="no" ${r.cambioPieza?"":"selected"}>No (solo se ajustó, limpió o revisó)</option><option value="si" ${r.cambioPieza?"selected":""}>Sí (pieza nueva o reparada a nuevo)</option></select></div>
     <div><label>Duración de la tarea (h:mm)</label><input name="duracion" value="${r.duracion != null ? horasAhm(r.duracion) : ""}" placeholder="1:30"></div>
     <div class="solo-falla"><label>Horas de máquina parada ${ayuda("parada")}</label><input name="paradaH" value="${r.paradaH != null ? horasAhm(r.paradaH) : ""}" placeholder="Igual a la duración"></div>
     <div><label>Centro</label><input name="centro" value="${esc(r.centro)}"></div>
@@ -580,12 +588,19 @@ function formRegistro(r){
     <div><label>Observaciones</label><input name="obs" value="${esc(r.obs)}"></div>
     <div><label>Pendientes</label><input name="pendiente" value="${esc(r.pendiente)}" placeholder="Lo que quedó por hacer"></div>
   </div>
-  <datalist id="lista-maquinas">${opcionesMaquinas()}</datalist><datalist id="lista-operarios">${opcionesOperarios()}</datalist>`;
+  <datalist id="lista-maquinas">${opcionesMaquinas()}</datalist><datalist id="lista-operarios">${opcionesOperarios()}</datalist><datalist id="lista-piezas">${opcionesPiezas()}</datalist>`;
+}
+function opcionesPiezas(){
+  const s = new Set(); D.maquinas.forEach(m => (m.piezas||[]).forEach(p => s.add(p))); D.registros.forEach(r => r.componente && s.add(r.componente));
+  return [...s].sort((a,b) => a.localeCompare(b, "es")).map(n => `<option value="${esc(n)}">`).join("");
 }
 function horasAhm(h){ const hh = Math.floor(h), mm = Math.round((h-hh)*60); return hh + ":" + String(mm).padStart(2,"0"); }
 function activarForm(cont){
   const seg = cont.querySelector("#seg-clase"), oculto = cont.querySelector("[name=clase]");
-  const ver = () => cont.querySelectorAll(".solo-falla").forEach(x => x.style.display = oculto.value === "Correctivo" ? "" : "none");
+  const pz = cont.querySelector("[name=componente]");
+  const ver = () => { cont.querySelectorAll(".solo-falla").forEach(x => x.style.display = oculto.value === "Correctivo" ? "" : "none");
+    cont.querySelectorAll(".solo-pieza").forEach(x => x.style.display = pz.value.trim() && oculto.value !== "Correctivo" ? "" : "none"); };
+  pz.addEventListener("input", ver);
   seg.onclick = e => { const b = e.target.closest("[data-clase]"); if (!b) return;
     seg.querySelectorAll("button").forEach(x => x.classList.remove("sel")); b.classList.add("sel"); oculto.value = b.dataset.clase; ver(); };
   ver();
@@ -601,7 +616,8 @@ function leerForm(cont, base){
   if (err.length) return {error:"Falta " + err.join(", ") + "."};
   return {...(base||{id:nuevoId(), pendienteHecho:false}), fecha:g("fecha"), operario:g("operario"), area:g("area"), maquina:g("maquina"),
     centro:g("centro"), tarea:g("tarea"), duracion:dur, repuestos:g("repuestos"), causa:g("causa"), obs:g("obs"),
-    pendiente:g("pendiente"), clase:g("clase"), paradaH:g("clase") === "Correctivo" ? par : null, componente:g("componente")};
+    pendiente:g("pendiente"), clase:g("clase"), paradaH:g("clase") === "Correctivo" ? par : null, componente:g("componente"),
+    cambioPieza: !!g("componente") && (g("clase") === "Correctivo" || g("cambioPieza") === "si")};
 }
 function vRegistrar(v){
   v.innerHTML = `<h2>Registrar tarea</h2><p class="intro">Las mismas columnas que la planilla de mantenimiento. Solo son obligatorios la fecha, el operario, la máquina y la tarea.</p>
@@ -716,7 +732,7 @@ function vMaquinas(v){
   v.querySelector("#b-nueva").onclick = () => editarMaquina(null);
 }
 function editarMaquina(id){
-  const m = id ? D.maquinas.find(x => x.id === id) : {codigo:"", nombre:"", sector:"", funcion:"", horasDia:null, alias:[], crit:null};
+  const m = id ? D.maquinas.find(x => x.id === id) : {codigo:"", nombre:"", sector:"", funcion:"", horasDia:null, alias:[], piezas:[], crit:null};
   const c = {...(m.crit || {})};
   const preguntas = CRITERIOS.map(k => `<div class="pregunta"><div>${k.t} <span class="chip">${num(100*k.peso,0)} %</span></div>
     <div class="ops" data-k="${k.k}">${k.ops.map(([val, txt]) => `<button type="button" data-v="${val}" class="${c[k.k]===val?'sel':''}">${txt}</button>`).join("")}</div></div>`).join("");
@@ -728,6 +744,7 @@ function editarMaquina(id){
       <div><label>Horas de trabajo por día ${ayuda("horas_trabajo")}</label><input name="horasDia" type="number" min="0" max="24" step="0.5" value="${m.horasDia ?? ""}"></div>
       <div class="ancho"><label>Función</label><input name="funcion" value="${esc(m.funcion)}"></div>
       <div class="ancho"><label>Otros nombres en el registro, separados por coma ${ayuda("alias")}</label><input name="alias" value="${esc((m.alias||[]).join(", "))}"></div>
+      <div class="ancho"><label>Piezas que se siguen, separadas por coma ${ayuda("pieza")}</label><input name="piezas" value="${esc((m.piezas||[]).join(", "))}"></div>
     </div>
     <h3>Criticidad ${ayuda("criticidad")} <span id="crit-val" class="chip verde"></span></h3>${preguntas}
     <div class="fila-botones"><button class="prim" id="m-ok">Guardar</button><button id="m-no">Cancelar</button>
@@ -743,6 +760,7 @@ function editarMaquina(id){
       if (!g("codigo") || !g("nombre")){ cont.querySelector("#m-msg").innerHTML = `<span class="mensaje mal">Falta el código o el nombre.</span>`; return; }
       const datos = {codigo:g("codigo"), nombre:g("nombre"), sector:g("sector"), funcion:g("funcion"),
         horasDia: g("horasDia") ? +g("horasDia") : null, alias: g("alias").split(",").map(x => x.trim()).filter(Boolean),
+        piezas: g("piezas").split(",").map(x => x.trim()).filter(Boolean),
         crit: Object.keys(c).length === 6 ? c : (m.crit || null)};
       if (id) Object.assign(m, datos); else D.maquinas.push({id:nuevoId(), ...datos});
       guardar(); cerrarModal(); avisar("Máquina guardada"); dibujar();
@@ -775,22 +793,30 @@ function vMaquina(v){
     <div class="tarjeta"><div class="et">Disponibilidad ${ayuda("disponibilidad")}</div><div class="val">${pct(k.disp)}</div><div class="det">del tiempo de trabajo</div></div>
     <div class="tarjeta"><div class="et">Horas de mantenimiento ${ayuda("horas_mant")}</div><div class="val">${num(k.horasMant,1)} h</div><div class="det">${k.tareas} tareas</div></div>
   </div>`;
-  // análisis de fallas
-  const comps = [...new Set(regsTodos.filter(r => r.clase === "Correctivo" && r.componente).map(r => r.componente))];
-  h += `<div class="caja"><h3 style="margin-top:0">Análisis de fallas (papel de Weibull) ${ayuda("weibull")}</h3>`;
-  const fallas = regsTodos.filter(r => r.clase === "Correctivo" && (!comp || r.componente === comp)).map(r => r.fecha).sort();
-  if (comps.length) h += `<div class="fila-botones"><span class="nota">Componente:</span><select id="sel-comp" style="width:auto"><option value="">Todas las fallas</option>${comps.map(x => `<option ${x===comp?"selected":""}>${esc(x)}</option>`).join("")}</select></div>`;
-  const usaHoras = !!m.horasDia, unidad = usaHoras ? "h" : "días";
-  const obs = [];
-  for (let i = 1; i < fallas.length; i++){
-    const dt = diasTrabajo(fallas[i-1], fallas[i]); obs.push({t: usaHoras ? dt * m.horasDia : dt, falla:true});
-  }
-  if (fallas.length){ const dt = diasTrabajo(fallas[fallas.length-1], hoy); if (dt > 0) obs.push({t: usaHoras ? dt*m.horasDia : dt, falla:false}); }
-  const nTbf = obs.filter(o => o.falla && o.t > 0).length;
-  if (nTbf < 3){
-    h += `<div class="mensaje info">Hacen falta al menos 4 fallas registradas como <b>Correctivo</b>${comp ? " de este componente" : ""} para estimar cómo falla (hay ${fallas.length}). Mientras tanto, podés probar con datos propios en <a href="#" id="a-anal">Análisis</a>.</div>`;
+  // análisis de fallas por pieza
+  const piezas = [...new Set([...(m.piezas||[]), ...regsTodos.filter(r => r.componente).map(r => r.componente)])];
+  const conDatos = p => regsTodos.filter(r => norm(r.componente) === norm(p) && (r.clase === "Correctivo" || r.cambioPieza)).length;
+  if (!comp || !piezas.some(p => norm(p) === norm(comp))) comp = piezas.slice().sort((x,y) => conDatos(y) - conDatos(x))[0] || "";
+  h += `<div class="caja"><h3 style="margin-top:0">Análisis de fallas por pieza (papel de Weibull) ${ayuda("weibull")}</h3>`;
+  if (!piezas.length){
+    h += `<div class="mensaje info">Cargá las piezas que querés seguir en <b>Editar datos y criticidad</b>, y al registrar una tarea indicá la pieza.</div>`;
   } else {
-    h += bloqueWeibull(obs, unidad, nTbf < 6, "ficha");
+    h += `<div class="fila-botones"><span class="nota">Pieza</span><select id="sel-comp" style="width:auto">${piezas.map(x =>
+      `<option value="${esc(x)}" ${norm(x)===norm(comp)?"selected":""}>${esc(x)} (${conDatos(x)} registros)</option>`).join("")}</select></div>`;
+    const vidas = vidasDePieza(m, comp, hoy);
+    const usaHoras = !!m.horasDia, unidad = usaHoras ? "h" : "días de trabajo";
+    const obs = vidas.map(x => ({t: usaHoras ? x.dias * m.horasDia : x.dias, falla: x.fin === "falla"}));
+    const nF = vidas.filter(x => x.fin === "falla").length;
+    if (vidas.length){
+      h += `<details style="margin:6px 0 10px"><summary class="nota" style="cursor:pointer">Ver las vidas de la pieza (${vidas.length})</summary><div class="tabla" style="max-height:260px;margin-top:6px"><table>
+        <tr><th>Desde</th><th>Hasta</th><th class="num">Duró</th><th>Cómo terminó</th></tr>${vidas.map(x => `<tr><td>${fechaTxt(x.desde)}</td><td>${x.hasta ? fechaTxt(x.hasta) : "hoy"}</td>
+        <td class="num">${num(usaHoras ? x.dias*m.horasDia : x.dias)} ${usaHoras ? "h" : "días"}</td><td><span class="chip ${x.fin==="falla"?"rojo":x.fin==="cambio"?"verde":""}">${x.fin==="falla"?"Falló":x.fin==="cambio"?"Se cambió antes de fallar":"Sigue en uso"}</span></td></tr>`).join("")}</table></div></details>`;
+    }
+    if (nF < 3){
+      h += `<div class="mensaje info">Para estimar cómo falla <b>${esc(comp)}</b> hacen falta al menos 3 vidas que terminaron en falla (hay ${nF}). Cada vida va de un cambio de la pieza al siguiente. Las piezas que se cambiaron antes de fallar también suman información. Mientras tanto, podés probar con datos propios en <a href="#" id="a-anal">Análisis</a>.</div>`;
+    } else {
+      h += bloqueWeibull(obs, usaHoras ? "h" : "días", nF < 6, "ficha");
+    }
   }
   h += `</div>`;
   // plan de la máquina
@@ -812,6 +838,19 @@ function vMaquina(v){
   activarFilasRegistro(v);
 }
 
+/* Vidas de una pieza: cada una va desde que se puso (cambio o reparación a nuevo) hasta que falló, se cambió
+   antes de fallar o hasta hoy si sigue en uso. La primera vida empieza en el primer cambio registrado. */
+function vidasDePieza(m, pieza, hoy){
+  const ev = D.registros.filter(r => esDeMaquina(m, r) && norm(r.componente) === norm(pieza) && (r.clase === "Correctivo" || r.cambioPieza))
+    .sort((a,b) => a.fecha < b.fecha ? -1 : a.fecha > b.fecha ? 1 : 0);
+  const vidas = [];
+  for (let i = 1; i < ev.length; i++){
+    const dias = diasTrabajo(ev[i-1].fecha, ev[i].fecha);
+    if (dias > 0) vidas.push({desde:ev[i-1].fecha, hasta:ev[i].fecha, dias, fin: ev[i].clase === "Correctivo" ? "falla" : "cambio"});
+  }
+  if (ev.length){ const dias = diasTrabajo(ev[ev.length-1].fecha, hoy); if (dias > 0) vidas.push({desde:ev[ev.length-1].fecha, hasta:null, dias, fin:"sigue"}); }
+  return vidas;
+}
 /* Bloque de resultados de Weibull reutilizable */
 const estadoW = {ficha:{t:null, conf:0.9}, calc:{t:null, conf:0.9}};
 function bloqueWeibull(obs, unidad, poco, clave){
@@ -825,10 +864,10 @@ function bloqueWeibull(obs, unidad, poco, clave){
   let h = poco ? `<div class="mensaje cuidado">Con tan pocas fallas el resultado es orientativo: se va a ajustar a medida que se registren más.</div>` : "";
   h += `<div class="tarjetas">
     <div class="tarjeta"><div class="et">β, forma ${ayuda("beta")}</div><div class="val">${num(aj.beta,2)}</div><div class="det">${lect.tit}</div></div>
-    <div class="tarjeta"><div class="et">η, vida característica ${ayuda("eta")}</div><div class="val">${num(aj.eta,0)} ${unidad}</div><div class="det">de trabajo entre fallas</div></div>
+    <div class="tarjeta"><div class="et">η, vida característica ${ayuda("eta")}</div><div class="val">${num(aj.eta,0)} ${unidad}</div><div class="det">de trabajo de la pieza</div></div>
     <div class="tarjeta"><div class="et">Intervalo sugerido ${ayuda("intervalo")}</div><div class="val">${tInt ? num(tInt,0) + " " + unidad : "—"}</div>
       <div class="det">${tInt ? "para llegar sin falla el " + num(100*st.conf,0) + " % de las veces" : "no aplica: no hay desgaste"}</div></div>
-    <div class="tarjeta"><div class="et">Fallas usadas</div><div class="val">${aj.puntos.length}</div><div class="det">tiempos entre fallas${obs.some(o => !o.falla) ? " + tiempo actual sin falla" : ""}</div></div>
+    <div class="tarjeta"><div class="et">Fallas de la pieza</div><div class="val">${aj.puntos.length}</div><div class="det">vidas que terminaron en falla${obs.some(o => !o.falla) ? " + " + obs.filter(o => !o.falla).length + " sin falla" : ""}</div></div>
   </div>
   <div class="mensaje ${aj.beta > 1.1 ? "ok" : "info"}"><b>${lect.tit}.</b> ${lect.txt}</div>
   <div class="fila-botones"><span class="nota">Leer en el gráfico a</span><input id="t-${clave}" type="number" min="0" style="width:110px" value="${tL ?? ""}" placeholder="${unidad}"><span class="nota">${unidad}</span>
@@ -876,7 +915,8 @@ function marcarHecha(id){
       t.ultima = g("fecha");
       D.registros.push({id:nuevoId(), fecha:g("fecha"), operario:g("operario"), area:"Mantenimiento Máquinas",
         maquina: m ? (m.alias?.[0] || m.nombre) : "", centro:"T-Wood", tarea:t.tarea, duracion:leerHoras(g("duracion")),
-        repuestos:"", causa:"", obs:g("obs"), pendiente:"", pendienteHecho:false, clase:"Preventivo", paradaH:null, componente:""});
+        repuestos:"", causa:"", obs:g("obs"), pendiente:"", pendienteHecho:false, clase:"Preventivo", paradaH:null,
+        componente:t.pieza || "", cambioPieza:!!t.pieza});
       guardar(); cerrarModal(); avisar("Tarea registrada"); dibujar();
     };
   });
@@ -892,14 +932,15 @@ function editarPlan(id){
       <div class="ancho"><label>Tarea</label><input name="tarea" list="lista-plantillas" value="${esc(t.tarea)}" placeholder="Elegí una sugerencia o escribí"></div>
       <div><label>Última vez que se hizo</label><input name="ultima" type="date" value="${t.ultima || ""}"></div>
       <div><label>Responsable</label><input name="responsable" list="lista-operarios" value="${esc(t.responsable)}"></div>
-    </div><datalist id="lista-plantillas">${PLANTILLAS.map(p => `<option value="${p}">`).join("")}</datalist><datalist id="lista-operarios">${opcionesOperarios()}</datalist>
+      <div class="ancho"><label>Pieza que se cambia (opcional) ${ayuda("pieza")}</label><input name="pieza" list="lista-piezas" value="${esc(t.pieza||"")}" placeholder="Dejalo vacío si la tarea no cambia ninguna pieza (lubricar, revisar)"></div>
+    </div><datalist id="lista-piezas">${opcionesPiezas()}</datalist><datalist id="lista-plantillas">${PLANTILLAS.map(p => `<option value="${p}">`).join("")}</datalist><datalist id="lista-operarios">${opcionesOperarios()}</datalist>
     <div class="fila-botones"><button class="prim" id="m-ok">Guardar</button><button id="m-no">Cancelar</button>
       ${id ? `<button class="peligro" id="m-borrar" style="margin-left:auto">Borrar</button>` : ""}<span id="m-msg"></span></div>`, c => {
     c.querySelector("#m-no").onclick = cerrarModal;
     c.querySelector("#m-ok").onclick = () => {
       const g = n => c.querySelector(`[name=${n}]`).value.trim();
       if (!g("tarea") || !(+g("frecuencia") > 0)){ c.querySelector("#m-msg").innerHTML = `<span class="mensaje mal">Falta la tarea o la frecuencia.</span>`; return; }
-      const d = {maquina:g("maquina"), tarea:g("tarea"), frecuencia:+g("frecuencia"), ultima:g("ultima") || null, responsable:g("responsable")};
+      const d = {maquina:g("maquina"), tarea:g("tarea"), frecuencia:+g("frecuencia"), ultima:g("ultima") || null, responsable:g("responsable"), pieza:g("pieza")};
       if (id) Object.assign(t, d); else D.plan.push({id:nuevoId(), ...d});
       guardar(); cerrarModal(); avisar("Plan actualizado"); dibujar();
     };
@@ -1011,7 +1052,7 @@ function vAnalisis(v){
       ${sin.length ? `<div class="mensaje cuidado">Sin evaluar: ${sin.map(m => esc(m.codigo)).join(", ")}. Respondé las seis preguntas en su ficha.</div>` : ""}</div>`;
   } else {
     h += `<div class="caja"><h3 style="margin-top:0">Calculadora de Weibull ${ayuda("weibull")}</h3>
-      <p class="nota">Pegá los tiempos de trabajo entre fallas de un mismo componente, uno por renglón (por ejemplo, desde una columna de Excel). Si una pieza se cambió sin haber fallado o todavía sigue andando, escribí una <b>s</b> al lado del número (por ejemplo <b>300 s</b>).</p>
+      <p class="nota">Pegá cuánto duró cada vez una misma pieza (tiempo de trabajo desde que se puso hasta que falló), uno por renglón (por ejemplo, desde una columna de Excel). Si una pieza se cambió sin haber fallado o todavía sigue andando, escribí una <b>s</b> al lado del número (por ejemplo <b>300 s</b>).</p>
       <div class="form"><div><label>Tiempos</label><textarea id="calc-txt" rows="9">${esc(calc.texto)}</textarea></div>
       <div><label>Unidad</label><select id="calc-u"><option value="h" ${calc.unidad==="h"?"selected":""}>horas</option><option value="días" ${calc.unidad==="días"?"selected":""}>días</option><option value="ciclos" ${calc.unidad==="ciclos"?"selected":""}>ciclos</option></select>
       <p class="nota">Viene cargado un ejemplo de seis fallas para que veas cómo funciona.</p><button class="prim" id="calc-ok">Calcular</button></div></div><div id="calc-res"></div></div>`;
@@ -1045,11 +1086,11 @@ function vAnalisis(v){
 /* ======================================================================
    Datos: respaldo, importación, exportación, ajustes
    ====================================================================== */
-const COLS = ["Fecha","Operario","Tipo de Tarea","Máquina/Elemento","Centro","Tarea Realizada","Duración","Repuestos utilizados","Causa","Observaciones","Pendientes","Clase","Horas de parada","Componente"];
+const COLS = ["Fecha","Operario","Tipo de Tarea","Máquina/Elemento","Centro","Tarea Realizada","Duración","Repuestos utilizados","Causa","Observaciones","Pendientes","Clase","Horas de parada","Pieza","Pieza nueva"];
 function exportarCSV(lista){
   const celda = x => { const s = String(x ?? ""); return /[;"\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; };
   const filas = [COLS, ...lista.slice().sort((a,b) => a.fecha < b.fecha ? -1 : 1).map(r => [fechaTxt(r.fecha), r.operario, r.area, r.maquina, r.centro, r.tarea,
-    r.duracion != null ? horasAhm(r.duracion) : "", r.repuestos, r.causa, r.obs, r.pendiente, r.clase, r.paradaH != null ? horasAhm(r.paradaH) : "", r.componente])];
+    r.duracion != null ? horasAhm(r.duracion) : "", r.repuestos, r.causa, r.obs, r.pendiente, r.clase, r.paradaH != null ? horasAhm(r.paradaH) : "", r.componente, r.componente ? (r.cambioPieza ? "Sí" : "No") : ""])];
   descargar("mantenimiento_" + hoyISO() + ".csv", "﻿" + filas.map(f => f.map(celda).join(";")).join("\r\n"), "text/csv;charset=utf-8");
 }
 function partirCSV(texto){
@@ -1080,6 +1121,7 @@ function importarTexto(texto){
     if (f[11] && CLASES.includes(f[11].trim())) r.clase = f[11].trim();
     if (f[12]) r.paradaH = leerHoras(f[12]);
     if (f[13]) r.componente = f[13].trim();
+    if (f[14]) r.cambioPieza = /^s/i.test(norm(f[14]));
     const k = clave(r);
     if (existentes.has(k)){ repetidos++; return; }
     existentes.add(k); D.registros.push(r); nuevos++;
@@ -1131,7 +1173,7 @@ function vDatos(v){
    ====================================================================== */
 function inicio(){
   D = cargar();
-  if (D){ D = {...datosVacios(), ...D}; dibujar(); recordarRespaldo(); return; }
+  if (D){ D = {...datosVacios(), ...D}; actualizarDatos(); dibujar(); recordarRespaldo(); return; }
   D = datosVacios(); dibujarNav(); document.getElementById("vista").innerHTML = "";
   modal(`<h2>Bienvenido</h2>
     <p>Este programa guarda el registro de mantenimiento, el plan preventivo y los repuestos de la línea T-WOOD, y muestra en qué se va el tiempo y cómo fallan las máquinas.</p>
@@ -1154,6 +1196,13 @@ function inicio(){
       try { const n = JSON.parse(t); if (!n.registros) throw 0; D = {...datosVacios(), ...n}; guardar(); cerrarModal(); ir("inicio"); }
       catch(_){ alert("El archivo no es un respaldo válido."); } }); };
   });
+}
+/* Datos guardados con la versión anterior: suma las piezas de cada máquina y la pieza de las tareas de cuchillas. */
+function actualizarDatos(){
+  if ((D.version || 1) >= 2) return;
+  D.maquinas.forEach(m => { if (!m.piezas){ const ini = MAQUINAS_INICIALES.find(x => x.codigo === m.codigo); m.piezas = ini ? [...ini.piezas] : []; } });
+  D.registros.forEach(r => { if (r.cambioPieza === undefined){ r.cambioPieza = false; if (!r.componente) Object.assign(r, sugerirPieza(r.maquina, r.tarea, r.causa)); } });
+  D.version = 2; guardar();
 }
 function recordarRespaldo(){
   const u = D.ultimoRespaldo;

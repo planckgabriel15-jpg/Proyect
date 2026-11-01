@@ -15,7 +15,7 @@ Los datos quedan guardados en ese navegador y en esa computadora. Desde **Datos 
 - **Inicio:** horas de mantenimiento, fallas, preventivos vencidos, repuestos para pedir, pendientes y estado de cada máquina.
 - **Registrar tarea:** las mismas columnas que la planilla de mantenimiento, más la clase (falla, preventivo, mejora u otro).
 - **Historial:** búsqueda y filtros, edición de cada tarea y exportación a Excel.
-- **Máquinas:** ficha con criticidad sobre 100, MTBF, MTTR, disponibilidad, análisis de fallas en papel de Weibull, plan y repuestos.
+- **Máquinas:** ficha con criticidad sobre 100, MTBF, MTTR, disponibilidad, plan y repuestos, y el análisis de fallas **por pieza** en papel de Weibull. Cada máquina tiene su lista de piezas (cuchillas, rodamientos, correas...). Al registrar una tarea se indica la pieza y si quedó nueva; cada vida de la pieza va de un cambio al siguiente y termina en falla, en un cambio antes de fallar o sigue en uso.
 - **Plan preventivo:** tareas cada cierta cantidad de días, próximas 4 semanas e impresión.
 - **Repuestos:** stock, mínimo y aviso para pedir.
 - **Análisis:** en qué se va el tiempo (por máquina, tipo de tarea, operario o mes), fallas por máquina, ranking de criticidad y calculadora de Weibull.
