@@ -87,3 +87,10 @@
 @media print {
   body[data-pantalla="produccion"] .pestanas, body[data-pantalla="produccion"] .filtros { display: none; }
 }
+
+/* Empresa del grupo que emite la nota: logo (o su nombre en un recuadro) y razón social. */
+.hoja-empresa { display: flex; align-items: center; gap: 3mm; margin-bottom: 2mm; }
+.hoja-empresa .hoja-logo { margin-bottom: 0; }
+.hoja-logo.logo-texto { height: 12mm; box-sizing: border-box; font-size: 15pt; color: #000; border-color: #000; }
+.hoja-empresa-nombre { font-size: 9pt; }
+.hoja-dibujos.sin-dibujo { display: block; }

@@ -69,6 +69,10 @@ PRODUCTOS_SIN_PERFIL = [
      'fuente': 'Estimación: varias piezas cilindradas, engrafadas y remachadas.'},
     {'grupo': 'articulos', 'setupS': 0, 'piezaS': 30, 'maquina': 'deposito', 'estado': '[SUPUESTO]',
      'fuente': 'Artículo de reventa: solo buscarlo y prepararlo (no se fabrica).'},
+    {'grupo': 'metalmecanica', 'setupS': 900, 'piezaS': 600, 'maquina': 'gtec_laser', 'estado': '[SUPUESTO]',
+     'fuente': 'Sin estudio de tiempos de G-TEC: 15 min de preparación y 10 min por pieza como punto de partida. Reemplazar por los tiempos reales (o por los de Lantek).'},
+    {'grupo': 'servicios', 'setupS': 900, 'piezaS': 600, 'maquina': 'gtec_laser', 'estado': '[SUPUESTO]',
+     'fuente': 'Servicios que no se venden por hora (por pieza, por metro o trabajo completo): mismo punto de partida. Los vendidos por hora usan 1 hora = 60 min, sin suplementos.'},
     {'grupo': '*', 'setupS': 180, 'piezaS': 600, 'maquina': 'banco', 'estado': '[SUPUESTO]',
      'fuente': 'Valor por defecto para cualquier otro producto por unidad.'},
 ]

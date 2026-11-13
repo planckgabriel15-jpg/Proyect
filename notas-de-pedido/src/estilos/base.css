@@ -529,3 +529,24 @@ tr.destino td { border-top: 3px solid var(--acento); }
   .tarjeta-tarea { grid-template-columns: 1fr; }
   .tarea-dibujo svg { max-height: 120px; }
 }
+
+/* ---------- Grupo de empresas ---------- */
+/* Logo de texto: se usa mientras no haya archivo de logo de la empresa (datos/empresas.json). */
+.logo-texto { display: inline-flex; align-items: center; justify-content: center; font-weight: 900; letter-spacing: .5px; color: var(--color-empresa, #333); background: #fff; border: 2px solid var(--color-empresa, #333); border-radius: 6px; padding: 2px 10px; white-space: nowrap; }
+.logo-menu.logo-texto { height: 44px; box-sizing: border-box; font-size: 1.1rem; }
+.empresas-ingreso { display: flex; flex-wrap: wrap; gap: .75rem; align-items: center; margin-bottom: .5rem; }
+.logo-ingreso { height: 48px; width: auto; }
+.logo-ingreso.logo-texto { box-sizing: border-box; font-size: 1.15rem; }
+.logo-tabla { height: 30px; width: auto; }
+.logo-tabla.logo-texto { box-sizing: border-box; font-size: .85rem; }
+.campo-en-linea { display: inline-flex; align-items: center; gap: .4rem; }
+.interruptor-grupo { display: flex; flex-wrap: wrap; align-items: center; gap: .3rem; margin: .25rem 0 .5rem; }
+.grupo-plegado > summary { cursor: pointer; font-weight: 700; font-size: 1.05rem; }
+.grupo-plegado[open] > summary { margin-bottom: .5rem; }
+.tarjeta-plantilla.sin-dibujo { min-height: 0; align-items: flex-start; text-align: left; padding: .45rem .6rem; }
+.etiqueta-empresa { font-size: .72rem; font-weight: 700; border: 1px solid var(--principal); color: var(--principal); border-radius: 4px; padding: 0 .3rem; }
+.opciones-multiples { display: flex; flex-wrap: wrap; gap: .25rem .9rem; }
+/* Artículos, servicios y piezas con plano: solo el formulario (no hay dibujo). */
+.paso2-grilla.sin-dibujo, .paso3-grilla.sin-dibujo { grid-template-columns: minmax(0, 720px); grid-template-areas: none; }
+.paso2-grilla.sin-dibujo .panel-2d, .paso2-grilla.sin-dibujo .panel-3d, .paso3-grilla.sin-dibujo .panel-2d, .paso3-grilla.sin-dibujo .panel-3d { display: none; }
+.paso2-grilla.sin-dibujo .panel-medidas { grid-area: auto; display: block; }

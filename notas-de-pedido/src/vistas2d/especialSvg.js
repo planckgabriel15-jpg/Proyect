@@ -192,7 +192,7 @@ const DIBUJOS = {
   articulo: (p, r) => `
     <rect class="pieza" x="120" y="110" width="400" height="180" rx="10"/>
     ${texto(320, 190, completarTexto(r.textoDescripcion || 'artículo de catálogo', p), 'middle')}
-    ${texto(320, 225, 'producto de catálogo: sin dibujo de fabricación', 'middle', 'nota')}`,
+    ${texto(320, 225, { servicio: 'servicio: no lleva dibujo', metalmecanica: 'pieza a medida: se fabrica según el plano adjunto' }[r.tipoPieza] || 'producto de catálogo: sin dibujo de fabricación', 'middle', 'nota')}`,
 
   mediaCana: (p) => `
     <path class="pieza-ancha" fill="none" d="M 160 120 A 160 160 0 0 0 480 120"/>

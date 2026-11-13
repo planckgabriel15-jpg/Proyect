@@ -18,6 +18,7 @@ import { datosDeMaterial } from './tiempos.js';
 import { calcularRenglon } from './calculoRenglon.js';
 import { cantidadDeLaNota, consumoFisico } from './chapas.js';
 import { ahorroEntre } from './agrupamiento.js';
+import { empresaDeNota, plantaDeRenglon, maquinaEnPlanta } from './empresas.js';
 
 export const PRIORIDADES = [
   { valor: 'normal', texto: 'Normal' },
@@ -266,11 +267,13 @@ export function armarTrabajos(notas, registros, { datos, modelo, prod }) {
     const registro = registros[nota.id] || registroVacio(nota.id, nota.demo);
     const tiempoNota = tiempoDeNota(nota, datos, modelo);
     const fechaEntrega = fechaEntregaDe(nota, prod);
+    const empresa = empresaDeNota(nota, datos);
     nota.renglones.forEach((renglon, i) => {
       const resultado = calcularRenglon(renglon, datos);
       const tiempo = tiempoNota.renglones[i];
       const r = registro.renglones[renglon.id] || {};
       const pedidoMin = i === 0 ? tiempoNota.pedidoEstandarS / 60 : 0;
+      const planta = plantaDeRenglon(renglon, nota, datos);
       const setupComponentesMin = {};
       for (const [id, s] of Object.entries(tiempo.setupComponentesS || {})) setupComponentesMin[id] = s / 60;
       trabajos.push({
@@ -288,7 +291,10 @@ export function armarTrabajos(notas, registros, { datos, modelo, prod }) {
         fechaEntrega,
         prioridad: nota.prioridad || 'normal',
         orden: registro.orden,
-        maquina: tiempo.maquina,
+        // Dónde se hace: la nota se reparte sola entre plantas (ver logica/empresas.js).
+        empresaId: empresa?.id || null,
+        planta: planta.plantaId,
+        maquina: maquinaEnPlanta(tiempo.maquina, planta.plantaId, prod, planta.motivo),
         tiempoValido: tiempo.fuente !== 'error',
         estadoTiempo: tiempo.estado,
         operarios: tiempo.operarios,

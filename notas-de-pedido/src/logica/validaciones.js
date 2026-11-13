@@ -65,11 +65,11 @@ export function validarTramos(tramos, config) {
 export function validarLargo(largoCm, config) {
   const largo = leerNumero(largoCm);
   if (!Number.isFinite(largo) || largo <= 0) {
-    return [{ nivel: 'error', mensaje: 'Falta el largo de la pieza' }];
+    return [{ nivel: 'error', campo: 'largoCm', mensaje: 'Falta el largo de la pieza' }];
   }
   if (largo > config.largoMaximoChapaCm) {
     const texto = AVISO_EMPALME.replace('2,44', formatearNumero(config.largoMaximoChapaCm / 100, 2));
-    return [{ nivel: 'aviso', mensaje: texto }];
+    return [{ nivel: 'aviso', campo: 'largoCm', mensaje: texto }];
   }
   return [];
 }
@@ -79,35 +79,38 @@ export function validarMaterialYCantidad(renglon, materiales, config) {
   const problemas = [];
   const cantidadLeida = leerNumero(renglon.cantidad);
   if (renglon.sinMaterial) {
-    // Artículo de catálogo: solo importa la cantidad.
-    if (!Number.isInteger(cantidadLeida) || cantidadLeida < 1) {
-      problemas.push({ nivel: 'error', mensaje: 'La cantidad tiene que ser un número entero mayor a 0' });
+    // Artículo de catálogo, servicio o pieza con plano: solo importa la cantidad.
+    if (renglon.cantidadDecimal) {
+      // Servicios: se pueden vender 2,5 horas.
+      if (!(cantidadLeida > 0)) problemas.push({ nivel: 'error', campo: 'cantidad', mensaje: 'La cantidad tiene que ser mayor a 0' });
+    } else if (!Number.isInteger(cantidadLeida) || cantidadLeida < 1) {
+      problemas.push({ nivel: 'error', campo: 'cantidad', mensaje: 'La cantidad tiene que ser un número entero mayor a 0' });
     }
     return problemas;
   }
   const material = materiales.materiales.find((m) => m.id === renglon.materialId);
   if (!material) {
-    problemas.push({ nivel: 'error', mensaje: 'Elegí el material' });
+    problemas.push({ nivel: 'error', campo: 'materialId', mensaje: 'Elegí el material' });
   } else if (!material.terminaciones.includes(renglon.terminacion)) {
-    problemas.push({ nivel: 'error', mensaje: `La terminación elegida no existe para ${material.nombre}` });
+    problemas.push({ nivel: 'error', campo: 'terminacion', mensaje: `La terminación elegida no existe para ${material.nombre}` });
   }
 
   if (!materiales.calibres.find((c) => c.id === renglon.calibreId)) {
-    problemas.push({ nivel: 'error', mensaje: 'Elegí el calibre' });
+    problemas.push({ nivel: 'error', campo: 'calibreId', mensaje: 'Elegí el calibre' });
   }
 
   if (renglon.terminacion === 'P') {
     if (!materiales.colores.find((c) => c.id === renglon.colorId)) {
-      problemas.push({ nivel: 'error', mensaje: 'Elegí el color de la chapa prepintada' });
+      problemas.push({ nivel: 'error', campo: 'colorId', mensaje: 'Elegí el color de la chapa prepintada' });
     }
     if (config.ladoPinturaObligatorio && !['afuera', 'adentro', 'ambos'].includes(renglon.ladoPintura)) {
-      problemas.push({ nivel: 'error', mensaje: 'Indicá de qué lado va la pintura (afuera, adentro o los dos lados)' });
+      problemas.push({ nivel: 'error', campo: 'ladoPintura', mensaje: 'Indicá de qué lado va la pintura (afuera, adentro o los dos lados)' });
     }
   }
 
   const cantidad = leerNumero(renglon.cantidad);
   if (!Number.isInteger(cantidad) || cantidad < 1) {
-    problemas.push({ nivel: 'error', mensaje: 'La cantidad tiene que ser un número entero mayor a 0' });
+    problemas.push({ nivel: 'error', campo: 'cantidad', mensaje: 'La cantidad tiene que ser un número entero mayor a 0' });
   }
   return problemas;
 }
@@ -116,13 +119,13 @@ export function validarMaterialYCantidad(renglon, materiales, config) {
 export function validarEncabezado(nota) {
   const problemas = [];
   if (!nota.sucursalId) {
-    problemas.push({ nivel: 'error', mensaje: 'Falta la sucursal de origen' });
+    problemas.push({ nivel: 'error', campo: 'sucursalId', mensaje: 'Falta la sucursal de origen' });
   }
   if (!String(nota.cliente || '').trim()) {
-    problemas.push({ nivel: 'error', mensaje: 'Falta el cliente' });
+    problemas.push({ nivel: 'error', campo: 'cliente', mensaje: 'Falta el cliente' });
   }
   if (!String(nota.factura || '').trim()) {
-    problemas.push({ nivel: 'error', mensaje: 'Falta el número de factura' });
+    problemas.push({ nivel: 'error', campo: 'factura', mensaje: 'Falta el número de factura' });
   }
   return problemas;
 }

@@ -172,5 +172,107 @@
     }
   ],
   "colorCaraSinPintarHex": "#d6d6d6",
-  "_letraCodigoGenerico": "SUPUESTO: última letra del código genérico. Prepintada = letra del color (negro N, como en CL1010N). Sin pintar = letra del material (galvanizado Z de zinc)."
+  "_letraCodigoGenerico": "SUPUESTO: última letra del código genérico. Prepintada = letra del color (negro N, como en CL1010N). Sin pintar = letra del material (galvanizado Z de zinc).",
+  "industriales": {
+    "_leeme": "Materiales y espesores EN MILÍMETROS para las piezas metalmecánicas y los servicios (G-TEC) y los productos de HIPER que se publican por espesor. No reemplazan a los calibres C30–C20 de la zinguería: son otra lista. Solo figura lo que cada empresa publica; la lista completa que trabaja cada planta está [A CONFIRMAR]. De acá toma las opciones herramientas/cargar-relevamiento.js (después de editar, volver a correrla).",
+    "materiales": [
+      {
+        "nombre": "SAE 1010 (acero al carbono)",
+        "empresas": [
+          "gtec"
+        ],
+        "fuente": "https://gtecdesarrollosyservicios.com/ (13/11/2026)"
+      },
+      {
+        "nombre": "acero inoxidable",
+        "empresas": [
+          "gtec",
+          "hiper"
+        ],
+        "fuente": "https://gtecdesarrollosyservicios.com/ (13/11/2026); HIPER publica caños de acero inoxidable 0,5 mm"
+      },
+      {
+        "nombre": "aluminio",
+        "empresas": [
+          "gtec"
+        ],
+        "fuente": "https://gtecdesarrollosyservicios.com/ (13/11/2026)"
+      },
+      {
+        "nombre": "chapa galvanizada",
+        "empresas": [
+          "gtec",
+          "hiper"
+        ],
+        "fuente": "https://gtecdesarrollosyservicios.com/ (13/11/2026)"
+      },
+      {
+        "nombre": "caño estructural",
+        "empresas": [
+          "gtec"
+        ],
+        "fuente": "https://gtecdesarrollosyservicios.com/ (13/11/2026)"
+      }
+    ],
+    "espesoresMm": [
+      {
+        "mm": 0.5,
+        "empresas": [
+          "hiper"
+        ],
+        "fuente": "https://hiperargentina.com (fichas de producto, 13/11/2026): perfil omega y caños de acero inoxidable"
+      },
+      {
+        "mm": 0.7,
+        "empresas": [
+          "hiper"
+        ],
+        "fuente": "https://hiperargentina.com (fichas de producto, 13/11/2026): fleje perforado"
+      },
+      {
+        "mm": 1.25,
+        "empresas": [
+          "hiper",
+          "gtec"
+        ],
+        "fuente": "https://hiperargentina.com (fichas de producto, 13/11/2026): soportes y conectores; https://gtecdesarrollosyservicios.com/ (13/11/2026): chapa galvanizada"
+      },
+      {
+        "mm": 2,
+        "empresas": [
+          "gtec"
+        ],
+        "fuente": "https://gtecdesarrollosyservicios.com/ (13/11/2026): acero inoxidable y SAE 1010"
+      },
+      {
+        "mm": 2.5,
+        "empresas": [
+          "hiper"
+        ],
+        "fuente": "https://hiperargentina.com (fichas de producto, 13/11/2026): plancheta"
+      },
+      {
+        "mm": 3.2,
+        "empresas": [
+          "hiper",
+          "gtec"
+        ],
+        "fuente": "https://hiperargentina.com (fichas de producto, 13/11/2026): fogoneros y anclajes; https://gtecdesarrollosyservicios.com/ (13/11/2026): caño 50 × 25"
+      },
+      {
+        "mm": 4.8,
+        "empresas": [
+          "gtec"
+        ],
+        "fuente": "https://gtecdesarrollosyservicios.com/ (13/11/2026): SAE 1010"
+      },
+      {
+        "mm": 6.3,
+        "empresas": [
+          "gtec"
+        ],
+        "fuente": "https://gtecdesarrollosyservicios.com/ (13/11/2026): SAE 1010"
+      }
+    ]
+  }
 }

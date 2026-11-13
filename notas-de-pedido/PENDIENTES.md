@@ -148,6 +148,37 @@ Se eligió lo más recomendado en cada caso. Detalle en `docs/PRODUCCION.md` y `
 | 90 | **Demo**: 500 notas con semilla fija 20261028, número `D-…`, sin usar los contadores; ritmo simulado por operario de 80 % a 115 % | `logica/demo.js` |
 | 91 | La producción vive en el navegador como las notas: jefe y operarios en el mismo equipo hasta pasar a Google | `almacenamiento.js` |
 
+## I. Grupo de empresas y catálogo unificado (13/11/2026): decisiones tomadas sin poder consultar
+
+Se eligió lo más recomendado en cada caso. Detalle y fuentes en `docs/CATALOGO_GRUPO.md`; cambios en `docs/CAMBIOS.md`.
+**[SUPUESTO]** = lo decidió el programador. **[A CONFIRMAR]** = dato de la empresa que no se pudo comprobar en fuentes públicas.
+
+| # | Decisión o supuesto | Dónde se cambia |
+|---|---|---|
+| 92 | **[A CONFIRMAR] Vínculo entre las tres empresas.** Lo comprobado: Abasto vende productos marca Hiper Argentina (95 de 210). No se encontró en fuentes públicas la relación societaria ni el nombre del grupo. **[SUPUESTO]** rótulo "Grupo HIPER · Abasto · G-TEC" | `datos/empresas.json` → `grupo.nombre` |
+| 93 | **[SUPUESTO] Prefijos del identificador:** AB, HI y GT. El número sigue correlativo **por sucursal** (regla 5.1 sin cambios); como cada sucursal es de una sola empresa, queda por empresa y sucursal. Identificador completo `AB-C-123`: se usa en producción y como nombre del PDF; la hoja impresa sigue mostrando el número como antes | `empresas.json` → `prefijo`; `logica/empresas.js` → `identificadorDeNota` |
+| 94 | **[SUPUESTO] Sucursales de HIPER y G-TEC:** una cada una ("HIPER Av. Japón", letra H; "G-TEC Ferreyra", letra G), con 3 vendedores genéricos cada una. **Pasar sucursales, letras, vendedores y último número de talonario reales** | `sucursales.json`, `vendedores.json`; Configuración → Sucursales |
+| 95 | **[SUPUESTO] Logos y colores de HIPER y G-TEC:** no hay archivo de logo, se muestra el nombre en un recuadro (pantalla e impresión) con colores neutros. Para poner el logo: copiar el archivo a `recursos/` y escribir su ruta | `empresas.json` → `logo`, `logoTexto`, `colorPrincipal`… |
+| 96 | **[A CONFIRMAR] Razón social:** "Metalquímica Hiper S.A." es como figura en el sitio de HIPER; la de G-TEC ("G-TEC Desarrollos y Servicios S.A.") se vio solo en un listado de comercio exterior. Hoy no se imprimen (solo el nombre comercial) | `empresas.json` → `razonSocial` |
+| 97 | **[A CONFIRMAR] Dónde se hacen los plegados a medida de Abasto.** Se supone un "Taller de plegado de Abasto" con las máquinas y operarios que ya estaban. Si los hace la planta de HIPER, alcanza con cambiar `fabricaEn` | `empresas.json` → `plantas`; `catalogo.json` → `fabricaEn` |
+| 98 | **[A CONFIRMAR] Curva articulada, codo rectangular, ramal y sombrero H:** en las webs figuran con marca Hiper Argentina, pero el programa ya los trataba como armados en el taller (con su tiempo de banco). **No se cambió.** Si llegan hechos de HIPER: `"abastecimiento": "stock"` y `"fabricaEn": "planta_hiper"` | `herramientas/cargar-relevamiento.js` → `BASE` (y volver a correrla) |
+| 99 | **[A CONFIRMAR] Productos marca Abasto sin medidas publicadas** (chapas sinusoidal y trapezoidal, espina perimetral, codo enlozado): se cargaron con un campo de texto "presentación o medida" y sin dónde se fabrican | `catalogo.json` (ids `ab_…`) |
+| 100 | **[A CONFIRMAR] Canaletas de HIPER** (Americana, Moldura, Hiper, 1/2 caña, Rectangular): las tiendas publican los accesorios pero no las canaletas. **No se cargaron perfiles nuevos** (no se inventan medidas) | `catalogo.json` |
+| 101 | **Códigos de facturación de los 178 productos relevados: no hay.** Salen con "código pendiente" (no se inventan ni se arma un genérico). Cuando estén: `"codigo"` en la plantilla o en cada modelo | `catalogo.json` → `codigo` |
+| 102 | **[SUPUESTO] Regla de reparto entre plantas:** lo que se fabrica a pedido va a la planta que lo hace (aunque venda otra empresa del grupo); lo de stock y la reventa de otras marcas lo prepara el depósito de la empresa que emite la nota. **Confirmar** el circuito real entre empresas (¿pedido interno?, ¿quién factura?) | `logica/empresas.js` → `plantaDeRenglon` |
+| 103 | **[SUPUESTO] Máquinas y operarios de HIPER y G-TEC:** una "línea de zinguería", una perfiladora y un depósito en HIPER (3 operarios); en G-TEC una máquina por cada servicio publicado (4 operarios). **Las cantidades reales no se publican** | `datos/produccion.json` |
+| 104 | **[SUPUESTO] Tiempos de G-TEC:** no hay estudio. Servicio por hora = el tiempo vendido (1 h = 60 min, sin suplementos); servicios por pieza, metro o trabajo completo y piezas metalmecánicas: 15 min de preparación + 10 min por unidad como punto de partida. G-TEC usa Lantek: lo ideal es tomar de ahí los tiempos | Producción → Parámetros de tiempos → "Productos sin perfil" (`metalmecanica`, `servicios`) |
+| 105 | **[SUPUESTO] Pieza metalmecánica con varios procesos:** se programa como **un** trabajo en la máquina del primer proceso elegido (no hay ruta por operaciones). Mejora posible: un trabajo por proceso | `logica/tiemposRenglon.js` → `maquinaDelProducto` |
+| 106 | **[A CONFIRMAR] Plegado CNC de G-TEC:** el sitio dice "hasta 12,7 mm" en el título y "6,3 mm" en el texto. Hoy: aviso desde 6,3 mm y error pasando 12,7 mm | `docs/relevamiento/g-tec.json` → `limites` (y volver a correr la herramienta) |
+| 107 | **[A CONFIRMAR] Materiales y espesores de G-TEC e HIPER:** solo se cargaron los que aparecen publicados (SAE 1010, inoxidable, aluminio, galvanizada, caño estructural; 0,5 a 6,3 mm). La lista completa no está publicada. El campo admite cualquier espesor y "otro" material | `datos/materiales.json` → `industriales` |
+| 108 | **[SUPUESTO] Plano adjunto:** se guarda el **nombre o el enlace** del plano (PDF, DXF, Drive), no el archivo: el navegador da unos 5 MB para todo. Al pasar a Google, el archivo va a Drive | `catalogo.json` → parámetro `plano` |
+| 109 | **[A CONFIRMAR] ¿El corte láser "tercerizado" de babetas y cumbreras lo hace G-TEC?** Hoy sigue como tercerizado sin planta. Si es G-TEC, el renglón podría generar solo el trabajo de corte en esa planta | `logica/empresas.js`; `corteLaser.js` |
+| 110 | **[SUPUESTO] Palabras del mostrador para el buscador** ("durlock", "goteras", "bajada", "caballete"…): hay que validarlas con los vendedores | `herramientas/cargar-relevamiento.js` → `SINONIMOS` |
+| 111 | **[SUPUESTO] Cada vendedor ve el catálogo de su empresa** y con "Ver todo el grupo" el de las tres (queda recordado). Un vendedor solo emite notas de las sucursales de su empresa | `logica/empresas.js` → `plantillasVisibles`; pantalla del asistente |
+| 112 | **[SUPUESTO] El jefe de producción elige la planta** al ingresar (o "todas") y ve solo sus trabajos, máquinas y operarios. No se arman lotes con trabajos de dos plantas. La clave sigue siendo una sola para todas | Ingreso; Producción → "Planta" |
+| 113 | **Demo:** ahora son 600 notas (50 por local: 10 de Abasto, HIPER y G-TEC). Las 500 de Abasto salen **idénticas** a antes; las de HIPER son pedidos mayoristas de catálogo y las de G-TEC piezas y servicios con textos de ejemplo | `logica/demo.js` |
+| 114 | Se quitó `marca` de `config.json`: logo y colores ahora están **una sola vez**, en `empresas.json` (la de Abasto conserva los mismos valores) | `datos/empresas.json` |
+
 ## G. Para cuando se pase a Google (Apps Script)
 
 - La numeración tiene que hacerse en el servidor con `LockService`, que es un candado para que dos vendedores no saquen el mismo número a la vez.

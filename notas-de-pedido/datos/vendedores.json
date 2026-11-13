@@ -1,5 +1,5 @@
 {
-  "_leeme": "Vendedores de ejemplo, numerados (3 por sucursal). En la versión con Google se reemplaza por la cuenta de la empresa.",
+  "_leeme": "Vendedores de ejemplo, numerados (3 por sucursal de Abasto y 3 por cada una de las otras dos empresas: SUPUESTO). En la versión con Google se reemplaza por la cuenta de la empresa.",
   "vendedores": [
     {
       "id": "v01",
@@ -150,6 +150,36 @@
       "id": "v30",
       "nombre": "Vendedor 30",
       "sucursalHabitualId": "sucursal_10"
+    },
+    {
+      "id": "vh01",
+      "nombre": "Vendedor HIPER 1",
+      "sucursalHabitualId": "hiper_japon"
+    },
+    {
+      "id": "vg01",
+      "nombre": "Vendedor G-TEC 1",
+      "sucursalHabitualId": "gtec_ferreyra"
+    },
+    {
+      "id": "vh02",
+      "nombre": "Vendedor HIPER 2",
+      "sucursalHabitualId": "hiper_japon"
+    },
+    {
+      "id": "vg02",
+      "nombre": "Vendedor G-TEC 2",
+      "sucursalHabitualId": "gtec_ferreyra"
+    },
+    {
+      "id": "vh03",
+      "nombre": "Vendedor HIPER 3",
+      "sucursalHabitualId": "hiper_japon"
+    },
+    {
+      "id": "vg03",
+      "nombre": "Vendedor G-TEC 3",
+      "sucursalHabitualId": "gtec_ferreyra"
     }
   ]
 }

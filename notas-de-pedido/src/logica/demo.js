@@ -1,7 +1,7 @@
 // =============================================================
 // demo.js
-// DATOS DE DEMOSTRACIÓN: 50 notas emitidas por cada local de datos/sucursales.json,
-// con semilla fija (siempre salen iguales), marcadas demo: true y con número propio
+// DATOS DE DEMOSTRACIÓN: 50 notas emitidas por cada local de datos/sucursales.json
+// (los de Abasto, el de HIPER y el de G-TEC), con semilla fija (siempre salen iguales), marcadas demo: true y con número propio
 // ("D-C001"): NO usan los contadores reales ni se mezclan con las notas reales
 // (almacenamiento.borrarDemo() saca solo lo marcado como demo).
 //
@@ -10,6 +10,10 @@
 //   (canaleta de la nota real, cumbrera D30, limahoya, babeta…) → forman familias;
 // - ~35 % son variantes parecidas (mismo producto, otra medida o calibre);
 // - ~20 % son claramente distintos (piezas a medida, caños, boquetas, artículos).
+// Cada empresa pide lo suyo: Abasto, plegados a medida y artículos; HIPER, pedidos mayoristas
+// de sus productos de catálogo (cantidades grandes, salen de depósito); G-TEC, piezas a medida
+// y servicios. Las notas de Abasto salen IGUALES que antes de sumar las otras dos empresas
+// (las nuevas usan otro generador de azar, para no correr la secuencia).
 // Las notas viejas quedan terminadas, con tiempo real simulado (para ver la eficiencia),
 // las del medio a medio hacer y las nuevas pendientes.
 // =============================================================
@@ -20,6 +24,7 @@ import { fotoDelCalculo } from './fotoCalculo.js';
 import { tiempoDeNota } from './tiemposRenglon.js';
 import { sumarDiasHabiles, diaDe, registroVacio } from './produccion.js';
 import { redondear } from './numeros.js';
+import { empresaDeSucursal, plantaDeRenglon, maquinaEnPlanta, plantillasVisibles } from './empresas.js';
 
 export const SEMILLA_DEMO = 20261028;
 export const NOTAS_POR_LOCAL = 50;
@@ -124,6 +129,47 @@ function renglonDemo(azar, datos, indice) {
   return renglon;
 }
 
+/** HIPER vende por mayor sus productos de catálogo: un modelo al azar y cantidades grandes. */
+function renglonDemoHiper(azar, datos, indice) {
+  const propias = plantillasVisibles(datos.catalogo, 'hiper').filter((p) => p.fabricaEn === 'planta_hiper' && p.sinMaterial);
+  const plantilla = azar.elegir(propias);
+  const renglon = crearRenglonDesdePlantilla(plantilla, datos.config);
+  const modelos = plantilla.parametros.find((d) => d.id === 'variante');
+  if (modelos) renglon.parametros.variante = azar.elegir(modelos.opciones).valor;
+  renglon.cantidad = azar.elegir([10, 20, 25, 50, 100, 200]);
+  renglon.id = `rdemo_${indice}`;
+  return renglon;
+}
+
+// Textos de relleno para la demo de G-TEC (no son productos reales: son ejemplos de lo que escribe un vendedor).
+const PIEZAS_DEMO = ['soporte', 'tapa', 'bandeja', 'ménsula', 'caja', 'refuerzo'];
+
+/** G-TEC: 60 % piezas a medida y 40 % servicios (por hora o por pieza), dentro de los límites publicados. */
+function renglonDemoGtec(azar, datos, indice) {
+  const servicios = datos.catalogo.plantillas.filter((p) => p.tipoPieza === 'servicio');
+  const esPieza = azar.numero() < 0.6;
+  const plantilla = esPieza ? buscarPlantilla(datos.catalogo, 'gt_pieza_a_medida') : azar.elegir(servicios);
+  const renglon = crearRenglonDesdePlantilla(plantilla, datos.config);
+  if (esPieza) {
+    const procesos = plantilla.parametros.find((d) => d.id === 'procesos').opciones.map((o) => o.valor);
+    Object.assign(renglon.parametros, {
+      descripcion: azar.elegir(PIEZAS_DEMO),
+      dimensiones: `${azar.entero(5, 60) * 10} x ${azar.entero(3, 30) * 10}`,
+      espesorMm: azar.elegir([1.25, 2, 3.2, 4.8]),
+      procesos: azar.numero() < 0.5 ? [procesos[0]] : [procesos[0], procesos[2]],
+    });
+    renglon.cantidad = azar.elegir([1, 5, 10, 20, 50]);
+  } else {
+    const porHora = azar.numero() < 0.5;
+    Object.assign(renglon.parametros, { alcance: `trabajo de demostración ${indice}`, unidad: porHora ? 'hora' : 'pieza' });
+    renglon.cantidad = porHora ? azar.elegir([0.5, 1, 1.5, 2, 4]) : azar.elegir([5, 10, 30]);
+  }
+  renglon.id = `rdemo_${indice}`;
+  return renglon;
+}
+
+const RENGLON_POR_EMPRESA = { hiper: renglonDemoHiper, gtec: renglonDemoGtec };
+
 /**
  * Genera los datos de demostración.
  * @param {{config, materiales, codigos, catalogo, sucursales}} datos
@@ -132,14 +178,17 @@ function renglonDemo(azar, datos, indice) {
  * @returns {{notas: Array, registros: object, resumen: object}}
  */
 export function generarDemo(datos, { modelo, prod, operarios }, opciones = {}) {
-  const azar = crearAzar(opciones.semilla ?? SEMILLA_DEMO);
+  const azarAbasto = crearAzar(opciones.semilla ?? SEMILLA_DEMO);
+  const azarOtras = crearAzar((opciones.semilla ?? SEMILLA_DEMO) + 1);
   const hoy = opciones.hoy || diaDe(new Date());
   const porLocal = opciones.porLocal ?? NOTAS_POR_LOCAL;
   const notas = [];
   const registros = {};
   const activos = operarios.filter((o) => o.activo !== false);
   // Rendimiento "verdadero" simulado de cada operario (para que la eficiencia tenga algo que mostrar).
-  const ritmo = Object.fromEntries(activos.map((o) => [o.id, 0.8 + azar.numero() * 0.35]));
+  const delTaller = (o) => (o.planta || 'taller_abasto') === 'taller_abasto';
+  const ritmo = Object.fromEntries(activos.filter(delTaller).map((o) => [o.id, 0.8 + azarAbasto.numero() * 0.35])
+    .concat(activos.filter((o) => !delTaller(o)).map((o) => [o.id, 0.8 + azarOtras.numero() * 0.35])));
   const vendedores = datos.vendedores || [];
   let indice = 0;
   // Fechas de emisión: los últimos 30 días hábiles, más notas recientes que viejas.
@@ -147,13 +196,16 @@ export function generarDemo(datos, { modelo, prod, operarios }, opciones = {}) {
   for (let i = 30; i >= 0; i--) dias.push(sumarDiasHabiles(restarDiasHabiles(hoy, i, prod.diasHabiles), 0, prod.diasHabiles));
 
   for (const sucursal of datos.sucursales) {
+    const empresa = empresaDeSucursal(datos, sucursal.id);
+    const armarRenglon = RENGLON_POR_EMPRESA[empresa?.id] || renglonDemo;
+    const azar = armarRenglon === renglonDemo ? azarAbasto : azarOtras;
     for (let n = 1; n <= porLocal; n++) {
       const emision = dias[Math.min(dias.length - 1, Math.floor(Math.sqrt(azar.numero()) * dias.length))];
       const urgente = azar.numero() < 0.1;
       const renglones = [];
       const cuantos = azar.pesado([{ n: 1, peso: 35 }, { n: 2, peso: 35 }, { n: 3, peso: 20 }, { n: 4, peso: 10 }]).n;
       for (let r = 0; r < cuantos; r++) {
-        const renglon = renglonDemo(azar, datos, indice++);
+        const renglon = armarRenglon(azar, datos, indice++);
         const resultado = calcularRenglon(renglon, datos);
         renglon.calculado = fotoDelCalculo(renglon, resultado, datos.config);
         renglones.push(renglon);
@@ -164,6 +216,7 @@ export function generarDemo(datos, { modelo, prod, operarios }, opciones = {}) {
         demo: true,
         estado: 'emitida',
         numero: `D-${sucursal.letra}${String(n).padStart(3, '0')}`,
+        empresaId: empresa?.id || null,
         sucursalId: sucursal.id,
         vendedorId: vendedor?.id || null,
         fechaCreacion: `${emision}T09:00:00.000Z`,
@@ -201,7 +254,10 @@ function simularProduccion(nota, azar, { hoy, emision, datos, modelo, prod, acti
   nota.renglones.forEach((renglon, i) => {
     const tiempo = tiempos.renglones[i];
     const minutos = tiempo.totalEstandarS / 60 + (i === 0 ? tiempos.pedidoEstandarS / 60 : 0);
-    const habilitados = activos.filter((o) => o.maquinas.includes(tiempo.maquina));
+    // La máquina es la de la planta que hace el renglón (ver logica/empresas.js).
+    const planta = plantaDeRenglon(renglon, nota, datos);
+    const maquina = maquinaEnPlanta(tiempo.maquina, planta.plantaId, prod, planta.motivo);
+    const habilitados = activos.filter((o) => o.maquinas.includes(maquina));
     const operario = azar.elegir(habilitados.length ? habilitados : activos);
     const terminado = antiguedad > 6 || (antiguedad > 2 && azar.numero() < 0.5);
     const asignado = terminado || antiguedad > 0 || azar.numero() < 0.3;

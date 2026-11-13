@@ -16,6 +16,10 @@ export function datosCompletos() {
     materiales: leerDatos('materiales.json'),
     codigos: leerDatos('codigos.json'),
     catalogo: leerDatos('catalogo.json'),
+    // El grupo: empresas, plantas, sucursales y vendedores (ver src/logica/empresas.js).
+    grupo: leerDatos('empresas.json'),
+    sucursales: leerDatos('sucursales.json').sucursales,
+    vendedores: leerDatos('vendedores.json').vendedores,
   };
 }
 

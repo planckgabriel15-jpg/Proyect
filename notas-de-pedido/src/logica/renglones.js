@@ -12,14 +12,27 @@ export function buscarPlantilla(catalogo, plantillaId) {
   return (catalogo.plantillas || []).find((p) => p.id === plantillaId) || null;
 }
 
-/** Filtra plantillas por texto (nombre o palabras clave), sin importar mayúsculas ni tildes. */
-export function filtrarPlantillas(catalogo, texto) {
-  const buscado = sinTildes(texto);
-  if (!buscado) {
-    return catalogo.plantillas;
+/** Todo el texto por el que se puede encontrar una plantilla: nombre, palabras del mostrador, marca y modelos. */
+export function textoBuscable(plantilla) {
+  const modelos = (plantilla.parametros || []).filter((d) => d.tipo === 'opciones' && d.id === 'variante')
+    .flatMap((d) => d.opciones.map((o) => o.etiqueta));
+  return sinTildes([plantilla.nombre, ...(plantilla.palabrasClave || []), plantilla.marca || '', ...modelos].join(' '));
+}
+
+/**
+ * Filtra plantillas por texto, sin importar mayúsculas ni tildes. Se puede escribir más de una
+ * palabra y en cualquier orden ("caño 100", "tapa americana"): tienen que estar todas.
+ * @param {Array} [plantillas]  lista donde buscar (por defecto todo el catálogo)
+ */
+export function filtrarPlantillas(catalogo, texto, plantillas = catalogo.plantillas) {
+  const palabras = sinTildes(texto).split(/\s+/).filter(Boolean);
+  if (!palabras.length) {
+    return plantillas;
   }
-  return catalogo.plantillas.filter((p) =>
-    sinTildes(`${p.nombre} ${(p.palabrasClave || []).join(' ')}`).includes(buscado));
+  return plantillas.filter((p) => {
+    const donde = textoBuscable(p);
+    return palabras.every((palabra) => donde.includes(palabra));
+  });
 }
 
 /** Agrupa las plantillas por grupo, respetando el orden de catalogo.grupos. */
@@ -54,13 +67,18 @@ export function crearRenglonDesdePlantilla(plantilla, config) {
   return {
     id: crearId('r'),
     plantillaId: plantilla.id,
-    tipoPieza: plantilla.tipoPieza,                 // 'plegada' | 'especial'
+    tipoPieza: plantilla.tipoPieza,                 // 'plegada' | 'especial' | 'metalmecanica' | 'servicio'
     elemento: plantilla.elemento,                   // se usa para buscar el código
     textoDescripcion: plantilla.textoDescripcion,   // ej. "canaleta"
     usaLargo: plantilla.usaLargo !== false,
     calculoDesarrollo: plantilla.calculoDesarrollo || 'sumaDeTramos',
     usaPerfil: plantilla.usaPerfil === true,        // tapa suelta: pieza especial que igual lleva perfil
     sinMaterial: plantilla.sinMaterial === true,    // artículos de catálogo: sin material, calibre ni color
+    sinDibujo: plantilla.sinDibujo === true,        // artículos, servicios y piezas con plano: no llevan dibujo
+    cantidadDecimal: plantilla.cantidadDecimal === true, // servicios: 2,5 horas
+    // Dónde se hace (ver logica/empresas.js): planta, "tercero" o null; y si sale de stock o se fabrica.
+    fabricaEn: plantilla.fabricaEn ?? null,
+    abastecimiento: plantilla.abastecimiento || (plantilla.sinMaterial && plantilla.tipoPieza === 'especial' ? 'stock' : 'a_pedido'),
     codigoGenerico: plantilla.codigoGenerico || null, // cómo armar el código si no está en la tabla
     generador3d: plantilla.generador3d || 'extrusion',
     perfil: plantilla.perfil ? copiarPerfil(plantilla.perfil) : { direccionInicial: 'arriba', tramos: [] },
@@ -74,7 +92,7 @@ export function crearRenglonDesdePlantilla(plantilla, config) {
     cantidad: 1,
     observaciones: '',
     desarrolloManualCm: null,
-    codigoPendiente: false,
+    codigoPendiente: plantilla.codigoPendiente === true, // productos sin código de facturación cargado
     // Tapas y boquetas puestas en la canaleta (solo canaletas).
     accesorios: plantilla.admiteAccesorios ? accesoriosVacios() : null,
     // Plegado con pendiente: el perfil cambia de una punta a la otra (ver pendiente.js).

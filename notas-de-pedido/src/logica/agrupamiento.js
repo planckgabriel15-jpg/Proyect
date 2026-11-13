@@ -142,6 +142,8 @@ export function resumirLote(trabajos, toleranciaMm = 0) {
 /** ¿El trabajo puede entrar al lote? Devuelve el motivo si no puede (sirve para explicar). */
 export function motivoParaNoEntrar(trabajo, lote, opciones) {
   const lider = lote.trabajos[0];
+  // Nunca se arma un lote con trabajos de dos plantas (aunque se permita mezclar máquinas).
+  if ((trabajo.planta || null) !== (lider.planta || null)) return 'otra planta';
   if (opciones.respetarMaquina && trabajo.maquina !== lider.maquina) return 'otra máquina';
   if (opciones.urgentesSolas && (trabajo.prioridad === 'urgente') !== (lider.prioridad === 'urgente')) return 'las urgentes van solas';
   const fechas = lote.trabajos.map((t) => t.fechaEntrega).concat(trabajo.fechaEntrega).sort();

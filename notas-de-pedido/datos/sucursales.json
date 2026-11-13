@@ -1,15 +1,100 @@
 {
-  "_leeme": "Sucursales (sección 7.4). 'letra' es SUPUESTO (se usará para el nombre del archivo en Drive). 'ultimoNumeroNP' = último número del talonario de papel; se cambia desde Configuración.",
+  "_leeme": "Sucursales, locales y plantas de venta de las tres empresas. 'empresaId' dice de qué empresa es cada una (ver datos/empresas.json). La numeración de NP es por sucursal (y por lo tanto por empresa). 'letra' es SUPUESTO (se usa en el identificador AB-C-123 y para el nombre del archivo en Drive). 'ultimoNumeroNP' = último número del talonario de papel; se cambia desde Configuración. Direcciones: sitios de cada empresa (13/11/2026).",
   "sucursales": [
-    { "id": "colon", "nombre": "Colón", "letra": "C", "ultimoNumeroNP": 0 },
-    { "id": "juan_b_justo", "nombre": "Juan B. Justo", "letra": "J", "ultimoNumeroNP": 0 },
-    { "id": "donato_alvarez", "nombre": "Donato Álvarez", "letra": "D", "ultimoNumeroNP": 0 },
-    { "id": "ohiggins", "nombre": "O'Higgins", "letra": "O", "ultimoNumeroNP": 0 },
-    { "id": "monsenor_pablo_cabrera", "nombre": "Monseñor Pablo Cabrera", "letra": "M", "ultimoNumeroNP": 0 },
-    { "id": "parque_ferreyra", "nombre": "Parque Ferreyra", "letra": "P", "ultimoNumeroNP": 0 },
-    { "id": "francisco_de_arteaga", "nombre": "Francisco de Arteaga", "letra": "F", "ultimoNumeroNP": 0 },
-    { "id": "carlos_paz_carcano", "nombre": "Carlos Paz – Cárcano", "letra": "K", "ultimoNumeroNP": 0 },
-    { "id": "carlos_paz_san_martin", "nombre": "Carlos Paz – San Martín", "letra": "S", "ultimoNumeroNP": 0 },
-    { "id": "sucursal_10", "nombre": "Sucursal 10 (a definir)", "letra": "X", "ultimoNumeroNP": 0 }
+    {
+      "id": "colon",
+      "empresaId": "abasto",
+      "nombre": "Colón",
+      "letra": "C",
+      "ultimoNumeroNP": 0,
+      "direccion": "Av. Colón 5565, Córdoba"
+    },
+    {
+      "id": "juan_b_justo",
+      "empresaId": "abasto",
+      "nombre": "Juan B. Justo",
+      "letra": "J",
+      "ultimoNumeroNP": 0,
+      "direccion": "Av. Juan B. Justo 2560, Córdoba"
+    },
+    {
+      "id": "donato_alvarez",
+      "empresaId": "abasto",
+      "nombre": "Donato Álvarez",
+      "letra": "D",
+      "ultimoNumeroNP": 0,
+      "direccion": "Donato Álvarez 8701, Córdoba"
+    },
+    {
+      "id": "ohiggins",
+      "empresaId": "abasto",
+      "nombre": "O'Higgins",
+      "letra": "O",
+      "ultimoNumeroNP": 0,
+      "direccion": "Av. Bernardo O'Higgins 3249, local 3, Córdoba"
+    },
+    {
+      "id": "monsenor_pablo_cabrera",
+      "empresaId": "abasto",
+      "nombre": "Monseñor Pablo Cabrera",
+      "letra": "M",
+      "ultimoNumeroNP": 0,
+      "direccion": "Av. Monseñor Pablo Cabrera 4523, Córdoba"
+    },
+    {
+      "id": "parque_ferreyra",
+      "empresaId": "abasto",
+      "nombre": "Parque Ferreyra",
+      "letra": "P",
+      "ultimoNumeroNP": 0,
+      "direccion": "Gral. Manuel Savio 4880, Ferreyra, Córdoba"
+    },
+    {
+      "id": "francisco_de_arteaga",
+      "empresaId": "abasto",
+      "nombre": "Francisco de Arteaga",
+      "letra": "F",
+      "ultimoNumeroNP": 0,
+      "direccion": "Francisco de Arteaga 2463, Córdoba"
+    },
+    {
+      "id": "carlos_paz_carcano",
+      "empresaId": "abasto",
+      "nombre": "Carlos Paz – Cárcano",
+      "letra": "K",
+      "ultimoNumeroNP": 0,
+      "direccion": "Av. Ramón J. Cárcano / Las Malvinas 726, Villa Carlos Paz"
+    },
+    {
+      "id": "carlos_paz_san_martin",
+      "empresaId": "abasto",
+      "nombre": "Carlos Paz – San Martín",
+      "letra": "S",
+      "ultimoNumeroNP": 0,
+      "direccion": "Av. San Martín 1312, Villa Carlos Paz"
+    },
+    {
+      "id": "sucursal_10",
+      "empresaId": "abasto",
+      "nombre": "Sucursal 10 (a definir)",
+      "letra": "X",
+      "ultimoNumeroNP": 0
+    },
+    {
+      "id": "hiper_japon",
+      "empresaId": "hiper",
+      "nombre": "Av. Japón (planta y ventas)",
+      "letra": "H",
+      "ultimoNumeroNP": 0,
+      "direccion": "Av. Japón 2230, Córdoba"
+    },
+    {
+      "id": "gtec_ferreyra",
+      "empresaId": "gtec",
+      "nombre": "Parque Industrial Ferreyra",
+      "letra": "G",
+      "ultimoNumeroNP": 0,
+      "direccion": "Gral. Manuel Savio 5123, Córdoba"
+    }
   ]
 }

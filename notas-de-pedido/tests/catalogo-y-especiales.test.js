@@ -22,7 +22,8 @@ test('catálogo: ids únicos, grupos existentes y solo productos de la empresa',
   const grupos = new Set(catalogo.grupos.map((g) => g.id));
   for (const plantilla of catalogo.plantillas) {
     assert.ok(grupos.has(plantilla.grupo), `${plantilla.id}: grupo desconocido`);
-    assert.ok(['plegada', 'especial'].includes(plantilla.tipoPieza));
+    // Antes solo 'plegada' y 'especial'. Se sumaron los dos tipos pedidos para G-TEC (ver docs/CAMBIOS.md).
+    assert.ok(['plegada', 'especial', 'metalmecanica', 'servicio'].includes(plantilla.tipoPieza));
   }
   for (const id of ['canaleta_nota_real', 'babeta_l_15', 'cumbrera_lisa_20', 'media_cumbrera', 'limahoya', 'tronera',
     'boqueta_suelta', 'tapa_suelta', 'curva_articulada', 'ramal', 'codo_rectangular', 'cano', 'sombrero_h', 'chapa_lisa', 'pieza_libre',
@@ -56,11 +57,18 @@ test('catálogo: piezas plegadas con tramos válidos', () => {
 });
 
 test('catálogo: cada plantilla da un renglón sin errores y con código (de la tabla o genérico)', () => {
-  for (const plantilla of catalogo.plantillas.filter((p) => p.id !== 'pieza_libre')) {
+  // Las plantillas "a medida" (servicios y pieza metalmecánica) nacen con datos por completar: tienen su prueba aparte.
+  for (const plantilla of catalogo.plantillas.filter((p) => p.id !== 'pieza_libre' && !p.aMedida)) {
     const renglon = crearRenglonDesdePlantilla(plantilla, config);
     const r = calcularRenglon(renglon, datos);
     assert.deepEqual(r.errores, [], `${plantilla.id}: ${r.errores.join(' | ')}`);
-    assert.ok(r.codigo.codigo, `${plantilla.id} sin código`);
+    if (plantilla.codigoPendiente) {
+      // Productos relevados de las webs: NO tienen código de facturación y no se inventa (ver docs/CAMBIOS.md).
+      assert.equal(r.codigo.codigo, null, `${plantilla.id}: no se inventa un código`);
+      assert.ok(r.avisos.includes('Código pendiente: lo completa administración'), `${plantilla.id} sin aviso de código pendiente`);
+    } else {
+      assert.ok(r.codigo.codigo, `${plantilla.id} sin código`);
+    }
     assert.ok(!r.descripcion.includes('?'), `${plantilla.id}: descripción incompleta "${r.descripcion}"`);
   }
 });
@@ -264,7 +272,8 @@ test('prepintada de los dos lados', () => {
 test('vendedores numerados (sin nombres)', async () => {
   const { leerDatos } = await import('./ayudante.js');
   const vendedores = leerDatos('vendedores.json').vendedores;
-  assert.equal(vendedores.length, 30);
+  // Eran 30 (Abasto). Con el grupo de empresas se suman 3 de HIPER y 3 de G-TEC (ver docs/CAMBIOS.md).
+  assert.equal(vendedores.length, 36);
   assert.equal(vendedores[0].nombre, 'Vendedor 1');
   assert.equal(vendedores[29].nombre, 'Vendedor 30');
 });

@@ -24,6 +24,7 @@ import { buscarPlantilla } from './renglones.js';
 import { normalizarBoqueta, tipoDeTapa } from './accesoriosCanaleta.js';
 import { calcularItem, tiempoDelPedido, COMPONENTES_SETUP } from './tiempos.js';
 import { calcularRenglon } from './calculoRenglon.js';
+import { abastecimientoDe } from './empresas.js';
 
 /** Cuenta los pliegues del perfil por tipo. */
 export function contarPliegues(perfil, modelo, config) {
@@ -107,6 +108,15 @@ export function detallesDelRenglon(renglon, resultado, modelo, config, tramos) {
   return lista;
 }
 
+/** Máquina propia del producto (servicios y piezas metalmecánicas la traen en el catálogo). */
+function maquinaDelProducto(renglon, plantilla) {
+  if (!plantilla) return null;
+  const procesos = (plantilla.parametros || []).find((d) => d.tipo === 'multiple' && d.id === 'procesos');
+  // Pieza con varios procesos: se programa en la máquina del primero (SUPUESTO, ver PENDIENTES.md sección I).
+  const primero = procesos?.opciones.find((o) => (renglon.parametros?.procesos || []).includes(o.valor));
+  return primero?.maquina || plantilla.maquina || null;
+}
+
 function pliegesDeCano(forma) {
   return forma === 'redonda' || forma === 'circular'
     ? { SIMPLE: 0, ANGULO: 0, CIERRE180: 0, INVERSO: 0, ESPECIAL: 0 }
@@ -117,16 +127,20 @@ function pliegesDeCano(forma) {
 function tiempoSinPerfil(renglon, datos, modelo) {
   const plantilla = datos.catalogo ? buscarPlantilla(datos.catalogo, renglon.plantillaId) : null;
   const grupo = plantilla?.grupo || 'especial';
-  const fila = modelo.productosSinPerfil.find((f) => f.grupo === grupo) || modelo.productosSinPerfil.find((f) => f.grupo === '*');
-  const S = modelo.p.p_supl_total;
+  const filaDe = (nombre) => modelo.productosSinPerfil.find((f) => f.grupo === nombre);
+  // Un grupo sin fila propia: si sale de stock se prepara como un artículo; si no, el valor por defecto.
+  const fila = filaDe(grupo) || (abastecimientoDe(renglon, plantilla) === 'stock' && filaDe('articulos')) || filaDe('*');
   const Q = Math.max(0, leerNumero(renglon.cantidad) || 0);
-  const setupEstandarS = fila.setupS * (1 + S);
-  const piezaEstandarS = fila.piezaS * (1 + S);
+  // Servicio vendido por hora: el tiempo ES lo vendido (1 hora = 3.600 s), sin suplementos ni preparación.
+  const porHora = renglon.tipoPieza === 'servicio' && renglon.parametros?.unidad === 'hora';
+  const S = porHora ? 0 : modelo.p.p_supl_total;
+  const setupEstandarS = porHora ? 0 : fila.setupS * (1 + S);
+  const piezaEstandarS = porHora ? 3600 : fila.piezaS * (1 + S);
   return {
     fuente: 'porUnidad',
     estado: 'OK',
-    mensajes: [`Tiempo por unidad del grupo "${fila.grupo}" ${fila.estado}`],
-    maquina: fila.maquina,
+    mensajes: [porHora ? 'Servicio por hora: el tiempo es el vendido' : `Tiempo por unidad del grupo "${fila.grupo}" ${fila.estado}`],
+    maquina: maquinaDelProducto(renglon, plantilla) || fila.maquina,
     tipoPerfil: 'ESPECIAL',
     operarios: 1,
     cantidad: Q,

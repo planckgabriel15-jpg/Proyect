@@ -6,7 +6,7 @@
 // tardan menos de medio segundo).
 // =============================================================
 
-import { estado, vendedorActual } from './estado.js';
+import { estado, vendedorActual, plantaDeSesion } from './estado.js';
 import * as almacenamiento from '../datos/almacenamiento.js';
 import { prepararModelo } from '../logica/tiempos.js';
 import { armarTrabajos, notasConEstado, minutosEnLotes, diaDe } from '../logica/produccion.js';
@@ -35,12 +35,12 @@ export async function cargarModelo() {
 }
 
 /**
- * @returns {Promise<{hoy, datos, prod, modelo, cambios, notas, registros, lotesGuardados, lotes,
+ * prod = datos/produccion.json con los operarios y máquinas de la planta que se mira; prodCompleto = todo.
+ * @returns {Promise<{hoy, datos, prod, prodCompleto, planta, modelo, cambios, notas, registros, lotesGuardados, lotes,
  *   trabajos, notasEstado, incidencias, porClave: Map}>}
  */
 export async function cargarContexto() {
   const datos = estado.datos;
-  const prod = datos.produccion;
   const { modelo, cambios } = await cargarModelo();
   const [notas, registros, lotesGuardados, incidencias] = await Promise.all([
     almacenamiento.listarNotas({ estado: 'emitida' }),
@@ -48,7 +48,12 @@ export async function cargarContexto() {
     almacenamiento.leerLotes(),
     almacenamiento.leerIncidencias(),
   ]);
-  const trabajos = armarTrabajos(notas, registros, { datos, modelo, prod });
+  // Cada planta ve SUS trabajos, operarios y máquinas (el jefe puede elegir "todas las plantas").
+  const planta = plantaDeSesion();
+  const dePlanta = (x) => !planta || (x.planta || 'taller_abasto') === planta;
+  const prodCompleto = datos.produccion;
+  const prod = { ...prodCompleto, operarios: prodCompleto.operarios.filter(dePlanta), maquinas: prodCompleto.maquinas.filter(dePlanta) };
+  const trabajos = armarTrabajos(notas, registros, { datos, modelo, prod: prodCompleto }).filter((t) => !planta || t.planta === planta);
   const tolerancia = prod.agrupamiento.criterios?.desarrollo?.toleranciaMm ?? 0;
   // Los lotes guardados por el jefe (aceptados o editados) se rearman con los trabajos pendientes.
   const pendientes = trabajos.filter((t) => !t.hecha);
@@ -62,7 +67,7 @@ export async function cargarContexto() {
   }
   const hoy = diaDe(new Date());
   return {
-    hoy, datos, prod, modelo, cambios, notas, registros, lotesGuardados, lotes, trabajos,
+    hoy, datos, prod, prodCompleto, planta, modelo, cambios, notas, registros, lotesGuardados, lotes, trabajos,
     notasEstado: notasConEstado(trabajos, hoy), incidencias,
     porClave: new Map(trabajos.map((t) => [t.clave, t])),
   };

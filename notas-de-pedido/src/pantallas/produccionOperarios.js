@@ -116,8 +116,10 @@ function editorOperarios(prod, refrescar) {
         h('td', {}, h('input', { type: 'checkbox', checked: op.activo !== false, onchange: (e) => { op.activo = e.target.checked; } })))))),
     h('button', { type: 'button', class: 'boton principal', onclick: async () => {
       if (lista.some((o) => !o.nombre.trim())) { mostrarAviso('Cada operario tiene que tener nombre', 'error'); return; }
-      await almacenamiento.guardarOperarios(lista);
-      estado.datos.produccion.operarios = lista;
+      // Se editan los de la planta que se mira: los de las otras plantas quedan como estaban.
+      const todos = estado.datos.produccion.operarios.map((o) => lista.find((editado) => editado.id === o.id) || o);
+      await almacenamiento.guardarOperarios(todos);
+      estado.datos.produccion.operarios = todos;
       mostrarAviso('Operarios guardados', 'ok');
       refrescar();
     } }, 'Guardar operarios'));

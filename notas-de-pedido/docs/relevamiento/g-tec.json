@@ -1,0 +1,142 @@
+{
+  "_leeme": "Servicios publicados por G-TEC en su sitio (https://gtecdesarrollosyservicios.com/, visto el 13/11/2026). Solo datos: nombre del servicio y límites publicados (los materiales y espesores están en datos/materiales.json → industriales). Lo que el sitio no dice queda [A CONFIRMAR]. Lo usa herramientas/cargar-relevamiento.js.",
+  "fuente": "https://gtecdesarrollosyservicios.com/",
+  "servicios": [
+    {
+      "id": "gt_desarrollo_especial",
+      "nombre": "Desarrollo especial (diseño y simulación 3D)",
+      "maquina": "gtec_desarrollo",
+      "dato": "Diseño a pedido con simulaciones en 3D; proyectos de baja, mediana y alta complejidad.",
+      "limites": {},
+      "palabrasClave": [
+        "diseño",
+        "desarrollo",
+        "proyecto",
+        "prototipo",
+        "ingeniería"
+      ]
+    },
+    {
+      "id": "gt_corte_laser",
+      "nombre": "Corte láser de chapa",
+      "maquina": "gtec_laser",
+      "dato": "Acero al carbono, aluminio, acero inoxidable y SAE 1010; hasta 20 mm; tolerancia ±0,2 mm; programado con Lantek.",
+      "limites": {
+        "espesorMaxMm": 20
+      },
+      "palabrasClave": [
+        "láser",
+        "laser",
+        "corte",
+        "calado",
+        "chapa"
+      ]
+    },
+    {
+      "id": "gt_corte_laser_cano",
+      "nombre": "Corte láser de caño",
+      "maquina": "gtec_laser_cano",
+      "dato": "Caños redondos y cuadrados; diámetro hasta 160 mm; espesor hasta 8 mm.",
+      "limites": {
+        "espesorMaxMm": 8,
+        "diametroMaxMm": 160
+      },
+      "palabrasClave": [
+        "láser",
+        "laser",
+        "caño",
+        "tubo",
+        "corte"
+      ]
+    },
+    {
+      "id": "gt_chorro_agua",
+      "nombre": "Corte por chorro de agua",
+      "maquina": "gtec_chorro",
+      "dato": "Espesores de hasta 150 mm; variedad de materiales.",
+      "limites": {
+        "espesorMaxMm": 150
+      },
+      "palabrasClave": [
+        "chorro",
+        "agua",
+        "waterjet",
+        "corte"
+      ]
+    },
+    {
+      "id": "gt_plegado_cnc",
+      "nombre": "Plegado CNC",
+      "maquina": "gtec_plegado",
+      "dato": "Largo hasta 3.000 mm; espesor 6,3 mm en plegado y 2 mm en aplastado; precisión ±0,2 mm.",
+      "limites": {
+        "espesorMaxMm": 12.7,
+        "espesorAvisoMm": 6.3,
+        "largoMaxMm": 3000
+      },
+      "aConfirmar": "El título del servicio dice \"hasta 12,7 mm\" y el texto \"6,3 mm en plegados\": hasta 6,3 pasa sin aviso, de 6,3 a 12,7 avisa que hay que confirmarlo y más de 12,7 no deja emitir.",
+      "palabrasClave": [
+        "plegado",
+        "plegar",
+        "doblar",
+        "aplastado",
+        "cnc"
+      ]
+    },
+    {
+      "id": "gt_mecanizado_cnc",
+      "nombre": "Mecanizado CNC (fresado, torneado y roscado)",
+      "maquina": "gtec_mecanizado",
+      "dato": "Centros CNC: fresado, torneado y roscado.",
+      "limites": {},
+      "palabrasClave": [
+        "mecanizado",
+        "torno",
+        "fresa",
+        "roscado",
+        "tornería"
+      ]
+    },
+    {
+      "id": "gt_soldadura_mig",
+      "nombre": "Soldadura MIG",
+      "maquina": "gtec_soldadura",
+      "dato": "Estructuras metálicas; baja y alta rotación.",
+      "limites": {},
+      "palabrasClave": [
+        "soldadura",
+        "soldar",
+        "mig",
+        "estructura"
+      ]
+    },
+    {
+      "id": "gt_soldadura_laser",
+      "nombre": "Soldadura láser",
+      "maquina": "gtec_soldadura",
+      "dato": "Hasta 2,5 mm en aluminio y acero inoxidable; sin pulido posterior.",
+      "limites": {
+        "espesorMaxMm": 2.5
+      },
+      "palabrasClave": [
+        "soldadura",
+        "láser",
+        "laser",
+        "inoxidable",
+        "aluminio"
+      ]
+    },
+    {
+      "id": "gt_soldadura_robotizada",
+      "nombre": "Soldadura robotizada",
+      "maquina": "gtec_soldadura",
+      "dato": "Producciones de alta escala, con dispositivos por diseño.",
+      "limites": {},
+      "palabrasClave": [
+        "soldadura",
+        "robot",
+        "serie"
+      ]
+    }
+  ]
+}

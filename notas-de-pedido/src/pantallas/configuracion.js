@@ -14,6 +14,8 @@ import { convertirCsvEnTabla } from '../logica/codigos.js';
 import { calcularDesarrollo } from '../logica/desarrollo.js';
 import { siguienteNumeroNP } from '../logica/numeracion.js';
 import { formatearCorto } from '../logica/numeros.js';
+import { listaEmpresas, listaPlantas, sucursalesDeEmpresa, vendedoresDeEmpresa, plantillaEsDeEmpresa, buscarEmpresa, tipoDeRenglon, TIPOS_DE_RENGLON } from '../logica/empresas.js';
+import { logoDeEmpresa } from './util.js';
 
 let desbloqueada = false; // vale mientras no se recargue la página
 
@@ -37,7 +39,7 @@ export async function pantallaConfiguracion(contenedor) {
   }
 
   const pestanas = [
-    ['sucursales', 'Sucursales'], ['codigos', 'Códigos'], ['materiales', 'Materiales'], ['plantillas', 'Plantillas'], ['datos', 'Datos'],
+    ['empresas', 'Empresas'], ['sucursales', 'Sucursales'], ['codigos', 'Códigos'], ['materiales', 'Materiales'], ['plantillas', 'Plantillas'], ['datos', 'Datos'],
   ];
   const cuerpo = h('div', { class: 'cuerpo-config' });
   const barra = h('div', { class: 'pestanas', role: 'tablist' }, pestanas.map(([id, texto]) =>
@@ -46,6 +48,7 @@ export async function pantallaConfiguracion(contenedor) {
   async function mostrar(id) {
     barra.querySelectorAll('.pestana').forEach((b) => b.classList.toggle('activa', b.dataset.id === id));
     cuerpo.replaceChildren();
+    if (id === 'empresas') seccionEmpresas(cuerpo);
     if (id === 'sucursales') await seccionSucursales(cuerpo);
     if (id === 'codigos') seccionCodigos(cuerpo);
     if (id === 'materiales') seccionMateriales(cuerpo);
@@ -76,10 +79,12 @@ async function seccionSucursales(cuerpo) {
     h('p', {}, 'El "último número usado" sirve para seguir desde el talonario de papel: la próxima nota sale con ese número + 1. ',
       h('strong', {}, 'Las letras son de ejemplo (SUPUESTO).')),
     h('div', { class: 'tabla-desplazable' }, h('table', { class: 'tabla-notas' },
-      h('thead', {}, h('tr', {}, h('th', {}, 'Sucursal'), h('th', {}, 'Letra'), h('th', {}, 'Último NP usado'), h('th', {}, 'Próxima nota'))),
+      h('thead', {}, h('tr', {}, h('th', {}, 'Empresa'), h('th', {}, 'Sucursal'), h('th', {}, 'Letra'), h('th', {}, 'Último NP usado'), h('th', {}, 'Próxima nota'))),
       h('tbody', {}, filas.map((f) => h('tr', {},
+        h('td', {}, buscarEmpresa(datos, f.sucursal.empresaId)?.nombreCorto || '—'),
         h('td', {}, f.campoNombre), h('td', {}, f.campoLetra), h('td', {}, f.campoUltimo),
-        h('td', {}, String(siguienteNumeroNP(contadores, f.sucursal.id)))))))),
+        // La numeración es por empresa y sucursal: PREFIJO-LETRA-número.
+        h('td', {}, `${buscarEmpresa(datos, f.sucursal.empresaId)?.prefijo || ''}-${f.sucursal.letra}-${siguienteNumeroNP(contadores, f.sucursal.id)}`)))))),
     h('button', {
       type: 'button', class: 'boton grande principal',
       onclick: async () => {
@@ -177,22 +182,29 @@ function seccionMateriales(cuerpo) {
     h('table', { class: 'tabla-notas' }, h('tbody', {}, materiales.calibres.map((c) =>
       h('tr', {}, h('td', {}, `C${c.numero}`), h('td', {}, `${formatearCorto(c.espesorMm)} mm`), h('td', {}, `código ${c.codigoEspesor}${marca(c.supuesto)}`), h('td', { class: 'texto-chico' }, c.fuente))))),
     h('h3', {}, 'Colores de prepintado (SUPUESTO)'),
-    h('div', { class: 'muestras-color' }, materiales.colores.map((c) => h('span', { class: 'muestra-color' }, h('span', { class: 'cuadradito', style: `background:${c.hex}` }), c.nombre))));
+    h('div', { class: 'muestras-color' }, materiales.colores.map((c) => h('span', { class: 'muestra-color' }, h('span', { class: 'cuadradito', style: `background:${c.hex}` }), c.nombre))),
+    h('h2', {}, 'Materiales y espesores en milímetros (piezas metalmecánicas, servicios y productos HIPER)'),
+    h('p', { class: 'texto-chico' }, 'Lista aparte de los calibres: solo lo que cada empresa publica. Se cambia en datos/materiales.json → industriales.'),
+    h('table', { class: 'tabla-notas' }, h('tbody', {},
+      (materiales.industriales?.materiales || []).map((m) => h('tr', {}, h('td', {}, m.nombre), h('td', {}, m.empresas.join(', ')), h('td', { class: 'texto-chico' }, m.fuente))),
+      (materiales.industriales?.espesoresMm || []).map((e) => h('tr', {}, h('td', {}, `${formatearCorto(e.mm)} mm`), h('td', {}, e.empresas.join(', ')), h('td', { class: 'texto-chico' }, e.fuente))))));
 }
 
 // ---------- Plantillas ----------
 function seccionPlantillas(cuerpo) {
   const { catalogo } = estado.datos;
   cuerpo.append(
-    h('p', {}, `${catalogo.plantillas.length} plantillas. Para cambiarlas se edita datos/catalogo.json. Las "medidas de ejemplo" las tiene que validar producción.`),
+    h('p', {}, `${catalogo.plantillas.length} plantillas de las tres empresas. Para cambiarlas se edita datos/catalogo.json (README, sección 4). Las "medidas de ejemplo" las tiene que validar producción; lo que dice "código pendiente" todavía no tiene código de facturación.`),
     h('div', { class: 'tabla-desplazable alta' }, h('table', { class: 'tabla-notas' },
-      h('thead', {}, h('tr', {}, h('th', {}, 'Grupo'), h('th', {}, 'Pieza'), h('th', {}, 'Tipo'), h('th', {}, 'Desarrollo'), h('th', {}, 'Medidas'), h('th', {}, 'Referencia'))),
+      h('thead', {}, h('tr', {}, h('th', {}, 'Grupo'), h('th', {}, 'Pieza'), h('th', {}, 'Tipo'), h('th', {}, 'La vende'), h('th', {}, 'Se hace en'), h('th', {}, 'Desarrollo'), h('th', {}, 'Medidas'), h('th', {}, 'Referencia'))),
       h('tbody', {}, catalogo.plantillas.map((p) => h('tr', {},
         h('td', {}, catalogo.grupos.find((g) => g.id === p.grupo)?.nombre),
         h('td', {}, p.nombre),
-        h('td', {}, p.tipoPieza === 'plegada' ? 'plegada' : 'especial'),
+        h('td', {}, TIPOS_DE_RENGLON.find((t) => t.valor === tipoDeRenglon(p))?.texto || p.tipoPieza),
+        h('td', {}, (p.empresas || []).length ? p.empresas.map((id) => buscarEmpresa(estado.datos, id)?.nombreCorto || id).join(', ') : 'todas'),
+        h('td', {}, p.fabricaEn === 'tercero' ? 'otra marca (reventa)' : (listaPlantas(estado.datos).find((x) => x.id === p.fabricaEn)?.nombreCorto || 'la planta de quien vende')),
         h('td', {}, p.tipoPieza === 'plegada' ? `${formatearCorto(calcularDesarrollo(p.perfil.tramos))} cm` : (p.calculoDesarrollo === 'unidad' ? 'por unidad' : 'fórmula')),
-        h('td', {}, p.supuesto ? 'de ejemplo' : 'confirmadas'),
+        h('td', {}, p.codigoPendiente ? 'código pendiente' : (p.supuesto ? 'de ejemplo' : 'confirmadas')),
         h('td', { class: 'texto-chico' }, p.referencia)))))));
 }
 
@@ -223,4 +235,29 @@ function seccionDatos(cuerpo) {
           mostrarAviso('Notas y contadores borrados', 'ok');
         },
       }, 'Borrar notas de prueba')));
+}
+
+/** Empresas del grupo y plantas: solo para ver (se cambian en datos/empresas.json). */
+function seccionEmpresas(cuerpo) {
+  const { datos } = estado;
+  cuerpo.append(h('h2', {}, datos.grupo?.grupo?.nombre || 'Empresas del grupo'),
+    h('p', {}, 'Cada sucursal pertenece a una empresa; de ahí salen el logo, los colores, el catálogo y el encabezado de la hoja impresa. Para cambiar nombres, prefijos, colores o cargar un logo se edita datos/empresas.json (ver README, sección 4).'),
+    h('table', { class: 'tabla-notas' },
+      h('thead', {}, h('tr', {}, h('th', {}, 'Logo'), h('th', {}, 'Empresa'), h('th', {}, 'Prefijo'), h('th', {}, 'Sucursales'), h('th', {}, 'Vendedores'), h('th', {}, 'Plantillas propias y compartidas'), h('th', {}, 'Planta'))),
+      h('tbody', {}, listaEmpresas(datos).map((e) => h('tr', {},
+        h('td', {}, logoDeEmpresa(e, 'logo-tabla')),
+        h('td', {}, h('strong', {}, e.nombre), h('div', { class: 'texto-chico' }, e.actividad || '')),
+        h('td', {}, e.prefijo),
+        h('td', {}, sucursalesDeEmpresa(datos, e.id).map((s) => `${s.nombre} (${s.letra})`).join(', ')),
+        h('td', {}, String(vendedoresDeEmpresa(datos, e.id).length)),
+        h('td', {}, String(datos.catalogo.plantillas.filter((p) => plantillaEsDeEmpresa(p, e.id)).length)),
+        h('td', {}, listaPlantas(datos).find((p) => p.id === e.plantaPorDefecto)?.nombre || '—'))))),
+    h('h3', {}, 'Plantas'),
+    h('table', { class: 'tabla-notas' },
+      h('thead', {}, h('tr', {}, h('th', {}, 'Planta'), h('th', {}, 'Empresa'), h('th', {}, 'Máquinas'), h('th', {}, 'Operarios'))),
+      h('tbody', {}, listaPlantas(datos).map((p) => h('tr', {},
+        h('td', {}, p.nombre),
+        h('td', {}, buscarEmpresa(datos, p.empresaId)?.nombreCorto || '—'),
+        h('td', {}, datos.produccion.maquinas.filter((m) => m.planta === p.id).map((m) => m.nombre).join(', ')),
+        h('td', {}, String(datos.produccion.operarios.filter((o) => o.planta === p.id).length)))))));
 }

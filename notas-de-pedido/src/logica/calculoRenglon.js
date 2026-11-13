@@ -20,6 +20,18 @@ import { tramosDeChapa, validarEmpalme, textoEmpalme } from './empalme.js';
 import { tienePendiente, calcularPendiente, validarPendiente } from './pendiente.js';
 
 export const AVISO_CODIGO_GENERICO = 'Código genérico: no está en la tabla de facturación, confirmarlo con administración';
+export const AVISO_CODIGO_PENDIENTE = 'Código pendiente: lo completa administración';
+
+/**
+ * Código cargado a mano en el catálogo: "codigo" en la plantilla o en el modelo elegido
+ * (opción del parámetro "variante"). Así administración completa los códigos sin programar.
+ */
+export function codigoCargadoEnCatalogo(plantilla, parametros) {
+  if (!plantilla) return null;
+  const variantes = (plantilla.parametros || []).find((d) => d.id === 'variante' && d.tipo === 'opciones');
+  const elegida = variantes?.opciones.find((o) => String(o.valor) === String(parametros?.variante));
+  return elegida?.codigo || plantilla.codigo || null;
+}
 
 /**
  * @param {object} renglon
@@ -35,9 +47,12 @@ export function calcularRenglon(renglon, datos) {
   const { config, materiales, codigos, catalogo } = datos;
   const errores = [];
   const avisos = [];
-  const agregar = (problemas) => {
-    for (const p of problemas) {
+  // Los mismos problemas con el campo donde están (para mostrarlos al lado del dato y no en una lista aparte).
+  const problemas = [];
+  const agregar = (lista) => {
+    for (const p of lista) {
       (p.nivel === 'error' ? errores : avisos).push(p.mensaje);
+      problemas.push({ nivel: p.nivel, mensaje: p.mensaje, campo: p.campo ?? (Number.isInteger(p.indice) ? `tramo${p.indice}` : null) });
     }
   };
 
@@ -124,7 +139,15 @@ export function calcularRenglon(renglon, datos) {
   const material = materiales.materiales.find((m) => m.id === renglon.materialId);
   const calibre = materiales.calibres.find((c) => c.id === renglon.calibreId);
   let codigo = { encontrado: false, codigo: null, aviso: null, generico: false };
-  if (material && calibre) {
+  const plantillaDelRenglon = catalogo ? buscarPlantilla(catalogo, renglon.plantillaId) : null;
+  const codigoDelCatalogo = codigoCargadoEnCatalogo(plantillaDelRenglon, renglon.parametros);
+  if (codigoDelCatalogo) {
+    // Artículos de catálogo: el código se carga una vez en datos/catalogo.json (en la plantilla o en cada modelo).
+    codigo = { encontrado: true, codigo: codigoDelCatalogo, aviso: null, generico: false };
+  } else if (renglon.sinMaterial && renglon.codigoPendiente && !renglon.codigoGenerico) {
+    // Producto sin código de facturación todavía: no se inventa ni se toma el de otro producto.
+    avisos.push(AVISO_CODIGO_PENDIENTE);
+  } else if (material && calibre) {
     const criterio = {
       elemento: renglon.elemento,
       material: material.codigo,
@@ -148,7 +171,7 @@ export function calcularRenglon(renglon, datos) {
     }
     if (!codigo.encontrado) {
       if (renglon.codigoPendiente) {
-        avisos.push('Código pendiente: lo completa administración');
+        avisos.push(AVISO_CODIGO_PENDIENTE);
       } else {
         errores.push(codigo.aviso || 'Código no encontrado: avisar a administración');
       }
@@ -164,6 +187,12 @@ export function calcularRenglon(renglon, datos) {
   // ---- 6) Descripción ----
   const descripcion = armarDescripcion(renglon, materiales, { desarrolloCm, porUnidad, pendiente, empalme });
 
+  for (const [nivel, lista] of [['error', errores], ['aviso', avisos]]) {
+    for (const mensaje of lista) {
+      if (!problemas.some((p) => p.mensaje === mensaje)) problemas.push({ nivel, mensaje, campo: /[Cc]ódigo/.test(mensaje) ? 'codigo' : null });
+    }
+  }
+
   return {
     desarrolloCm,
     desarrolloEsManual,
@@ -175,6 +204,7 @@ export function calcularRenglon(renglon, datos) {
     descripcion,
     errores,
     avisos,
+    problemas,
     puedeEmitirse: errores.length === 0,
     problemasTramos,
     pendiente,

@@ -20,14 +20,22 @@ import { describirCortes } from './cortes.js';
  * completarTexto("codo {anguloGrados}° Ø{diametroCm}", {anguloGrados: 90, diametroCm: 10}) → "codo 90° Ø10"
  */
 export function completarTexto(texto, parametros = {}) {
-  return String(texto || '').replace(/\{(\w+)\}/g, (coincidencia, nombre) => {
+  const vacio = (valor) => valor === undefined || valor === null || valor === '' || (Array.isArray(valor) && valor.length === 0);
+  // Parte opcional entre corchetes: "[ esp {espesorMm} mm]" solo aparece si ese dato está cargado.
+  const sinOpcionales = String(texto || '').replace(/\[([^\]]*)\]/g, (coincidencia, parte) => {
+    const nombres = [...parte.matchAll(/\{(\w+)\}/g)].map((m) => m[1]);
+    return nombres.some((nombre) => vacio(parametros[nombre])) ? '' : parte;
+  });
+  return sinOpcionales.replace(/\{(\w+)\}/g, (coincidencia, nombre) => {
     if (nombre === 'medidas') return textoMedidasSegunForma(parametros);
     const valor = parametros[nombre];
-    if (valor === undefined || valor === null || valor === '') {
+    if (vacio(valor)) {
       return '?';
     }
-    const numero = leerNumero(valor);
-    return Number.isFinite(numero) ? formatearCorto(numero) : String(valor);
+    if (Array.isArray(valor)) return valor.join(', ');
+    // Los textos que empiezan con cero ("0012", un número de plano) no son medidas: van tal cual.
+    const numero = /^0\d/.test(String(valor).trim()) ? NaN : leerNumero(valor);
+    return Number.isFinite(numero) ? formatearCorto(numero) : String(valor).trim();
   });
 }
 

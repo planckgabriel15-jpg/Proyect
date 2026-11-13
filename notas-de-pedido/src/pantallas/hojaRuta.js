@@ -6,8 +6,8 @@
 //   #hoja-ruta/operario/<operarioId>/<aaaa-mm-dd>     #hoja-ruta/lote/<loteId>
 // =============================================================
 
-import { h, fechaCorta, textoMinutos } from './util.js';
-import { estado, nombreSucursal } from './estado.js';
+import { h, fechaCorta, textoMinutos, logoDeEmpresa } from './util.js';
+import { estado, nombreSucursal, empresaActual } from './estado.js';
 import { cargarContexto, nombreOperario, nombreMaquina } from './contextoProduccion.js';
 import { svgDelPerfil } from '../vistas2d/perfilSvg.js';
 import { svgDeEspecial } from '../vistas2d/especialSvg.js';
@@ -26,7 +26,8 @@ export async function pantallaHojaRuta(contenedor, tipo, id, dia) {
     titulo = `${nombreOperario(id)} · ${fechaCorta(`${dia}T12:00:00`)}`;
   }
   const total = trabajos.reduce((s, t) => s + t.minutosEnLote, 0);
-  const marca = estado.datos.config.marca || {};
+  // La hoja de ruta es de la planta: lleva el logo de la empresa de esa planta.
+  const empresa = empresaActual();
   const materialDe = (r) => {
     if (r.sinMaterial) return '—';
     const m = estado.datos.materiales.materiales.find((x) => x.id === r.materialId);
@@ -39,7 +40,7 @@ export async function pantallaHojaRuta(contenedor, tipo, id, dia) {
       h('button', { type: 'button', class: 'boton grande principal', onclick: () => window.print() }, 'Imprimir / Guardar PDF')),
     h('article', { class: 'hoja-a4 hoja-ruta' },
       h('header', { class: 'hoja-encabezado' },
-        h('div', { class: 'hoja-origen' }, marca.logo ? h('img', { class: 'hoja-logo', src: marca.logo, alt: marca.nombre || 'Logo' }) : null,
+        h('div', { class: 'hoja-origen' }, logoDeEmpresa(empresa, 'hoja-logo'),
           h('span', { class: 'rotulo' }, 'Hoja de ruta'), h('span', { class: 'origen-grande' }, titulo)),
         h('div', { class: 'hoja-datos' }, h('div', {}, h('span', { class: 'rotulo' }, 'Trabajos '), h('strong', {}, String(trabajos.length))),
           h('div', {}, h('span', { class: 'rotulo' }, 'Tiempo estándar '), h('strong', {}, textoMinutos(total))))),
@@ -49,7 +50,7 @@ export async function pantallaHojaRuta(contenedor, tipo, id, dia) {
           h('td', {}, String(i + 1)),
           h('td', {}, h('strong', {}, String(t.numeroNota)), h('div', { class: 'texto-chico' }, `${t.cliente} · ${nombreSucursal(t.sucursalId)}`),
             h('div', { class: 'texto-chico' }, `Entrega ${fechaCorta(`${t.fechaEntrega}T12:00:00`)}${t.prioridad === 'urgente' ? ' · URGENTE' : ''}`)),
-          h('td', {}, t.descripcion, h('div', {}, `Piezas: ${t.piezas} · ${t.cantidad.texto} ${t.cantidad.unidad === 'chapas' ? 'chapa(s)' : 'u.'}`), h('div', { class: 'texto-chico' }, nombreMaquina(t.maquina), t.loteActual ? ` · lote ${t.loteActual}` : '')),
+          h('td', {}, t.descripcion, h('div', {}, `Piezas: ${String(t.piezas).replace('.', ',')} · ${t.cantidad.texto} ${t.cantidad.abreviatura ?? (t.cantidad.unidad === 'chapas' ? 'chapa(s)' : 'u.')}`), h('div', { class: 'texto-chico' }, nombreMaquina(t.maquina), t.loteActual ? ` · lote ${t.loteActual}` : '')),
           h('td', { class: 'ruta-dibujo', html: t.renglon.tipoPieza === 'plegada' || t.renglon.usaPerfil
             ? svgDelPerfil(t.renglon.perfil, { config: estado.datos.config, ancho: 200, alto: 120, miniatura: true })
             : svgDeEspecial(t.renglon, 300, 200) }),
@@ -58,5 +59,5 @@ export async function pantallaHojaRuta(contenedor, tipo, id, dia) {
           h('td', { class: 'ruta-firma' }, t.hecha ? `✓ ${new Date(t.horaHecha).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })}` : '☐'))))) : h('p', { class: 'vacio' }, 'No hay trabajos para esta hoja.'),
       h('p', { class: 'texto-chico' }, 'El dibujo acotado completo está en la nota de pedido. Tiempo estándar del modelo MTM (valores pendientes de validar con cronometraje).')));
   document.title = `Hoja de ruta – ${titulo}`;
-  return () => { document.title = `Notas de pedido – ${estado.datos.config.marca?.nombre || 'Zinguería'}`; };
+  return () => { document.title = 'Notas de pedido'; };
 }

@@ -9,7 +9,9 @@
 // =============================================================
 
 import { h } from './pantallas/util.js';
-import { estado, vendedorActual, sucursalActual } from './pantallas/estado.js';
+import { estado, vendedorActual, sucursalActual, empresaActual, plantaDeSesion } from './pantallas/estado.js';
+import { logoDeEmpresa } from './pantallas/util.js';
+import { buscarPlanta } from './logica/empresas.js';
 import * as almacenamiento from './datos/almacenamiento.js';
 import { pantallaInicio, pantallaIngreso } from './pantallas/inicio.js';
 import { pantallaNota } from './pantallas/nota.js';
@@ -28,7 +30,7 @@ const NOMBRES_ROL = { comercial: 'Comercial', jefe: 'Jefe de producción', opera
 
 function quienEsta() {
   const rol = estado.sesion?.rol;
-  if (rol === 'jefe') return NOMBRES_ROL.jefe;
+  if (rol === 'jefe') return `${NOMBRES_ROL.jefe} · ${buscarPlanta(estado.datos, plantaDeSesion())?.nombreCorto || 'todas las plantas'}`;
   if (rol === 'operario') return estado.datos.produccion.operarios.find((o) => o.id === estado.sesion.operarioId)?.nombre || 'Operario';
   const vendedor = vendedorActual();
   return vendedor ? `${vendedor.nombre} · ${sucursalActual()?.nombre || ''}` : '';
@@ -37,27 +39,27 @@ function quienEsta() {
 function dibujarMenu(rutaActual) {
   const rol = estado.sesion?.rol;
   const enlace = (ruta, texto) => h('a', { href: ruta, class: rutaActual === ruta ? 'activo' : '' }, texto);
-  const marca = estado.datos.config.marca || {};
+  const empresa = empresaActual();
+  aplicarColoresDeMarca(empresa);
   let enlaces = [enlace('#inicio', 'Inicio'), enlace('#produccion', 'Producción'), enlace('#configuracion', 'Configuración')];
   if (rol === 'jefe') enlaces = [enlace('#produccion', 'Producción'), enlace('#operario', 'Vista operario'), enlace('#configuracion', 'Configuración')];
   if (rol === 'operario') enlaces = [enlace('#operario', 'Mis trabajos')];
   menu.replaceChildren(
     h('a', { href: '#inicio', class: 'marca' },
-      marca.logo ? h('img', { class: 'logo-menu', src: marca.logo, alt: marca.nombre || 'Logo' }) : null,
+      logoDeEmpresa(empresa),
       h('span', { class: 'marca-texto' }, 'Notas de pedido')),
     h('nav', { 'aria-label': 'Menú' }, enlaces),
     h('span', { class: 'quien' }, quienEsta(), ' ', h('a', { href: '#ingreso', class: 'enlace-chico' }, rol ? 'cambiar' : 'ingresar')),
     h('button', { type: 'button', class: 'boton-menu', onclick: () => mostrarAyudaAtajos(), title: 'Ver atajos de teclado (F1)' }, 'Atajos (F1)'));
 }
 
-/** Colores de la empresa (datos/config.json → marca) aplicados a toda la pantalla. */
+/** Colores de la empresa que está usando el programa (datos/empresas.json) aplicados a toda la pantalla. */
 function aplicarColoresDeMarca(marca) {
   if (!marca) return;
   const raiz = document.documentElement.style;
   if (marca.colorPrincipal) raiz.setProperty('--principal', marca.colorPrincipal);
   if (marca.colorPrincipalOscuro) raiz.setProperty('--principal-oscuro', marca.colorPrincipalOscuro);
   if (marca.colorAcento) raiz.setProperty('--acento', marca.colorAcento);
-  if (marca.nombre) document.title = `Notas de pedido – ${marca.nombre}`;
 }
 
 async function mostrarPantalla() {
@@ -99,7 +101,6 @@ async function arrancar() {
     estado.sesion = await almacenamiento.leerSesion();
     // Notas guardadas con versiones anteriores: se completan una sola vez (ver almacenamiento.migrarDatos).
     await almacenamiento.migrarDatos(estado.datos);
-    aplicarColoresDeMarca(estado.datos.config.marca);
   } catch (error) {
     principal.replaceChildren(h('div', { class: 'aviso-caja error-caja' },
       `No se pudieron cargar los datos: ${error.message}. ¿Abriste la página con un servidor? (ver README.md)`));

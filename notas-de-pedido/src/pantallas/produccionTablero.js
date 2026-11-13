@@ -108,10 +108,10 @@ export async function seccionTablero(contenedor, { refrescar }) {
     listaAlertas.length ? h('details', { class: 'aviso-caja caja-alertas', open: true },
       h('summary', {}, h('strong', {}, `Alertas (${listaAlertas.length})`), ' – notas en riesgo, vencidas o con sobrecarga'),
       h('ul', {}, listaAlertas.slice(0, 12).map((a) => h('li', { class: a.nivel === 'error' ? 'error' : 'aviso' }, a.texto))),
-      listaAlertas.length > 12 ? h('p', { class: 'texto-chico' }, `… y ${listaAlertas.length - 12} más (filtrá por "Demorada").`) : null) : null,
+      listaAlertas.length > 12 ? h('p', { class: 'texto-chico' }, `… y ${listaAlertas.length - 12} más (filtrá por "Demorada").`) : null) : '',
     chips,
     h('div', { class: 'filtros' }, selectorEstado, selectorSucursal, selectorOperario, selectorOrigen, campoTexto),
-    jefe ? h('p', { class: 'texto-chico' }, 'Orden de la cola: arrastrá una fila (computadora) o usá ↑ ↓ (celular). Las urgentes y las de entrega más cercana van primero mientras no se cambie el orden a mano. Para reprogramar días y operarios: pestaña "Asignación".') : null,
+    jefe ? h('p', { class: 'texto-chico' }, 'Orden de la cola: arrastrá una fila (computadora) o usá ↑ ↓ (celular). Las urgentes y las de entrega más cercana van primero mientras no se cambie el orden a mano. Para reprogramar días y operarios: pestaña "Asignación".') : '',
     tabla,
     h('div', { class: 'barra-botones' }, h('button', { type: 'button', class: 'boton', onclick: refrescar }, 'Actualizar')));
   dibujar();

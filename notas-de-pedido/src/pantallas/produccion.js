@@ -8,7 +8,8 @@
 // =============================================================
 
 import { h, selector, fechaYHora } from './util.js';
-import { estado, nombreSucursal } from './estado.js';
+import { estado, nombreSucursal, plantaDeSesion } from './estado.js';
+import { listaPlantas, listaEmpresas, sucursalesDeEmpresa, identificadorDeNota } from '../logica/empresas.js';
 import * as almacenamiento from '../datos/almacenamiento.js';
 import { esJefe } from './contextoProduccion.js';
 import { seccionTablero } from './produccionTablero.js';
@@ -60,8 +61,19 @@ export async function pantallaProduccion(contenedor, pestanaPedida) {
     }
   }
 
+  // El jefe elige qué planta mira (queda guardado en su sesión). Cada planta ve solo lo suyo.
+  const plantas = listaPlantas(estado.datos);
+  const selectorPlanta = esJefe() ? selector(plantas.map((p) => ({ valor: p.id, texto: p.nombre })).concat([{ valor: '', texto: 'Todas las plantas del grupo' }]), plantaDeSesion() || '', {
+    'aria-label': 'Planta',
+    onchange: async (e) => {
+      estado.sesion.plantaId = e.target.value || null;
+      await almacenamiento.guardarSesion(estado.sesion);
+      window.dispatchEvent(new HashChangeEvent('hashchange'));
+    },
+  }) : null;
   contenedor.replaceChildren(h('section', { class: 'panel' },
     h('div', { class: 'titulo-pantalla' }, h('h1', {}, 'Producción'),
+      selectorPlanta ? h('label', { class: 'campo-en-linea' }, 'Planta ', selectorPlanta) : null,
       h('span', { class: 'texto-chico' }, esJefe() ? 'Jefe de producción' : 'Vista del área comercial (solo mirar)')),
     barra, cuerpo));
   const inicial = pestanas.some(([p]) => p === pestanaPedida) ? pestanaPedida : (pestanas.some(([p]) => p === ultimaPestana) ? ultimaPestana : 'tablero');
@@ -72,9 +84,10 @@ export async function pantallaProduccion(contenedor, pestanaPedida) {
 /** Lista de notas emitidas de todas las sucursales (lo que había antes en Producción). */
 async function seccionEmitidas(contenedor) {
   const { datos } = estado;
-  const selectorSucursal = selector([{ valor: '', texto: 'Todas las sucursales' }].concat(datos.sucursales.map((s) => ({ valor: s.id, texto: s.nombre }))), '', {
-    'aria-label': 'Sucursal', onchange: () => llenar(),
-  });
+  // Sucursales agrupadas por empresa.
+  const selectorSucursal = h('select', { 'aria-label': 'Sucursal', onchange: () => llenar() },
+    h('option', { value: '' }, 'Todas las sucursales del grupo'),
+    listaEmpresas(datos).map((e) => h('optgroup', { label: e.nombre }, sucursalesDeEmpresa(datos, e.id).map((s) => h('option', { value: s.id }, s.nombre)))));
   const campoTexto = h('input', { type: 'search', class: 'buscador', placeholder: 'Buscar por número, cliente o factura', 'aria-label': 'Buscar', oninput: () => llenar() });
   const campoDesde = h('input', { type: 'date', 'aria-label': 'Desde', onchange: () => llenar() });
   const campoHasta = h('input', { type: 'date', 'aria-label': 'Hasta', onchange: () => llenar() });
@@ -93,7 +106,7 @@ async function seccionEmitidas(contenedor) {
         h('thead', {}, h('tr', {}, h('th', {}, 'Sucursal'), h('th', {}, 'NP Nº'), h('th', {}, 'Emitida'), h('th', {}, 'Cliente'), h('th', {}, 'Factura'), h('th', {}, 'Renglones'), h('th', {}, 'Piezas'), h('th', {}, ''))),
         h('tbody', {}, notas.slice(0, 300).map((n) => h('tr', {},
           h('td', {}, nombreSucursal(n.sucursalId)),
-          h('td', {}, h('strong', {}, String(n.numero)), n.demo ? h('span', { class: 'etiqueta-demo' }, 'DEMO') : null),
+          h('td', { title: `Identificador completo: ${identificadorDeNota(n, datos)}` }, h('strong', {}, String(n.numero)), n.demo ? h('span', { class: 'etiqueta-demo' }, 'DEMO') : null),
           h('td', {}, fechaYHora(n.fechaEmision)),
           h('td', {}, n.cliente),
           h('td', {}, n.factura),

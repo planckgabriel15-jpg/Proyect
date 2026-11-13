@@ -1,33 +1,404 @@
 {
   "_leeme": "Datos de PRODUCCIÓN del prototipo: operarios, máquinas, turnos, plazos y criterios de agrupamiento. Todo lo que dice SUPUESTO hay que confirmarlo con la empresa (ver PENDIENTES.md, sección H). Los operarios y criterios se pueden cambiar desde Producción.",
   "turnos": [
-    { "id": "manana", "nombre": "Mañana", "inicio": "07:00", "fin": "15:00", "minutosDisponibles": 450, "supuesto": true, "nota": "SUPUESTO: 8 h menos 30 min de descanso." },
-    { "id": "tarde", "nombre": "Tarde", "inicio": "15:00", "fin": "23:00", "minutosDisponibles": 450, "supuesto": true }
+    {
+      "id": "manana",
+      "nombre": "Mañana",
+      "inicio": "07:00",
+      "fin": "15:00",
+      "minutosDisponibles": 450,
+      "supuesto": true,
+      "nota": "SUPUESTO: 8 h menos 30 min de descanso."
+    },
+    {
+      "id": "tarde",
+      "nombre": "Tarde",
+      "inicio": "15:00",
+      "fin": "23:00",
+      "minutosDisponibles": 450,
+      "supuesto": true
+    }
   ],
   "_turnos": "minutosDisponibles es la capacidad de cada operario por turno. El modelo de tiempos ya incluye 3 % de demoras dentro del suplemento (no se descuenta dos veces).",
-  "diasHabiles": [1, 2, 3, 4, 5],
+  "diasHabiles": [
+    1,
+    2,
+    3,
+    4,
+    5
+  ],
   "_diasHabiles": "SUPUESTO: lunes (1) a viernes (5). 0 = domingo, 6 = sábado.",
   "maquinas": [
-    { "id": "guillotina", "nombre": "Guillotina", "tipo": "guillotina", "cantidad": 1, "minutosPorTurno": 450, "largoMaxCm": 320, "espesorMaxMm": 4, "supuesto": true },
-    { "id": "plegadora", "nombre": "Plegadora hidráulica", "tipo": "plegadora", "cantidad": 2, "minutosPorTurno": 450, "largoMaxCm": 320, "espesorMaxMm": 3, "supuesto": true },
-    { "id": "cilindradora", "nombre": "Cilindradora / engrafadora", "tipo": "cilindradora", "cantidad": 1, "minutosPorTurno": 450, "largoMaxCm": 300, "espesorMaxMm": 1, "supuesto": true },
-    { "id": "banco", "nombre": "Banco de armado y soldadura", "tipo": "banco", "cantidad": 3, "minutosPorTurno": 450, "supuesto": true },
-    { "id": "deposito", "nombre": "Depósito (artículos de reventa)", "tipo": "deposito", "cantidad": 1, "minutosPorTurno": 450, "supuesto": true }
+    {
+      "id": "guillotina",
+      "nombre": "Guillotina",
+      "tipo": "guillotina",
+      "cantidad": 1,
+      "minutosPorTurno": 450,
+      "largoMaxCm": 320,
+      "espesorMaxMm": 4,
+      "supuesto": true,
+      "planta": "taller_abasto"
+    },
+    {
+      "id": "plegadora",
+      "nombre": "Plegadora hidráulica",
+      "tipo": "plegadora",
+      "cantidad": 2,
+      "minutosPorTurno": 450,
+      "largoMaxCm": 320,
+      "espesorMaxMm": 3,
+      "supuesto": true,
+      "planta": "taller_abasto"
+    },
+    {
+      "id": "cilindradora",
+      "nombre": "Cilindradora / engrafadora",
+      "tipo": "cilindradora",
+      "cantidad": 1,
+      "minutosPorTurno": 450,
+      "largoMaxCm": 300,
+      "espesorMaxMm": 1,
+      "supuesto": true,
+      "planta": "taller_abasto"
+    },
+    {
+      "id": "banco",
+      "nombre": "Banco de armado y soldadura",
+      "tipo": "banco",
+      "cantidad": 3,
+      "minutosPorTurno": 450,
+      "supuesto": true,
+      "planta": "taller_abasto"
+    },
+    {
+      "id": "deposito",
+      "nombre": "Depósito (artículos de reventa)",
+      "tipo": "deposito",
+      "cantidad": 1,
+      "minutosPorTurno": 450,
+      "supuesto": true,
+      "planta": "taller_abasto"
+    },
+    {
+      "id": "hiper_zingueria",
+      "nombre": "Línea de zinguería HIPER",
+      "tipo": "linea",
+      "planta": "planta_hiper",
+      "reemplazaA": [
+        "guillotina",
+        "plegadora",
+        "cilindradora",
+        "banco"
+      ],
+      "cantidad": 1,
+      "minutosPorTurno": 450,
+      "supuesto": true,
+      "nota": "[A CONFIRMAR] La planta de HIPER no está relevada: una sola línea genérica."
+    },
+    {
+      "id": "hiper_perfileria",
+      "nombre": "Línea de perfiles (construcción en seco)",
+      "tipo": "perfiladora",
+      "planta": "planta_hiper",
+      "cantidad": 1,
+      "minutosPorTurno": 450,
+      "supuesto": true,
+      "nota": "[A CONFIRMAR]"
+    },
+    {
+      "id": "hiper_deposito",
+      "nombre": "Depósito y despacho HIPER",
+      "tipo": "deposito",
+      "planta": "planta_hiper",
+      "cantidad": 1,
+      "minutosPorTurno": 450,
+      "supuesto": true
+    },
+    {
+      "id": "gtec_laser",
+      "nombre": "Corte láser de chapa",
+      "tipo": "corte",
+      "planta": "planta_gtec",
+      "reemplazaA": [
+        "guillotina"
+      ],
+      "cantidad": 1,
+      "minutosPorTurno": 450,
+      "espesorMaxMm": 20,
+      "fuente": "https://gtecdesarrollosyservicios.com/ (servicios publicados). Cantidad de máquinas: [A CONFIRMAR]."
+    },
+    {
+      "id": "gtec_laser_cano",
+      "nombre": "Corte láser de caño",
+      "tipo": "corte_cano",
+      "planta": "planta_gtec",
+      "cantidad": 1,
+      "minutosPorTurno": 450,
+      "espesorMaxMm": 8,
+      "fuente": "https://gtecdesarrollosyservicios.com/ (servicios publicados). Cantidad de máquinas: [A CONFIRMAR]."
+    },
+    {
+      "id": "gtec_chorro",
+      "nombre": "Corte por chorro de agua",
+      "tipo": "chorro",
+      "planta": "planta_gtec",
+      "cantidad": 1,
+      "minutosPorTurno": 450,
+      "espesorMaxMm": 150,
+      "fuente": "https://gtecdesarrollosyservicios.com/ (servicios publicados). Cantidad de máquinas: [A CONFIRMAR]."
+    },
+    {
+      "id": "gtec_plegado",
+      "nombre": "Plegadora CNC",
+      "tipo": "plegadora",
+      "planta": "planta_gtec",
+      "cantidad": 1,
+      "minutosPorTurno": 450,
+      "largoMaxCm": 300,
+      "espesorMaxMm": 6.3,
+      "fuente": "https://gtecdesarrollosyservicios.com/ (servicios publicados). Cantidad de máquinas: [A CONFIRMAR]."
+    },
+    {
+      "id": "gtec_mecanizado",
+      "nombre": "Mecanizado CNC",
+      "tipo": "mecanizado",
+      "planta": "planta_gtec",
+      "cantidad": 1,
+      "minutosPorTurno": 450,
+      "fuente": "https://gtecdesarrollosyservicios.com/ (servicios publicados). Cantidad de máquinas: [A CONFIRMAR]."
+    },
+    {
+      "id": "gtec_soldadura",
+      "nombre": "Soldadura (MIG, láser y robotizada)",
+      "tipo": "soldadura",
+      "planta": "planta_gtec",
+      "reemplazaA": [
+        "banco",
+        "cilindradora"
+      ],
+      "cantidad": 1,
+      "minutosPorTurno": 450,
+      "fuente": "https://gtecdesarrollosyservicios.com/ (servicios publicados). Cantidad de máquinas: [A CONFIRMAR]."
+    },
+    {
+      "id": "gtec_desarrollo",
+      "nombre": "Diseño y desarrollo",
+      "tipo": "oficina_tecnica",
+      "planta": "planta_gtec",
+      "cantidad": 1,
+      "minutosPorTurno": 450,
+      "fuente": "https://gtecdesarrollosyservicios.com/ (servicios publicados). Cantidad de máquinas: [A CONFIRMAR]."
+    },
+    {
+      "id": "gtec_despacho",
+      "nombre": "Despacho G-TEC",
+      "tipo": "deposito",
+      "planta": "planta_gtec",
+      "cantidad": 1,
+      "minutosPorTurno": 450,
+      "supuesto": true
+    }
   ],
-  "_maquinas": "SUPUESTO: el taller no está relevado (ver informe MTM, sección 13). cantidad = máquinas iguales que trabajan en paralelo.",
+  "_maquinas": "Cada máquina pertenece a una planta (datos/empresas.json → plantas). Taller de Abasto: SUPUESTO (no está relevado, ver informe MTM, sección 13). Planta G-TEC: procesos publicados en su sitio. Planta HIPER: [A CONFIRMAR]. 'reemplazaA' = tipos de máquina del taller de Abasto que esta máquina cubre cuando una pieza plegada se fabrica en esa planta. cantidad = máquinas iguales que trabajan en paralelo.",
   "operarios": [
-    { "id": "op01", "nombre": "Operario 1", "turno": "manana", "maquinas": ["guillotina", "plegadora", "cilindradora", "banco"], "activo": true },
-    { "id": "op02", "nombre": "Operario 2", "turno": "manana", "maquinas": ["guillotina", "plegadora"], "activo": true },
-    { "id": "op03", "nombre": "Operario 3", "turno": "manana", "maquinas": ["plegadora", "banco"], "activo": true },
-    { "id": "op04", "nombre": "Operario 4", "turno": "manana", "maquinas": ["plegadora", "cilindradora"], "activo": true },
-    { "id": "op05", "nombre": "Operario 5", "turno": "manana", "maquinas": ["banco", "deposito"], "activo": true },
-    { "id": "op06", "nombre": "Operario 6", "turno": "manana", "maquinas": ["guillotina", "plegadora", "banco"], "activo": true },
-    { "id": "op07", "nombre": "Operario 7", "turno": "tarde", "maquinas": ["guillotina", "plegadora"], "activo": true },
-    { "id": "op08", "nombre": "Operario 8", "turno": "tarde", "maquinas": ["plegadora", "banco"], "activo": true },
-    { "id": "op09", "nombre": "Operario 9", "turno": "tarde", "maquinas": ["cilindradora", "banco"], "activo": true },
-    { "id": "op10", "nombre": "Operario 10", "turno": "tarde", "maquinas": ["banco", "deposito", "plegadora"], "activo": true }
+    {
+      "id": "op01",
+      "nombre": "Operario 1",
+      "turno": "manana",
+      "maquinas": [
+        "guillotina",
+        "plegadora",
+        "cilindradora",
+        "banco"
+      ],
+      "activo": true,
+      "planta": "taller_abasto"
+    },
+    {
+      "id": "op02",
+      "nombre": "Operario 2",
+      "turno": "manana",
+      "maquinas": [
+        "guillotina",
+        "plegadora"
+      ],
+      "activo": true,
+      "planta": "taller_abasto"
+    },
+    {
+      "id": "op03",
+      "nombre": "Operario 3",
+      "turno": "manana",
+      "maquinas": [
+        "plegadora",
+        "banco"
+      ],
+      "activo": true,
+      "planta": "taller_abasto"
+    },
+    {
+      "id": "op04",
+      "nombre": "Operario 4",
+      "turno": "manana",
+      "maquinas": [
+        "plegadora",
+        "cilindradora"
+      ],
+      "activo": true,
+      "planta": "taller_abasto"
+    },
+    {
+      "id": "op05",
+      "nombre": "Operario 5",
+      "turno": "manana",
+      "maquinas": [
+        "banco",
+        "deposito"
+      ],
+      "activo": true,
+      "planta": "taller_abasto"
+    },
+    {
+      "id": "op06",
+      "nombre": "Operario 6",
+      "turno": "manana",
+      "maquinas": [
+        "guillotina",
+        "plegadora",
+        "banco"
+      ],
+      "activo": true,
+      "planta": "taller_abasto"
+    },
+    {
+      "id": "op07",
+      "nombre": "Operario 7",
+      "turno": "tarde",
+      "maquinas": [
+        "guillotina",
+        "plegadora"
+      ],
+      "activo": true,
+      "planta": "taller_abasto"
+    },
+    {
+      "id": "op08",
+      "nombre": "Operario 8",
+      "turno": "tarde",
+      "maquinas": [
+        "plegadora",
+        "banco"
+      ],
+      "activo": true,
+      "planta": "taller_abasto"
+    },
+    {
+      "id": "op09",
+      "nombre": "Operario 9",
+      "turno": "tarde",
+      "maquinas": [
+        "cilindradora",
+        "banco"
+      ],
+      "activo": true,
+      "planta": "taller_abasto"
+    },
+    {
+      "id": "op10",
+      "nombre": "Operario 10",
+      "turno": "tarde",
+      "maquinas": [
+        "banco",
+        "deposito",
+        "plegadora"
+      ],
+      "activo": true,
+      "planta": "taller_abasto"
+    },
+    {
+      "id": "oph1",
+      "nombre": "Operario HIPER 1",
+      "turno": "manana",
+      "planta": "planta_hiper",
+      "maquinas": [
+        "hiper_zingueria",
+        "hiper_deposito"
+      ],
+      "activo": true
+    },
+    {
+      "id": "oph2",
+      "nombre": "Operario HIPER 2",
+      "turno": "manana",
+      "planta": "planta_hiper",
+      "maquinas": [
+        "hiper_perfileria",
+        "hiper_zingueria"
+      ],
+      "activo": true
+    },
+    {
+      "id": "oph3",
+      "nombre": "Operario HIPER 3",
+      "turno": "tarde",
+      "planta": "planta_hiper",
+      "maquinas": [
+        "hiper_deposito",
+        "hiper_perfileria"
+      ],
+      "activo": true
+    },
+    {
+      "id": "opg1",
+      "nombre": "Operario G-TEC 1",
+      "turno": "manana",
+      "planta": "planta_gtec",
+      "maquinas": [
+        "gtec_laser",
+        "gtec_laser_cano",
+        "gtec_chorro"
+      ],
+      "activo": true
+    },
+    {
+      "id": "opg2",
+      "nombre": "Operario G-TEC 2",
+      "turno": "manana",
+      "planta": "planta_gtec",
+      "maquinas": [
+        "gtec_plegado",
+        "gtec_soldadura",
+        "gtec_despacho"
+      ],
+      "activo": true
+    },
+    {
+      "id": "opg3",
+      "nombre": "Operario G-TEC 3",
+      "turno": "manana",
+      "planta": "planta_gtec",
+      "maquinas": [
+        "gtec_mecanizado",
+        "gtec_desarrollo"
+      ],
+      "activo": true
+    },
+    {
+      "id": "opg4",
+      "nombre": "Operario G-TEC 4",
+      "turno": "tarde",
+      "planta": "planta_gtec",
+      "maquinas": [
+        "gtec_laser",
+        "gtec_plegado",
+        "gtec_soldadura",
+        "gtec_despacho"
+      ],
+      "activo": true
+    }
   ],
-  "_operarios": "SUPUESTO: 10 personas de producción (especificación, sección 2). Nombres genéricos hasta tener la lista real.",
+  "_operarios": "SUPUESTO: 10 personas en el taller de Abasto (especificación, sección 2), 3 en la planta de HIPER y 4 en la de G-TEC. Nombres genéricos hasta tener la lista real. Cada operario trabaja en una planta.",
   "plazoPorDefectoDiasHabiles": 5,
   "_plazoPorDefectoDiasHabiles": "SUPUESTO: si la nota no tiene fecha de entrega, se toma la emisión + 5 días hábiles.",
   "alertaDiasAntes": 1,
@@ -35,13 +406,36 @@
   "agrupamiento": {
     "_leeme": "Criterios por defecto del agrupamiento (Producción > Lotes). peso = importancia en el coeficiente de similitud. Ver docs/AGRUPAMIENTO.md.",
     "criterios": {
-      "perfil": { "activo": true, "peso": 3 },
-      "desarrollo": { "activo": true, "peso": 2, "toleranciaMm": 5 },
-      "material": { "activo": true, "peso": 3 },
-      "producto": { "activo": false, "peso": 1 },
-      "largo": { "activo": false, "peso": 1, "toleranciaCm": 20 },
-      "pliegues": { "activo": true, "peso": 1 },
-      "herramental": { "activo": true, "peso": 2 }
+      "perfil": {
+        "activo": true,
+        "peso": 3
+      },
+      "desarrollo": {
+        "activo": true,
+        "peso": 2,
+        "toleranciaMm": 5
+      },
+      "material": {
+        "activo": true,
+        "peso": 3
+      },
+      "producto": {
+        "activo": false,
+        "peso": 1
+      },
+      "largo": {
+        "activo": false,
+        "peso": 1,
+        "toleranciaCm": 20
+      },
+      "pliegues": {
+        "activo": true,
+        "peso": 1
+      },
+      "herramental": {
+        "activo": true,
+        "peso": 2
+      }
     },
     "similitudMinima": 0.6,
     "ventanaDias": 3,
@@ -52,9 +446,27 @@
     "_valores": "SUPUESTO: un lote no pasa de medio turno (240 min) para no frenar otras entregas; ventana de 3 días hábiles entre entregas; las urgentes se agrupan solo con urgentes."
   },
   "causasIncidencia": {
-    "retrabajo": ["Medida mal tomada", "Pliegue fuera de ángulo", "Chapa marcada o rayada", "Error en la nota", "Otro"],
-    "demora": ["Falta de chapa", "Máquina ocupada", "Máquina en reparación", "Consulta al vendedor", "Falta de personal", "Otro"],
-    "incidente": ["Accidente o casi accidente", "Rotura de herramental", "Corte de luz", "Otro"]
+    "retrabajo": [
+      "Medida mal tomada",
+      "Pliegue fuera de ángulo",
+      "Chapa marcada o rayada",
+      "Error en la nota",
+      "Otro"
+    ],
+    "demora": [
+      "Falta de chapa",
+      "Máquina ocupada",
+      "Máquina en reparación",
+      "Consulta al vendedor",
+      "Falta de personal",
+      "Otro"
+    ],
+    "incidente": [
+      "Accidente o casi accidente",
+      "Rotura de herramental",
+      "Corte de luz",
+      "Otro"
+    ]
   },
   "claveJefeProduccion": "jefe2026",
   "_claveJefeProduccion": "SUPUESTO: clave fija del prototipo para entrar como jefe de producción (no es seguridad real: ver README, Roles)."

@@ -82,15 +82,6 @@
   "claveConfiguracion": "zingueria2026",
   "_claveConfiguracion": "SUPUESTO: clave fija del prototipo. En la versión con Google se reemplaza por permisos de la cuenta.",
   "autoguardadoSegundos": 5,
-  "marca": {
-    "_leeme": "Logo y colores de Abasto Soluciones (tomados del logo oficial). Para cambiar el logo, reemplazá recursos/logo.png.",
-    "nombre": "Abasto Soluciones",
-    "logo": "recursos/logo.png",
-    "colorPrincipal": "#0054a6",
-    "colorPrincipalOscuro": "#003d7a",
-    "colorAcento": "#fe222c",
-    "sitio": "https://abastosoluciones.com.ar"
-  },
   "accesoriosCanaleta": {
     "_leeme": "Tapas y boquetas integradas en la canaleta. Valores por defecto de una boqueta nueva (SUPUESTO).",
     "tiposDeTapa": [

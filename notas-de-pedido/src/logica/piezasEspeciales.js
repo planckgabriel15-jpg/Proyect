@@ -6,7 +6,7 @@
 // el desarrollo a mano y queda registrado que fue manual.
 // =============================================================
 
-import { leerNumero, redondear } from './numeros.js';
+import { leerNumero, redondear, formatearCorto } from './numeros.js';
 
 /**
  * Tipos de cálculo que puede tener una plantilla especial (campo "calculoDesarrollo"):
@@ -74,8 +74,10 @@ function sinDato(formula) {
 
 /**
  * Revisa los parámetros de una pieza especial contra su plantilla.
- * Cada parámetro numérico tiene que ser un número mayor o igual al mínimo.
- * @returns {Array<{nivel:'error', mensaje:string}>}
+ * Cada parámetro numérico tiene que ser un número mayor o igual al mínimo (y, si la plantilla
+ * tiene "maximo", no pasarlo); los de texto no pueden quedar vacíos salvo que sean opcionales;
+ * los de varias opciones ("multiple") necesitan al menos una.
+ * @returns {Array<{nivel:'error'|'aviso', campo:string, mensaje:string}>}  campo = id del parámetro
  */
 export function validarParametros(plantilla, parametros) {
   const problemas = [];
@@ -87,14 +89,37 @@ export function validarParametros(plantilla, parametros) {
       const numero = leerNumero(valor);
       const minimo = definicion.minimo ?? 0;
       if (!Number.isFinite(numero)) {
-        problemas.push({ nivel: 'error', mensaje: `Falta "${definicion.etiqueta}"` });
+        problemas.push({ nivel: 'error', campo: definicion.id, mensaje: `Falta "${definicion.etiqueta}"` });
       } else if (numero < minimo || (minimo === 0 && numero <= 0)) {
-        problemas.push({ nivel: 'error', mensaje: `"${definicion.etiqueta}" tiene que ser mayor a ${minimo}` });
+        problemas.push({ nivel: 'error', campo: definicion.id, mensaje: `"${definicion.etiqueta}" tiene que ser mayor a ${minimo}` });
+      } else if (Number.isFinite(definicion.maximo) && numero > definicion.maximo) {
+        // Límite publicado por quien lo fabrica: más que eso no se puede hacer.
+        problemas.push({ nivel: 'error', campo: definicion.id, mensaje: `"${definicion.etiqueta}" no puede pasar de ${formatearCorto(definicion.maximo)}${definicion.unidad ? ` ${definicion.unidad}` : ''}` });
+      } else if (Number.isFinite(definicion.avisoDesde) && numero > definicion.avisoDesde) {
+        problemas.push({ nivel: 'aviso', campo: definicion.id, mensaje: definicion.avisoTexto || `"${definicion.etiqueta}" mayor a ${formatearCorto(definicion.avisoDesde)}: confirmar antes de prometerlo` });
       }
     } else if (definicion.tipo === 'opciones') {
       const valores = (definicion.opciones || []).map((o) => String(o.valor));
       if (!valores.includes(String(valor))) {
-        problemas.push({ nivel: 'error', mensaje: `Elegí "${definicion.etiqueta}"` });
+        problemas.push({ nivel: 'error', campo: definicion.id, mensaje: `Elegí "${definicion.etiqueta}"` });
+      }
+    } else if (definicion.tipo === 'texto') {
+      if (!String(valor ?? '').trim()) {
+        problemas.push({ nivel: 'error', campo: definicion.id, mensaje: `Falta "${definicion.etiqueta}"` });
+      }
+    } else if (definicion.tipo === 'multiple') {
+      const elegidos = Array.isArray(valor) ? valor : [];
+      if (!elegidos.length) {
+        problemas.push({ nivel: 'error', campo: definicion.id, mensaje: `Elegí al menos una opción en "${definicion.etiqueta}"` });
+      }
+      // Cada proceso puede tener su límite de espesor (lo publicado por la planta).
+      const espesor = leerNumero(parametros?.espesorMm);
+      for (const opcion of (definicion.opciones || []).filter((o) => elegidos.includes(o.valor))) {
+        if (Number.isFinite(opcion.espesorMaxMm) && espesor > opcion.espesorMaxMm) {
+          problemas.push({ nivel: 'error', campo: 'espesorMm', mensaje: `${opcion.etiqueta}: hasta ${formatearCorto(opcion.espesorMaxMm)} mm de espesor (cargaste ${formatearCorto(espesor)})` });
+        } else if (Number.isFinite(opcion.espesorAvisoMm) && espesor > opcion.espesorAvisoMm) {
+          problemas.push({ nivel: 'aviso', campo: 'espesorMm', mensaje: `${opcion.etiqueta}: más de ${formatearCorto(opcion.espesorAvisoMm)} mm hay que confirmarlo con la planta` });
+        }
       }
     }
   }

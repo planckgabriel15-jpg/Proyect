@@ -1,0 +1,89 @@
+{
+  "_leeme": "Empresas del grupo y plantas donde se fabrica. Cada sucursal (datos/sucursales.json) dice a qué empresa pertenece (empresaId): esa es la única unión. El vendedor entra con la empresa de su sucursal: de ahí salen el logo, los colores, el catálogo que ve primero y el encabezado de la hoja impresa. Lo marcado [SUPUESTO] o [A CONFIRMAR] está en PENDIENTES.md, sección I. Fuentes: docs/CATALOGO_GRUPO.md.",
+  "grupo": {
+    "nombre": "Grupo HIPER · Abasto · G-TEC",
+    "_nombre": "[SUPUESTO] No se encontró un nombre público del grupo: es solo un rótulo para la pantalla de ingreso."
+  },
+  "empresas": [
+    {
+      "id": "abasto",
+      "nombre": "Abasto Soluciones",
+      "nombreCorto": "Abasto",
+      "prefijo": "AB",
+      "logo": "recursos/logo.png",
+      "logoTexto": "ABASTO",
+      "colorPrincipal": "#0054a6",
+      "colorPrincipalOscuro": "#003d7a",
+      "colorAcento": "#fe222c",
+      "actividad": "Venta al público de zinguería, chapas y materiales para construcción en seco; plegados y cortes a medida.",
+      "plantaPorDefecto": "taller_abasto",
+      "sitio": "https://abastosoluciones.com.ar",
+      "fuente": "https://abastosoluciones.com.ar/content/4-sobre-nosotros y https://abastosoluciones.com.ar/locales (13/11/2026)"
+    },
+    {
+      "id": "hiper",
+      "nombre": "HIPER Argentina Metalmecánica",
+      "nombreCorto": "HIPER",
+      "prefijo": "HI",
+      "razonSocial": "Metalquímica Hiper S.A.",
+      "_razonSocial": "Como figura en \"Sobre nosotros\" del sitio de la empresa. [A CONFIRMAR] que sea la razón social vigente.",
+      "logo": null,
+      "logoTexto": "HIPER",
+      "_logo": "Sin archivo de logo: se muestra el texto de logoTexto en un recuadro. Cuando llegue el archivo, ponerlo en recursos/ y escribir acá su ruta (por ejemplo \"recursos/logo-hiper.png\").",
+      "colorPrincipal": "#3a3f45",
+      "colorPrincipalOscuro": "#24282c",
+      "colorAcento": "#c0392b",
+      "_colores": "[SUPUESTO] Colores neutros hasta tener los de la marca.",
+      "actividad": "Fabricación de zinguería y de perfiles para construcción en seco; venta mayorista con logística propia.",
+      "direccion": "Av. Japón 2230, X5008 Córdoba",
+      "plantaPorDefecto": "planta_hiper",
+      "sitio": "https://hiperargentina.com",
+      "fuente": "https://hiperargentina.com/content/4-sobre-nosotros y https://hiperargentina.com/contacto (13/11/2026)"
+    },
+    {
+      "id": "gtec",
+      "nombre": "G-TEC Desarrollos y Servicios Industriales",
+      "nombreCorto": "G-TEC",
+      "prefijo": "GT",
+      "razonSocial": "G-TEC Desarrollos y Servicios S.A.",
+      "_razonSocial": "[A CONFIRMAR] Tomada de un listado de comercio exterior (Veritrade), visto solo por el buscador.",
+      "logo": null,
+      "logoTexto": "G-TEC",
+      "_logo": "Sin archivo de logo: se muestra el texto. Cuando llegue, poner la ruta (por ejemplo \"recursos/logo-gtec.png\").",
+      "colorPrincipal": "#1f4e5f",
+      "colorPrincipalOscuro": "#143540",
+      "colorAcento": "#e67e22",
+      "_colores": "[SUPUESTO] Colores neutros hasta tener los de la marca.",
+      "actividad": "Diseño, desarrollo y fabricación de productos metálicos; servicios de corte láser, chorro de agua, plegado CNC, mecanizado y soldadura.",
+      "direccion": "Gral. Manuel Savio 5123, X5123 Córdoba",
+      "plantaPorDefecto": "planta_gtec",
+      "sitio": "https://gtecdesarrollosyservicios.com",
+      "fuente": "https://gtecdesarrollosyservicios.com/ (13/11/2026)"
+    }
+  ],
+  "plantas": [
+    {
+      "id": "taller_abasto",
+      "nombre": "Taller de plegado de Abasto",
+      "nombreCorto": "Taller Abasto",
+      "empresaId": "abasto",
+      "depositoMaquinaId": "deposito",
+      "nota": "[A CONFIRMAR] Dónde está el taller que hace los plegados a medida de Abasto."
+    },
+    {
+      "id": "planta_hiper",
+      "nombre": "Planta HIPER (Av. Japón)",
+      "nombreCorto": "Planta HIPER",
+      "empresaId": "hiper",
+      "depositoMaquinaId": "hiper_deposito"
+    },
+    {
+      "id": "planta_gtec",
+      "nombre": "Planta G-TEC (Parque Industrial Ferreyra)",
+      "nombreCorto": "Planta G-TEC",
+      "empresaId": "gtec",
+      "depositoMaquinaId": "gtec_despacho"
+    }
+  ],
+  "_tercero": "fabricaEn = \"tercero\" en una plantilla quiere decir que no lo fabrica el grupo (reventa de otra marca): se entrega del stock de la empresa que vende."
+}

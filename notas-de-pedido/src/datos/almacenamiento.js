@@ -14,6 +14,7 @@
 import { asignarNumeroNP, contadoresDesdeSucursales } from '../logica/numeracion.js';
 import { crearId } from '../logica/renglones.js';
 import { completarFotoVieja } from '../logica/fotoCalculo.js';
+import { empresaDeSucursal, abastecimientoDe } from '../logica/empresas.js';
 
 const PREFIJO = 'notasPedido.';
 
@@ -76,7 +77,7 @@ async function guardar(clave, valor) {
  * @returns {Promise<{config, sucursales, vendedores, materiales, catalogo, codigos, glosario}>}
  */
 export async function cargarDatosBase() {
-  const [config, sucursales, vendedores, materiales, catalogo, codigosArchivo, glosario, tiemposMtm, produccion] = await Promise.all([
+  const [config, sucursales, vendedores, materiales, catalogo, codigosArchivo, glosario, tiemposMtm, produccion, grupo] = await Promise.all([
     leerArchivoDatos('config.json'),
     leerArchivoDatos('sucursales.json'),
     leerArchivoDatos('vendedores.json'),
@@ -86,6 +87,7 @@ export async function cargarDatosBase() {
     leerArchivoDatos('glosario.json'),
     leerArchivoDatos('tiempos-mtm.json'),
     leerArchivoDatos('produccion.json'),
+    leerArchivoDatos('empresas.json'),
   ]);
 
   // Si en Configuración se importó una tabla de códigos, manda esa.
@@ -98,7 +100,9 @@ export async function cargarDatosBase() {
 
   return {
     config,
-    sucursales: sucursalesEditadas || sucursales.sucursales,
+    // El grupo: empresas y plantas (ver logica/empresas.js). Cada sucursal dice de qué empresa es.
+    grupo,
+    sucursales: unirSucursales(sucursalesEditadas, sucursales.sucursales, grupo),
     vendedores: vendedores.vendedores,
     materiales,
     catalogo,
@@ -111,6 +115,18 @@ export async function cargarDatosBase() {
       agrupamiento: criteriosAgrupamiento || produccion.agrupamiento,
     },
   };
+}
+
+/**
+ * Sucursales editadas en Configuración + las del archivo. Las editadas antes de que existiera el
+ * grupo no tenían empresa: se completa con la del archivo (o la primera empresa) y se suman las
+ * sucursales nuevas del archivo (las de HIPER y G-TEC), sin pisar lo editado.
+ */
+export function unirSucursales(editadas, delArchivo, grupo) {
+  if (!editadas) return delArchivo;
+  const primera = grupo?.empresas?.[0]?.id || null;
+  const completas = editadas.map((s) => ({ ...s, empresaId: s.empresaId || delArchivo.find((a) => a.id === s.id)?.empresaId || primera }));
+  return completas.concat(delArchivo.filter((a) => !completas.some((s) => s.id === a.id)));
 }
 
 // =============================================================
@@ -176,11 +192,12 @@ export async function fijarUltimoNumero(sucursales, sucursalId, ultimoNumero) {
 // =============================================================
 
 /** Crea una nota vacía en estado borrador (todavía SIN número). */
-export async function crearNotaVacia({ sucursalId, vendedorId }) {
+export async function crearNotaVacia({ sucursalId, vendedorId, empresaId = null }) {
   return {
     id: crearId('nota'),
     estado: 'borrador',
     numero: null,              // se asigna al emitir
+    empresaId,                 // empresa del grupo que emite (la de la sucursal de origen)
     sucursalId,
     vendedorId,
     fechaCreacion: new Date().toISOString(),
@@ -417,12 +434,13 @@ export async function borrarDemo() {
 // MIGRACIÓN (notas guardadas con versiones anteriores del programa)
 // =============================================================
 
-export const VERSION_DATOS = 2;
+export const VERSION_DATOS = 3;
 
 /**
  * Versión 2: las notas emitidas antes guardaban la foto sin la cantidad de chapas.
  * Se completa (sin tocar código ni descripción) y se agregan los campos nuevos de la nota
- * (fecha de entrega, prioridad, vista 3D). Se hace una sola vez.
+ * (fecha de entrega, prioridad, vista 3D).
+ * Versión 3: empresa de la nota y planta de cada renglón (ver abajo). Se hace una sola vez.
  */
 export async function migrarDatos(datos) {
   const version = await leer('versionDatos', 1);
@@ -433,11 +451,19 @@ export async function migrarDatos(datos) {
     nota.fechaEntrega ??= null;
     nota.prioridad ??= 'normal';
     nota.mostrar3d ??= 'auto';
+    // Versión 3 (grupo de empresas): la nota guarda qué empresa la emite (la de su sucursal) y cada
+    // renglón dónde se hace. Solo se AGREGAN campos: número, descripción, código y foto no se tocan.
+    if (!nota.empresaId) {
+      nota.empresaId = empresaDeSucursal(datos, nota.sucursalId)?.id || null;
+    }
     for (const renglon of nota.renglones || []) {
       if (renglon.calculado && !(renglon.calculado.version >= 2)) {
         renglon.calculado = completarFotoVieja(renglon, renglon.calculado, datos.config);
         migradas += 1;
       }
+      const plantilla = (datos.catalogo?.plantillas || []).find((p) => p.id === renglon.plantillaId) || null;
+      if (renglon.fabricaEn === undefined) renglon.fabricaEn = plantilla?.fabricaEn ?? null;
+      renglon.abastecimiento ??= abastecimientoDe(renglon, plantilla);
     }
   }
   await guardar('notas', notas);

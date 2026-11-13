@@ -73,7 +73,9 @@ export function prepararModelo(tabla, config, cambios = null) {
     detalles,
     materiales: tabla.materiales,
     factorPeso: tabla.factorPeso,
-    productosSinPerfil: cambios?.productosSinPerfil || tabla.productosSinPerfil || [],
+    // Lo editado en pantalla manda; las filas nuevas del archivo (grupos agregados después) se suman.
+    productosSinPerfil: (cambios?.productosSinPerfil || []).concat((tabla.productosSinPerfil || [])
+      .filter((fila) => !(cambios?.productosSinPerfil || []).some((editada) => editada.grupo === fila.grupo))),
   };
 }
 

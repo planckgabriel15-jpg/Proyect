@@ -30,6 +30,9 @@ import { leerValorDeCota } from '../logica/cotas.js';
 import { cambiarTramo, agregarTramoEnExtremo } from '../logica/perfil.js';
 import { tienePendiente, perfilFinal, activarPendiente } from '../logica/pendiente.js';
 import { svgPendienteLateral } from '../vistas2d/pendienteSvg.js';
+import { estado } from './estado.js';
+import * as almacenamiento from '../datos/almacenamiento.js';
+import { empresaDeNota, plantillasVisibles, plantillaEsDeEmpresa, listaEmpresas, tipoDeRenglon } from '../logica/empresas.js';
 
 const NOMBRES_PASOS = ['¿Qué pieza?', 'Medidas y dibujo', 'Material y cantidad'];
 
@@ -199,37 +202,73 @@ export function abrirAsistente(opciones) {
       type: 'search', class: 'buscador', placeholder: 'Buscar pieza (ej. babeta, codo, sombrero…)', 'aria-label': 'Buscar pieza',
       oninput: () => llenar(buscador.value),
     });
+    // Catálogo de la empresa que emite la nota; con el interruptor se ve el de todo el grupo.
+    const empresa = empresaDeNota(nota, datos);
+    let verTodo = Boolean(estado.sesion?.verTodoElGrupo);
+    const interruptor = h('label', { class: 'casilla interruptor-grupo' },
+      h('input', {
+        type: 'checkbox', checked: verTodo,
+        onchange: async (e) => {
+          verTodo = e.target.checked;
+          if (estado.sesion) { estado.sesion.verTodoElGrupo = verTodo; await almacenamiento.guardarSesion(estado.sesion); }
+          llenar(buscador.value);
+        },
+      }), ' Ver todo el grupo ', h('span', { class: 'texto-chico' }, `(sin tildar: solo el catálogo de ${empresa?.nombreCorto || 'tu empresa'})`));
     function llenar(texto) {
       zonaGrupos.replaceChildren();
-      const grupos = agruparPlantillas(datos.catalogo, filtrarPlantillas(datos.catalogo, texto));
-      if (!grupos.length) zonaGrupos.append(h('p', {}, 'No hay piezas con ese nombre. Probá con "Pieza especial libre".'));
+      const visibles = plantillasVisibles(datos.catalogo, empresa?.id, verTodo);
+      const encontradas = filtrarPlantillas(datos.catalogo, texto, visibles);
+      const grupos = agruparPlantillas(datos.catalogo, encontradas);
+      if (!grupos.length) {
+        const enElGrupo = verTodo ? 0 : filtrarPlantillas(datos.catalogo, texto).length;
+        zonaGrupos.append(h('p', {}, enElGrupo
+          ? `No está en el catálogo de ${empresa?.nombreCorto}, pero hay ${enElGrupo} en otras empresas del grupo: tildá "Ver todo el grupo".`
+          : 'No hay piezas con ese nombre. Probá con "Pieza especial libre".'));
+      }
       for (const grupo of grupos) {
-        zonaGrupos.append(h('h3', { class: 'grupo-titulo' }, grupo.nombre),
-          h('div', { class: 'tarjetas' }, grupo.plantillas.map(tarjetaDePlantilla)));
+        const tarjetas = h('div', { class: 'tarjetas' }, grupo.plantillas.map((p) => tarjetaDePlantilla(p, empresa)));
+        // Los grupos de artículos sin dibujo son largos: sin búsqueda van plegados (se abren con un toque).
+        const soloArticulos = grupo.plantillas.every((p) => p.sinDibujo || p.generador3d === 'articulo');
+        if (soloArticulos && !texto.trim()) {
+          zonaGrupos.append(h('details', { class: 'grupo-plegado' }, h('summary', { class: 'grupo-titulo' }, `${grupo.nombre} (${grupo.plantillas.length})`), tarjetas));
+        } else {
+          zonaGrupos.append(h('h3', { class: 'grupo-titulo' }, grupo.nombre), tarjetas);
+        }
       }
     }
-    contenido.append(h('div', { class: 'paso-1' }, buscador, zonaGrupos));
+    contenido.append(h('div', { class: 'paso-1' }, buscador, listaEmpresas(datos).length > 1 ? interruptor : null, zonaGrupos));
     llenar('');
     buscador.focus();
   }
 
-  function tarjetaDePlantilla(plantilla) {
+  function tarjetaDePlantilla(plantilla, empresa) {
+    const elegir = () => {
+      borrador = crearRenglonDesdePlantilla(plantilla, datos.config);
+      paso = 2;
+      dibujarPaso();
+    };
+    // De otra empresa del grupo: se avisa de quién es (la nota se reparte sola a su planta).
+    const ajena = empresa && !plantillaEsDeEmpresa(plantilla, empresa.id)
+      ? h('span', { class: 'etiqueta-empresa' }, (plantilla.empresas || []).map((id) => listaEmpresas(datos).find((e) => e.id === id)?.nombreCorto || id).join(' · '))
+      : null;
+    if (plantilla.sinDibujo || plantilla.generador3d === 'articulo') {
+      // Artículos, servicios y piezas con plano: tarjeta de texto (no hay dibujo que mostrar).
+      const cuantos = (plantilla.parametros || []).find((d) => d.id === 'variante')?.opciones.length;
+      return h('button', { type: 'button', class: 'tarjeta-plantilla sin-dibujo', onclick: elegir },
+        h('span', { class: 'nombre-plantilla' }, plantilla.nombre),
+        h('span', { class: 'texto-chico' }, [plantilla.marca, cuantos ? `${cuantos} modelos` : null].filter(Boolean).join(' · ')),
+        ajena);
+    }
     const miniatura = plantilla.tipoPieza === 'plegada'
       ? svgDelPerfil(plantilla.perfil, { config: datos.config, ancho: 160, alto: 110, miniatura: true })
       : (plantilla.usaPerfil
         ? svgDelPerfil(plantilla.perfil, { config: datos.config, ancho: 160, alto: 110, miniatura: true })
         : svgMiniaturaEspecial(plantilla.generador3d));
-    return h('button', {
-      type: 'button', class: 'tarjeta-plantilla',
-      onclick: () => {
-        borrador = crearRenglonDesdePlantilla(plantilla, datos.config);
-        paso = 2;
-        dibujarPaso();
-      },
-    },
-    h('div', { class: 'miniatura', html: miniatura }),
-    h('span', { class: 'nombre-plantilla' }, plantilla.nombre),
-    plantilla.supuesto ? h('span', { class: 'etiqueta-supuesto' }, 'medidas de ejemplo') : null);
+    return h('button', { type: 'button', class: 'tarjeta-plantilla', onclick: elegir },
+      h('div', { class: 'miniatura', html: miniatura }),
+      h('span', { class: 'nombre-plantilla' }, plantilla.nombre),
+      plantilla.supuesto ? h('span', { class: 'etiqueta-supuesto' }, 'medidas de ejemplo') : null,
+      ajena);
   }
 
   // ===== PASO 2: medidas y dibujo =====
@@ -301,7 +340,9 @@ export function abrirAsistente(opciones) {
           },
         }, texto)));
 
-    const grilla = h('div', { class: 'paso2-grilla', 'data-pestana': pestanaCelular }, panelMedidas, panel2d, panel3d);
+    // Sin dibujo (artículo, servicio, pieza con plano): solo el formulario, sin paneles 2D ni 3D.
+    const grilla = h('div', { class: `paso2-grilla${borrador.sinDibujo ? ' sin-dibujo' : ''}`, 'data-pestana': borrador.sinDibujo ? 'medidas' : pestanaCelular }, panelMedidas, panel2d, panel3d);
+    pestanas.hidden = Boolean(borrador.sinDibujo);
     contenido.append(encabezado, pestanas, grilla);
     dibujar2d();
   }
@@ -406,11 +447,30 @@ export function abrirAsistente(opciones) {
   }
 
   function formularioParametros(plantilla) {
-    const formulario = h('div', { class: 'formulario-parametros' }, h('h3', {}, 'Medidas de la pieza'));
+    const titulos = { articulo: 'Datos del artículo', servicio: 'Datos del servicio', metalmecanica: 'Datos de la pieza' };
+    const formulario = h('div', { class: 'formulario-parametros' }, h('h3', {}, titulos[tipoDeRenglon(borrador)] || 'Medidas de la pieza'));
     for (const definicion of parametrosVisibles(plantilla || {}, borrador.parametros)) {
       const valorActual = borrador.parametros[definicion.id];
       let campo;
-      if (definicion.tipo === 'opciones') {
+      if (definicion.tipo === 'texto') {
+        // Texto libre (alcance del servicio, descripción de la pieza, nombre del plano).
+        campo = h('input', {
+          type: 'text', value: String(valorActual ?? ''), maxlength: 200, autocomplete: 'off',
+          oninput: (e) => { borrador.parametros[definicion.id] = e.target.value; actualizar(); },
+        });
+      } else if (definicion.tipo === 'multiple') {
+        // Varias opciones a la vez (procesos de una pieza metalmecánica).
+        campo = h('span', { class: 'opciones-multiples' }, definicion.opciones.map((o) => h('label', { class: 'casilla' },
+          h('input', {
+            type: 'checkbox', checked: (valorActual || []).includes(o.valor),
+            onchange: (e) => {
+              const actuales = new Set(borrador.parametros[definicion.id] || []);
+              if (e.target.checked) actuales.add(o.valor); else actuales.delete(o.valor);
+              borrador.parametros[definicion.id] = definicion.opciones.map((x) => x.valor).filter((v) => actuales.has(v));
+              actualizar();
+            },
+          }), ` ${o.etiqueta}`)));
+      } else if (definicion.tipo === 'opciones') {
         campo = selector(definicion.opciones.map((o) => ({ valor: o.valor, texto: o.etiqueta })), valorActual, {
           onchange: (e) => {
             borrador.parametros[definicion.id] = leerNumero(e.target.value) || e.target.value;
@@ -429,6 +489,13 @@ export function abrirAsistente(opciones) {
           },
         });
         campo = entrada;
+        if (definicion.sugeridos?.length) {
+          // Valores habituales a un toque (espesores en mm).
+          campo = h('span', { class: 'campo-con-atajos' }, entrada, definicion.sugeridos.map((valor) => h('button', {
+            type: 'button', class: 'boton chico',
+            onclick: () => { entrada.value = String(valor).replace('.', ','); borrador.parametros[definicion.id] = valor; actualizar(); },
+          }, String(valor).replace('.', ','))));
+        }
         if (definicion.tipo === 'diametro') {
           // Botones rápidos de diámetros en pulgadas.
           campo = h('span', { class: 'campo-con-atajos' }, entrada,
@@ -439,7 +506,7 @@ export function abrirAsistente(opciones) {
         }
       }
       formulario.append(h('label', { class: 'campo-parametro' },
-        h('span', {}, `${definicion.etiqueta}${definicion.unidad ? ` (${definicion.unidad})` : ''}`),
+        h('span', {}, `${definicion.etiqueta}${definicion.unidad ? ` (${definicion.unidad})` : ''}${definicion.opcional ? ' (opcional)' : ''}`),
         campo,
         definicion.ayuda ? h('span', { class: 'texto-chico' }, definicion.ayuda) : null));
     }
@@ -508,10 +575,14 @@ export function abrirAsistente(opciones) {
           ` ${opcion.texto}`))), 'lado_pintura'));
     }
     } else {
-      formulario.append(h('p', { class: 'texto-chico' }, 'Artículo de catálogo: no lleva material, calibre ni color.'));
+      formulario.append(h('p', { class: 'texto-chico' }, {
+        servicio: 'Servicio: no lleva chapa. El material y el espesor, si hacen falta, se cargan en los datos del servicio.',
+        metalmecanica: 'Pieza a medida: el material y el espesor (en mm) se cargan en los datos de la pieza.',
+      }[borrador.tipoPieza] || 'Artículo de catálogo: no lleva material, calibre ni color.'));
     }
 
-    formulario.append(campo('Cantidad', h('input', {
+    const unidadServicio = { hora: 'horas', pieza: 'piezas', metro: 'metros', global: 'trabajos' }[borrador.parametros?.unidad];
+    formulario.append(campo(borrador.tipoPieza === 'servicio' && unidadServicio ? `Cantidad (${unidadServicio})` : 'Cantidad', h('input', {
       type: 'text', inputmode: 'numeric', value: String(borrador.cantidad ?? 1),
       oninput: (e) => { borrador.cantidad = leerNumero(e.target.value); actualizar(); },
     })));
@@ -537,7 +608,7 @@ export function abrirAsistente(opciones) {
 
     const vista2d = h('section', { class: 'panel panel-2d' }, h('h3', {}, 'Dibujo 2D'), h('div', { class: 'zona-svg' }), h('div', { class: 'zona-laser' }));
     const vista3d = h('section', { class: 'panel panel-3d' }, h('h3', {}, 'Vista 3D'), contenedor3d, botones3d);
-    contenido.append(h('div', { class: 'paso3-grilla' }, h('section', { class: 'panel' }, h('h3', {}, 'Material y cantidad'), formulario), vista2d, vista3d));
+    contenido.append(h('div', { class: `paso3-grilla${borrador.sinDibujo ? ' sin-dibujo' : ''}` }, h('section', { class: 'panel' }, h('h3', {}, 'Material y cantidad'), formulario), vista2d, vista3d));
     dibujar2d();
   }
 

@@ -23,7 +23,8 @@ export async function seccionDemo(contenedor, { refrescar }) {
     const boton = contenedor.querySelector('.boton-cargar-demo');
     if (boton) { boton.disabled = true; boton.textContent = 'Generando…'; }
     try {
-      const demo = generarDemo(datos, { modelo: ctx.modelo, prod: ctx.prod, operarios: ctx.prod.operarios });
+      // La demo es de todo el grupo (50 notas por local de las tres empresas), aunque se mire una sola planta.
+      const demo = generarDemo(datos, { modelo: ctx.modelo, prod: ctx.prodCompleto, operarios: ctx.prodCompleto.operarios });
       await almacenamiento.cargarDemo(demo);
       mostrarAviso(`Listo: ${demo.notas.length} notas de demostración`, 'ok');
       refrescar();

@@ -19,6 +19,14 @@
 import { leerNumero, redondear, formatearCorto, formatearNumero } from './numeros.js';
 import { tramosDeChapa } from './empalme.js';
 
+/** Unidades en que se vende un servicio (parámetro "unidad" de la plantilla). */
+export const UNIDADES_DE_SERVICIO = {
+  hora: { abreviatura: 'h', singular: 'hora', plural: 'horas' },
+  pieza: { abreviatura: 'u.', singular: 'pieza', plural: 'piezas' },
+  metro: { abreviatura: 'm', singular: 'metro', plural: 'metros' },
+  global: { abreviatura: 'trab.', singular: 'trabajo completo', plural: 'trabajos' },
+};
+
 /** ¿Este renglón se cuenta en chapas? (tiene largo y se cotiza por banda). Si no, en unidades. */
 export function seCuentaEnChapas(renglon, resultado) {
   return renglon.usaLargo !== false
@@ -35,18 +43,26 @@ export function piezasDe(renglon) {
 
 /**
  * Lo que va en la columna "Cantidad" de la nota.
- * @returns {{unidad: 'chapas'|'unidades', valor: number, piezas: number, texto: string, regla: string}}
+ * @returns {{unidad: 'chapas'|'unidades', abreviatura: string, valor: number, piezas: number, texto: string, regla: string}}
+ *   abreviatura = lo que se escribe al lado del número: "chapa(s)", "u.", "h" (horas), "m"…
  */
 export function cantidadDeLaNota(renglon, resultado, config) {
   const piezas = piezasDe(renglon);
   if (!seCuentaEnChapas(renglon, resultado)) {
-    return { unidad: 'unidades', valor: piezas, piezas, texto: formatearCorto(piezas, 2), regla: 'por unidad (no tiene largo)' };
+    // Los servicios se venden en la unidad elegida (horas, metros, piezas o el trabajo completo).
+    const deServicio = renglon.tipoPieza === 'servicio' ? UNIDADES_DE_SERVICIO[renglon.parametros?.unidad] : null;
+    return {
+      unidad: 'unidades', valor: piezas, piezas, texto: formatearCorto(piezas, 2),
+      abreviatura: deServicio?.abreviatura ?? 'u.',
+      regla: deServicio ? `servicio por ${deServicio.singular}` : 'por unidad (no tiene largo)',
+    };
   }
   const decimales = config.cantidadDeChapas?.decimales ?? 2;
   const largoChapa = config.largoMaximoChapaCm;
   const valor = redondear((piezas * leerNumero(renglon.largoCm)) / largoChapa, decimales);
   return {
     unidad: 'chapas',
+    abreviatura: 'chapa(s)',
     valor,
     piezas,
     texto: formatearCorto(valor, decimales),

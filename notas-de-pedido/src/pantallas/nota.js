@@ -11,6 +11,7 @@
 
 import { h, selector, ayuda, mostrarAviso, confirmar, fechaCorta } from './util.js';
 import { estado, ir, sucursalActual } from './estado.js';
+import { empresaDeSucursal, empresaDeNota, sucursalesDeEmpresa, repartoPorPlanta } from '../logica/empresas.js';
 import { abrirAsistente } from './asistente.js';
 import * as almacenamiento from '../datos/almacenamiento.js';
 import { calcularRenglon } from '../logica/calculoRenglon.js';
@@ -20,6 +21,7 @@ import { PRIORIDADES } from '../logica/produccion.js';
 import { tiempoDeRenglon, tiempoDeNota, textoDeTiempo } from '../logica/tiemposRenglon.js';
 import { cargarModelo } from './contextoProduccion.js';
 import { validarNota } from '../logica/validaciones.js';
+import { formatearCorto } from '../logica/numeros.js';
 import { duplicarRenglon } from '../logica/renglones.js';
 import { registrarAtajos, etiquetaAtajo } from './atajos.js';
 import { svgDelPerfil } from '../vistas2d/perfilSvg.js';
@@ -37,7 +39,10 @@ export async function pantallaNota(contenedor, notaId) {
   let guardadaAlgunaVez = true;
 
   if (notaId === 'nueva') {
-    nota = await almacenamiento.crearNotaVacia({ sucursalId: estado.sesion.sucursalHoyId, vendedorId: estado.sesion.vendedorId });
+    nota = await almacenamiento.crearNotaVacia({
+      sucursalId: estado.sesion.sucursalHoyId, vendedorId: estado.sesion.vendedorId,
+      empresaId: empresaDeSucursal(datos, estado.sesion.sucursalHoyId)?.id || null,
+    });
     guardadaAlgunaVez = false;
   } else {
     nota = await almacenamiento.leerNota(notaId);
@@ -107,7 +112,10 @@ export async function pantallaNota(contenedor, notaId) {
       },
     }, 'Pegar')
     : null;
-  const selectorOrigen = selector(datos.sucursales.map((s) => ({ valor: s.id, texto: s.nombre })), nota.sucursalId, {
+  // Origen = empresa + sucursal. La empresa es la del vendedor; se elige entre SUS sucursales.
+  const empresa = empresaDeNota(nota, datos);
+  nota.empresaId ??= empresa?.id || null;
+  const selectorOrigen = selector(sucursalesDeEmpresa(datos, empresa?.id).map((s) => ({ valor: s.id, texto: s.nombre })), nota.sucursalId, {
     'aria-label': 'Sucursal de origen',
     onchange: (e) => { nota.sucursalId = e.target.value; marcarCambio(); },
   });
@@ -127,7 +135,7 @@ export async function pantallaNota(contenedor, notaId) {
 
   const encabezado = h('section', { class: 'encabezado-nota panel' },
     h('div', { class: 'fila-campos' },
-      h('label', { class: 'campo-parametro' }, h('span', {}, 'Origen'), selectorOrigen),
+      h('label', { class: 'campo-parametro' }, h('span', {}, `Origen · ${empresa?.nombreCorto || ''}`), selectorOrigen),
       h('div', { class: 'campo-parametro' }, h('span', {}, 'NP Nº'), h('strong', { class: 'dato-fijo' }, 'se asigna al emitir')),
       h('div', { class: 'campo-parametro' }, h('span', {}, 'Fecha'), h('strong', { class: 'dato-fijo' }, fechaCorta(new Date().toISOString())))),
     h('div', { class: 'fila-campos' },
@@ -155,7 +163,10 @@ export async function pantallaNota(contenedor, notaId) {
       listaRenglones.append(h('p', { class: 'vacio' }, 'Todavía no hay piezas. Tocá "Agregar pieza".'));
     }
     const tiempoTotal = tiempoDeNota(nota, datos, modelo);
-    totalTiempo.textContent = nota.renglones.length ? `Tiempo estándar de fabricación: ${textoDeTiempo(tiempoTotal.totalEstandarS)} (estimado, modelo MTM a validar)` : '';
+    // Si la nota tiene renglones de más de una planta, se avisa cómo se reparte (lo hace sola).
+    const reparto = repartoPorPlanta(nota, datos);
+    const textoReparto = reparto.length > 1 ? ` · Se reparte sola: ${reparto.map((g) => `${g.nombre} (renglón ${g.renglones.map((n) => n + 1).join(', ')})`).join(' · ')}` : '';
+    totalTiempo.textContent = nota.renglones.length ? `Tiempo estándar de fabricación: ${textoDeTiempo(tiempoTotal.totalEstandarS)} (estimado, modelo MTM a validar)${textoReparto}` : '';
     nota.renglones.forEach((renglon, i) => {
       const r = calcularRenglon(renglon, datos);
       const tiempo = tiempoDeRenglon(renglon, datos, modelo, r);
@@ -174,8 +185,8 @@ export async function pantallaNota(contenedor, notaId) {
           h('div', {}, 'Código: ', h('strong', {}, r.codigo.encontrado ? r.codigo.codigo : (renglon.codigoPendiente ? 'PENDIENTE' : 'no encontrado')),
             r.codigo.generico ? ' (genérico)' : '',
             r.codigosAdicionales.map((c) => h('span', { class: 'codigo-extra' }, ` + ${c.codigo} x${c.cantidad}`)),
-            ' · Piezas: ', h('strong', {}, String(renglon.cantidad)),
-            ' · Cantidad: ', h('strong', {}, `${cantidad.texto} ${cantidad.unidad === 'chapas' ? 'chapa(s)' : 'unid.'}`),
+            ' · Piezas: ', h('strong', {}, formatearCorto(cantidad.piezas, 2)),
+            ' · Cantidad: ', h('strong', {}, `${cantidad.texto} ${cantidad.abreviatura}`),
             ' · Tiempo: ', h('strong', { title: tiempo.fuente === 'error' ? tiempo.estado : `Setup ${textoDeTiempo(tiempo.setupEstandarS)} + ${textoDeTiempo(tiempo.piezaEstandarS)} por pieza` }, tiempo.fuente === 'error' ? '—' : textoDeTiempo(tiempo.totalEstandarS))),
           diferencia && Math.abs(diferencia.diferencia) >= 0.005
             ? h('details', { class: 'texto-chico detalle-chapas' }, h('summary', {}, 'Consumo físico estimado (no cambia la cantidad)'), diferencia.texto)

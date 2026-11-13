@@ -116,7 +116,7 @@ Sin frameworks y sin "paso de compilación": HTML + CSS + JavaScript moderno (m�
 index.html                     página única (las pantallas cambian con #inicio, #nota/…, #imprimir/…)
 src/app.js                     arranque y elección de pantalla según la dirección
 .
-recursos/logo.png              logo oficial de Abasto Soluciones
+recursos/logo.png              logo oficial de Abasto Soluciones (los de HIPER y G-TEC: ver sección 4)
 src/pantallas/
   atajos.js                    atajos de teclado (F1 muestra la lista)
   inicio.js                    ingreso (comercial, jefe de producción u operario) e inicio (lista de notas de la sucursal)
@@ -153,8 +153,12 @@ src/vistas3d/
   capturas.js                  fotos 3D para tarjetas e impresión (un solo dibujador)
   encuadre.js, materiales3d.js cámara y colores
 src/logica/                    (ver tabla de arriba)
-datos/*.json                   configuración del negocio (ver sección 4)
+datos/*.json                   configuración del negocio (ver sección 4); empresas.json = las tres empresas y sus plantas
 herramientas/generar-codigos-ejemplo.js
+herramientas/cargar-relevamiento.js    productos relevados de las webs (docs/relevamiento) → datos/catalogo.json y docs/CATALOGO_GRUPO.md
+herramientas/medir-flujo.mjs           cuenta clics, campos y tiempo de tres casos de carga (docs/DIAGNOSTICO.md)
+docs/CATALOGO_GRUPO.md         qué vende y fabrica cada empresa del grupo, con sus fuentes
+docs/DIAGNOSTICO.md, docs/REFERENCIAS.md, docs/CAMBIOS.md  por qué se cambió cada cosa y con qué respaldo
 herramientas/importar-modelo-mtm.py    planilla "Modelo MTM Zinguería" → datos/tiempos-mtm.json
 docs/PRODUCCION.md, docs/AGRUPAMIENTO.md  cómo funciona producción y por qué se agrupa así
 tests/                         pruebas automáticas
@@ -187,10 +191,21 @@ docs/ESPECIFICACION.md         la especificación original
 | Agregar una pieza a la galería | `catalogo.json` | copiar una plantilla parecida, cambiarle el `id` (único) y las medidas |
 | Poner la lista real de códigos | pantalla **Configuración → Códigos → Importar** (CSV o JSON), o reemplazar `codigos.json` | columnas `elemento, material, espesor, terminacion, banda, codigo` |
 | Agregar un término al glosario ("?") | `glosario.json` | copiar una línea |
-| Cambiar el logo | `recursos/logo.png` | reemplazar el archivo con el mismo nombre (o poner otro y cambiar `marca.logo` en `config.json`) |
+| Cambiar el logo de una empresa | `recursos/` y `empresas.json` | copiar el archivo a `recursos/` y escribir su ruta en `logo` de esa empresa (por ejemplo `"recursos/logo-hiper.png"`). Mientras `logo` esté en `null` se muestra el texto de `logoTexto` en un recuadro |
 | Poner los nombres reales de los vendedores | `vendedores.json` | cambiar `nombre` (hoy "Vendedor 1", "Vendedor 2"…) |
 | Cambiar las opciones del lado de la pintura | `config.json` | `ladosPintura` (afuera, adentro, los dos lados) |
-| Poner los colores de la empresa | `config.json` | `marca` → `colorPrincipal`, `colorPrincipalOscuro`, `colorAcento` |
+| Poner los colores de una empresa | `empresas.json` | `colorPrincipal`, `colorPrincipalOscuro`, `colorAcento` de esa empresa |
+| Cambiar nombre, prefijo (AB, HI, GT) o planta de una empresa | `empresas.json` | `nombre`, `nombreCorto`, `prefijo`, `plantaPorDefecto` |
+| Agregar una sucursal a una empresa | `sucursales.json` | copiar una línea, cambiar `id`, `nombre`, `letra` y poner el `empresaId` (`abasto`, `hiper` o `gtec`) |
+| Agregar una planta | `empresas.json` y `produccion.json` | una línea en `plantas`; después, sus máquinas y operarios con `"planta": "<id>"` |
+| Decir qué empresa vende un producto | `catalogo.json` | `empresas` de la plantilla: `["abasto"]`, `["hiper", "abasto"]`… Vacío (`[]`) = lo venden las tres |
+| Decir dónde se hace un producto | `catalogo.json` | `fabricaEn`: `taller_abasto`, `planta_hiper`, `planta_gtec`, `"tercero"` (otra marca) o `null` (la planta de quien vende). `abastecimiento`: `"stock"` (sale de depósito) o `"a_pedido"` (se fabrica para la nota) |
+| Cargar el código de facturación de un producto relevado | `catalogo.json` | agregar `"codigo": "…"` en la plantilla o, si tiene modelos, en cada opción de `variante`. Con código cargado deja de salir "código pendiente" |
+| Agregar un modelo a un producto de catálogo | `catalogo.json` | en el parámetro `variante` de la plantilla, copiar una opción (`valor` y `etiqueta` iguales) |
+| Agregar un servicio | `catalogo.json` | copiar una plantilla `gt_…` de tipo `servicio` y cambiar `id`, `nombre`, `maquina` y los límites (`maximo` del espesor) |
+| Agregar un material o un espesor en mm (piezas metalmecánicas) | `materiales.json` → `industriales` | copiar una línea y volver a correr `node herramientas/cargar-relevamiento.js` |
+| Agregar una palabra del mostrador al buscador | `catalogo.json` | `palabrasClave` de la plantilla |
+| Volver a cargar lo relevado de las webs | `docs/relevamiento/*.tsv` y `g-tec.json` | editar y correr `node herramientas/cargar-relevamiento.js` (reescribe lo que tiene `"origen": "relevamiento"` y la tabla de `docs/CATALOGO_GRUPO.md`) |
 | Cambiar cómo se arma el código genérico | `catalogo.json` y `materiales.json` | `codigoGenerico` de cada producto (siglas y medidas) y `letraCodigoGenerico` de colores y materiales |
 
 > Después de tocar un `.json`, recargá la página. Si algo deja de andar, seguramente quedó una coma de más o de menos: los JSON son muy estrictos.
@@ -200,6 +215,10 @@ docs/ESPECIFICACION.md         la especificación original
 **Canaletas con tapas y boquetas:** las plantillas con `"admiteAccesorios": true` muestran, debajo de la tabla, la tapa izquierda y la derecha (ninguna, soldada o engrampada) y las boquetas (forma redonda, cuadrada o rectangular, medida, largo de la boca y posición desde la punta izquierda). Todo queda en el mismo renglón de la canaleta.
 
 **Código genérico:** `"codigoGenerico": { "siglas": "CL", "medidas": ["tramo1", "largoCm"] }` arma CL + 10 + 10 + letra (N si es prepintada negra). Las medidas pueden ser un parámetro (`diametroCm`), `tramo1`, `largoCm` o `desarrolloPerfil`. Con `siglasPorForma` y `medidasPorForma` cambian según la forma elegida. Primero siempre se busca en la tabla una fila para ese elemento.
+
+**Tipos de renglón.** Hay cinco: pieza **plegada** (`tipoPieza: "plegada"`), pieza **especial** (`"especial"`), **artículo de reventa** (especial con `"sinMaterial": true`), **pieza metalmecánica a medida** (`"metalmecanica"`: descripción, medidas, material, espesor en mm, procesos y plano opcional) y **servicio** (`"servicio"`: alcance, unidad —horas, piezas, metros o trabajo completo— y lugar; la cantidad admite decimales con `"cantidadDecimal": true`). Los artículos, servicios y piezas con plano llevan `"sinDibujo": true`.
+
+**Parámetros de una plantilla:** `tipo` puede ser `numero`, `diametro`, `opciones`, `texto` (texto libre) o `multiple` (varias casillas). Con `"opcional": true` se puede dejar vacío. Un número admite `minimo`, `maximo` (pasarlo es un error: no se puede emitir) y `avisoDesde` (avisa sin frenar). En `textoDescripcion`, lo que va entre corchetes solo aparece si el dato está cargado: `"Placa Estandar[ {presentacion}]"`.
 
 **Cómo es una plantilla especial:** `calculoDesarrollo` es uno de `perimetroRedondo`, `perimetroRectangular`, `perimetroSegunForma`, `mediaCana` o `unidad`; `generador3d` es el nombre del dibujo 3D (ver `GENERADORES` en `piezasEspeciales3d.js`); `parametros` es la lista de medidas que se piden; `textoDescripcion` lleva `{nombreDelParametro}` para armar la descripción, por ejemplo `"codo {anguloGrados}° Ø{diametroCm}"`.
 

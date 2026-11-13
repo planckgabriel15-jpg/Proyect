@@ -45,8 +45,10 @@ beforeEach(() => {
 
 test('cargar datos base', async () => {
   const datos = await almacenamiento.cargarDatosBase();
-  assert.equal(datos.sucursales.length, 10);
-  assert.equal(datos.vendedores.length, 30);
+  // Eran 10 sucursales y 30 vendedores (solo Abasto). Con el grupo se suman HIPER y G-TEC (ver docs/CAMBIOS.md).
+  assert.equal(datos.sucursales.length, 12);
+  assert.equal(datos.sucursales.filter((s) => s.empresaId === 'abasto').length, 10);
+  assert.equal(datos.vendedores.length, 36);
   assert.ok(datos.codigos.length > 0);
   assert.ok(datos.glosario.length > 0);
 });

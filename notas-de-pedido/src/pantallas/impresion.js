@@ -13,7 +13,8 @@
 // Se imprime con window.print(); desde ahí se puede "Guardar como PDF".
 // =============================================================
 
-import { h, fechaCorta, fechaYHora, mostrarAviso } from './util.js';
+import { h, fechaCorta, fechaYHora, mostrarAviso, logoDeEmpresa } from './util.js';
+import { empresaDeNota, identificadorDeNota, repartoPorPlanta, plantaDeRenglon, buscarPlanta } from '../logica/empresas.js';
 import { etiquetaAtajo } from './atajos.js';
 import { estado, nombreSucursal, nombreVendedor } from './estado.js';
 import * as almacenamiento from '../datos/almacenamiento.js';
@@ -63,10 +64,12 @@ export async function pantallaImpresion(contenedor, notaId) {
     h('span', { class: 'texto-chico' }, 'Para PDF: en la ventana de impresión elegí "Guardar como PDF". Recomendado: Chrome o Edge.'));
 
   // ---------- encabezado (igual que el papel) ----------
-  const marca = datos.config.marca || {};
+  // Logo y nombre de la empresa del grupo que EMITE la nota (no la de quien la está mirando).
+  const empresa = empresaDeNota(nota, datos);
+  const variasPlantas = repartoPorPlanta(nota, datos).length > 1;
   const encabezado = h('header', { class: 'hoja-encabezado' },
     h('div', { class: 'hoja-origen' },
-      marca.logo ? h('img', { class: 'hoja-logo', src: marca.logo, alt: marca.nombre || 'Logo' }) : null,
+      h('div', { class: 'hoja-empresa' }, logoDeEmpresa(empresa, 'hoja-logo'), h('span', { class: 'hoja-empresa-nombre' }, empresa?.nombre || '')),
       h('span', { class: 'rotulo' }, 'Origen'), h('span', { class: 'origen-grande' }, sucursal.toUpperCase())),
     h('div', { class: 'hoja-datos' },
       h('div', {}, h('span', { class: 'rotulo' }, 'NP Nº '), h('strong', { class: 'numero-np' }, emitida ? String(nota.numero) : 'BORRADOR')),
@@ -120,6 +123,11 @@ export async function pantallaImpresion(contenedor, notaId) {
     if (c.codigoGenerico) detalles.push(h('li', {}, h('strong', {}, 'Código genérico: '), 'confirmarlo con administración'));
     for (const aviso of (c.avisos || []).filter((a) => !a.startsWith('Código pendiente') && !a.startsWith('Código genérico'))) detalles.push(h('li', {}, h('strong', {}, 'Aviso: '), aviso));
     if (renglon.observaciones) detalles.push(h('li', {}, h('strong', {}, 'Observaciones: '), renglon.observaciones));
+    // Solo si la nota se reparte: qué planta hace este renglón.
+    if (variasPlantas) {
+      const destino = plantaDeRenglon(renglon, nota, datos);
+      detalles.push(h('li', {}, h('strong', {}, destino.motivo === 'deposito' ? 'Sale del depósito de: ' : 'Lo hace: '), buscarPlanta(datos, destino.plantaId)?.nombre || '—'));
+    }
 
     const laseres = (conPendiente ? svgPendienteLateral(renglon, vivo.pendiente, { config: datos.config, ancho: 640, alto: 210 }) : '') + (usaPerfil
       ? renglon.perfil.tramos.map((t, n) => (t.corteLaser ? svgCorteLaser(t, n + 1, renglon.largoCm, datos.config, 560, 190) : '')).join('')
@@ -130,8 +138,8 @@ export async function pantallaImpresion(contenedor, notaId) {
       h('tr', { class: 'fila-principal' },
         h('td', {}, h('span', { class: 'numero-en-hoja' }, `${i + 1}.`), ' ', c.descripcion),
         h('td', { class: 'col-codigo' }, c.codigo || 'PENDIENTE'),
-        h('td', { class: 'col-piezas' }, String(c.cantidad.piezas)),
-        h('td', { class: 'col-cantidad' }, c.cantidad.unidad === 'chapas' ? c.cantidad.texto : `${c.cantidad.texto} u.`)),
+        h('td', { class: 'col-piezas' }, formatearCorto(c.cantidad.piezas, 2)),
+        h('td', { class: 'col-cantidad' }, c.cantidad.unidad === 'chapas' ? c.cantidad.texto : `${c.cantidad.texto} ${c.cantidad.abreviatura ?? 'u.'}`)),
       // Tapas y boquetas puestas en la canaleta: se facturan con su propio código (pedido de la empresa).
       (c.codigosAdicionales || []).map((extra) => h('tr', { class: 'fila-adicional' },
         h('td', {}, `   + ${extra.descripcion} (puesta en la canaleta)`),
@@ -139,9 +147,10 @@ export async function pantallaImpresion(contenedor, notaId) {
         h('td', { class: 'col-piezas' }, ''),
         h('td', { class: 'col-cantidad' }, `${extra.cantidad} u.`))),
       h('tr', { class: 'fila-dibujo' }, h('td', { colspan: 4 },
-        h('div', { class: `hoja-dibujos${con3d ? '' : ' sin-3d'}` },
-          h('div', { class: 'hoja-2d', html: dibujo2d }),
-          con3d ? h('div', { class: 'hoja-3d', 'data-renglon': renglon.id }) : null,
+        h('div', { class: `hoja-dibujos${con3d ? '' : ' sin-3d'}${renglon.sinDibujo ? ' sin-dibujo' : ''}` },
+          // Artículos, servicios y piezas con plano no llevan dibujo: no se gasta hoja en un recuadro vacío.
+          renglon.sinDibujo ? null : h('div', { class: 'hoja-2d', html: dibujo2d }),
+          con3d && !renglon.sinDibujo ? h('div', { class: 'hoja-3d', 'data-renglon': renglon.id }) : null,
           h('ul', { class: 'hoja-detalles' }, detalles)))),
       // Vistas extra (corte láser, desde arriba, caras con cortes, tapas) en otra fila:
       // así un renglón largo puede seguir en la hoja siguiente sin dejar la primera vacía.
@@ -155,10 +164,11 @@ export async function pantallaImpresion(contenedor, notaId) {
     h('footer', { class: 'hoja-pie-pantalla no-imprimir' }, `Vendedor: ${vendedor} · ${emitida ? `Emitida: ${fechaYHora(nota.fechaEmision)}` : 'Sin emitir'}`));
 
   contenedor.replaceChildren(estiloPie, barra, hoja);
-  document.title = `NP ${emitida ? nota.numero : 'borrador'} – ${sucursal}`;
+  // Nombre del archivo al guardar como PDF: identificador completo (empresa-sucursal-número).
+  document.title = `NP ${identificadorDeNota(nota, datos)} – ${sucursal}`;
 
   // Imágenes 3D chicas (ayuda visual), solo en los renglones que la llevan.
-  const con3d = nota.renglones.filter((r) => mostrar3d(r, nota, datos));
+  const con3d = nota.renglones.filter((r) => !r.sinDibujo && mostrar3d(r, nota, datos));
   const modulo = con3d.length ? await cargar3d() : null;
   if (modulo) {
     for (const renglon of con3d) {
@@ -174,5 +184,5 @@ export async function pantallaImpresion(contenedor, notaId) {
     mostrarAviso('Sin 3D: se imprime solo el dibujo 2D (que es la referencia oficial).', 'info');
   }
 
-  return () => { document.title = `Notas de pedido – ${datos.config.marca?.nombre || 'Zinguería'}`; };
+  return () => { document.title = 'Notas de pedido'; };
 }

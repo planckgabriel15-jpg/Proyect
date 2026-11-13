@@ -37,6 +37,16 @@ function agregarHijos(elemento, hijos) {
   }
 }
 
+/**
+ * Logo de una empresa del grupo. Si todavía no hay archivo de logo (datos/empresas.json → "logo"),
+ * se muestra el nombre corto en un recuadro con el color de la empresa (se imprime bien en blanco y negro).
+ */
+export function logoDeEmpresa(empresa, clase = 'logo-menu') {
+  if (!empresa) return null;
+  if (empresa.logo) return h('img', { class: clase, src: empresa.logo, alt: empresa.nombre });
+  return h('span', { class: `${clase} logo-texto`, style: `--color-empresa: ${empresa.colorPrincipal || '#333'}`, title: empresa.nombre }, empresa.logoTexto || empresa.nombreCorto || empresa.nombre);
+}
+
 /** Arma un <select> con opciones [{valor, texto}]. */
 export function selector(opciones, valorActual, atributos = {}) {
   return h('select', atributos, opciones.map((o) =>
