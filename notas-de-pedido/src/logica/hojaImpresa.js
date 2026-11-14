@@ -17,7 +17,7 @@
 // (ver la tabla de docs/CAMBIOS.md, cambio D9).
 // =============================================================
 
-import { datosDelRenglon, mostrar3d } from './fotoCalculo.js';
+import { datosDelRenglon, mostrar3d, medidasDibujables } from './fotoCalculo.js';
 import { leerNumero, formatearCorto, formatearFecha, formatearHora } from './numeros.js';
 import { empresaDeNota, identificadorDeNota, repartoPorPlanta, plantaDeRenglon, buscarPlanta } from './empresas.js';
 import { tienePendiente } from './pendiente.js';
@@ -128,7 +128,7 @@ export function armarRenglonDeHoja(renglon, indice, nota, datos, variasPlantas =
     ficha: fichaDeMaterial(renglon, datos.materiales),
     notas,
     dibujo: !conDibujo ? null : (conPendiente ? 'pendiente' : (usaPerfil ? 'perfil' : 'especial')),
-    con3d: conDibujo && mostrar3d(renglon, nota, datos),
+    con3d: conDibujo && mostrar3d(renglon, nota, datos) && medidasDibujables(renglon, vivo),
   };
 }
 

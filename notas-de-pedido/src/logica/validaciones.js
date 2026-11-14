@@ -28,6 +28,9 @@ export function validarTramos(tramos, config) {
       problemas.push({ nivel: 'error', indice, mensaje: `Tramo ${numeroTramo}: falta la medida` });
     } else if (medidaCm <= 0) {
       problemas.push({ nivel: 'error', indice, mensaje: `Tramo ${numeroTramo}: la medida tiene que ser mayor a 0` });
+    } else if (medidaCm < (config.medidaMinimaTramoCm ?? 0)) {
+      // Un tramo de 0,0001 cm no se puede plegar: casi seguro es un error de tipeo.
+      problemas.push({ nivel: 'error', indice, mensaje: `Tramo ${numeroTramo}: la medida mínima es ${formatearCorto(config.medidaMinimaTramoCm)} cm` });
     }
 
     if (!TIPOS_DE_TRAMO.includes(tramo.tipo)) {
@@ -67,6 +70,13 @@ export function validarLargo(largoCm, config) {
   if (!Number.isFinite(largo) || largo <= 0) {
     return [{ nivel: 'error', campo: 'largoCm', mensaje: 'Falta el largo de la pieza' }];
   }
+  // Fuera de lo razonable: casi seguro un error de tipeo (0,001 m, 99999 m).
+  if (largo < (config.largoMinimoPiezaCm ?? 0)) {
+    return [{ nivel: 'error', campo: 'largoCm', mensaje: `El largo es muy chico (mínimo ${formatearCorto(config.largoMinimoPiezaCm)} cm): revisalo` }];
+  }
+  if (config.largoMaximoPiezaCm && largo > config.largoMaximoPiezaCm) {
+    return [{ nivel: 'error', campo: 'largoCm', mensaje: `El largo es muy grande (máximo ${formatearNumero(config.largoMaximoPiezaCm / 100, 2)} m por pieza): revisalo` }];
+  }
   if (largo > config.largoMaximoChapaCm) {
     const texto = AVISO_EMPALME.replace('2,44', formatearNumero(config.largoMaximoChapaCm / 100, 2));
     return [{ nivel: 'aviso', campo: 'largoCm', mensaje: texto }];
@@ -76,7 +86,7 @@ export function validarLargo(largoCm, config) {
 
 /** Revisa material, calibre, terminación, color, lado de la pintura y cantidad. */
 export function validarMaterialYCantidad(renglon, materiales, config) {
-  const problemas = [];
+  const problemas = validarCantidadRazonable(renglon, config);
   const cantidadLeida = leerNumero(renglon.cantidad);
   if (renglon.sinMaterial) {
     // Artículo de catálogo, servicio o pieza con plano: solo importa la cantidad.
@@ -113,6 +123,42 @@ export function validarMaterialYCantidad(renglon, materiales, config) {
     problemas.push({ nivel: 'error', campo: 'cantidad', mensaje: 'La cantidad tiene que ser un número entero mayor a 0' });
   }
   return problemas;
+}
+
+/** Cantidades fuera de lo razonable (error de tipeo): muy grande frena, grande avisa. */
+export function validarCantidadRazonable(renglon, config) {
+  const cantidad = leerNumero(renglon.cantidad);
+  if (!Number.isFinite(cantidad)) return [];
+  if (config?.cantidadMaxima && cantidad > config.cantidadMaxima) {
+    return [{ nivel: 'error', campo: 'cantidad', mensaje: `La cantidad es demasiado grande (máximo ${formatearCorto(config.cantidadMaxima)}): revisala` }];
+  }
+  if (config?.cantidadAvisoDesde && cantidad >= config.cantidadAvisoDesde) {
+    return [{ nivel: 'aviso', campo: 'cantidad', mensaje: `Cantidad muy alta (${formatearCorto(cantidad)}): confirmá que no sobra un cero` }];
+  }
+  return [];
+}
+
+/**
+ * Avisos de la nota entera que no frenan la emisión pero conviene mirar:
+ * fecha de entrega ya pasada y número de factura usado en otra nota emitida.
+ * @param {object} nota
+ * @param {Array} otrasNotas  notas guardadas (para buscar la misma factura)
+ * @param {string} hoy  'aaaa-mm-dd'
+ * @returns {string[]}
+ */
+export function avisosDeNota(nota, otrasNotas = [], hoy = null) {
+  const avisos = [];
+  if (nota.fechaEntrega && hoy && nota.fechaEntrega < hoy) {
+    const [a, m, d] = nota.fechaEntrega.split('-');
+    avisos.push(`La fecha de entrega (${d}/${m}/${a}) ya pasó: ¿está bien?`);
+  }
+  const factura = String(nota.factura || '').replace(/\s+/g, '').toLowerCase();
+  if (factura) {
+    const misma = otrasNotas.find((n) => n.id !== nota.id && n.estado === 'emitida' && !n.demo
+      && String(n.factura || '').replace(/\s+/g, '').toLowerCase() === factura);
+    if (misma) avisos.push(`La factura ${nota.factura} ya está en la nota Nº ${misma.numero} (${misma.cliente || 'sin cliente'}): ¿es otra entrega de la misma venta?`);
+  }
+  return avisos;
 }
 
 /** Revisa el encabezado de la nota: sucursal, cliente y factura son obligatorios. */

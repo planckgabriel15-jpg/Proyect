@@ -155,5 +155,17 @@
       "articulos"
     ],
     "_gruposApagadosPorDefecto": "SUPUESTO: los productos estándar y los artículos de reventa ya los conoce el taller, así que por defecto no llevan 3D (la hoja queda más corta). El resto sí."
-  }
+  },
+  "medidaMinimaTramoCm": 0.5,
+  "_medidaMinimaTramoCm": "SUPUESTO: un tramo más chico no se puede plegar (el dobladillo más chico del catálogo es de 1 cm). Evita medidas tipeadas de más, como 0,0001.",
+  "largoMinimoPiezaCm": 1,
+  "_largoMinimoPiezaCm": "SUPUESTO: menos de 1 cm de largo es un error de tipeo (por ejemplo 0,001 m).",
+  "largoMaximoPiezaCm": 3000,
+  "_largoMaximoPiezaCm": "SUPUESTO: una sola pieza de más de 30 m es casi seguro un error (99999 en vez de 9,99). Si hace falta más, se cambia acá.",
+  "cantidadMaxima": 100000,
+  "_cantidadMaxima": "SUPUESTO: más de 100.000 en un renglón es un error de tipeo. Frena la emisión.",
+  "cantidadAvisoDesde": 1000,
+  "_cantidadAvisoDesde": "SUPUESTO: desde 1.000 piezas en un renglón se pide revisar la cantidad (aviso, no frena).",
+  "diasEntregaPasadaPermitidos": 0,
+  "_diasEntregaPasadaPermitidos": "Fecha de entrega anterior a hoy: aviso al emitir (no frena, por si se carga una nota atrasada)."
 }

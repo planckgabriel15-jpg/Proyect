@@ -591,3 +591,11 @@ details.plegable h3 { display: none; } /* el título ya está en el resumen */
 .etiqueta-produccion { font-size: .8rem; }
 /* Lo marcado como oculto no se muestra aunque su clase diga otra cosa (botones Atrás/Agregar en la galería). */
 [hidden] { display: none !important; }
+/* Un nombre o una factura muy largos sin espacios no rompen la pantalla (se cortan donde haga falta). */
+.tabla-notas td, .descripcion-renglon, .datos-renglon, .resultado-linea, .encabezado-nota input { overflow-wrap: anywhere; word-break: break-word; }
+/* Listas de notas en el celular: la tabla se desplaza adentro de su recuadro; la página no se corre de costado. */
+.lista-notas { overflow-x: auto; max-width: 100%; }
+@media (max-width: 600px) {
+  .lista-notas .tabla-notas th, .lista-notas .tabla-notas td { padding: .3rem .35rem; font-size: .9rem; }
+  .lista-notas .acciones { white-space: normal; }
+}

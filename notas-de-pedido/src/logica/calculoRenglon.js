@@ -106,11 +106,12 @@ export function calcularRenglon(renglon, datos) {
   }
 
   // ---- 2) Largo ----
-  if (renglon.usaLargo !== false) {
-    agregar(validarLargo(renglon.largoCm, config));
-  }
+  const problemasLargo = renglon.usaLargo !== false ? validarLargo(renglon.largoCm, config) : [];
+  agregar(problemasLargo);
   // Empalme: en qué tramos de chapa se arma la pieza (si es más larga que la chapa, o si se pidió).
-  const tramosChapa = renglon.usaLargo !== false && renglon.tipoPieza === 'plegada' ? tramosDeChapa(renglon, config) : [];
+  // Con un largo imposible (99999 m) no se calcula: serían miles de tramos.
+  const largoValido = !problemasLargo.some((p) => p.nivel === 'error');
+  const tramosChapa = renglon.usaLargo !== false && renglon.tipoPieza === 'plegada' && largoValido ? tramosDeChapa(renglon, config) : [];
   const empalme = tramosChapa.length > 1 ? { tramosCm: tramosChapa, texto: textoEmpalme(tramosChapa) } : null;
   if (empalme) agregar(validarEmpalme(renglon, config));
 

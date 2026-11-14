@@ -259,14 +259,27 @@ export async function leerNota(id) {
   return notas.find((n) => n.id === id) || null;
 }
 
-/** Guarda (crea o actualiza) un borrador. No deja modificar una nota ya emitida. */
+export const ERROR_NOTA_EMITIDA = 'La nota ya fue emitida y no se puede modificar';
+export const ERROR_NOTA_CAMBIADA = 'Esta nota se modificó en otra ventana o pestaña';
+
+/**
+ * Guarda (crea o actualiza) un borrador. No deja modificar una nota ya emitida, ni pisar
+ * cambios hechos en OTRA ventana: si lo guardado es más nuevo que lo que se abrió, avisa
+ * (error ERROR_NOTA_CAMBIADA) en vez de borrar lo que hizo la otra ventana.
+ */
 export async function guardarBorrador(nota) {
   const notas = await leer('notas', []);
   const posicion = notas.findIndex((n) => n.id === nota.id);
   if (posicion >= 0 && notas[posicion].estado === 'emitida') {
-    throw new Error('La nota ya fue emitida y no se puede modificar');
+    throw new Error(ERROR_NOTA_EMITIDA);
   }
-  const copia = { ...nota, estado: 'borrador', fechaModificacion: new Date().toISOString() };
+  if (posicion >= 0 && notas[posicion].fechaModificacion && nota.fechaModificacion !== notas[posicion].fechaModificacion) {
+    throw new Error(ERROR_NOTA_CAMBIADA);
+  }
+  // La marca de tiempo cambia en cada guardado (aunque sea en el mismo milisegundo) para detectar la otra ventana.
+  let marca = new Date().toISOString();
+  if (marca === nota.fechaModificacion) marca = new Date(Date.parse(marca) + 1).toISOString();
+  const copia = { ...nota, estado: 'borrador', fechaModificacion: marca };
   if (posicion >= 0) {
     notas[posicion] = copia;
   } else {

@@ -99,6 +99,9 @@ export function consumoFisico(renglon, resultado, config) {
   const piezas = piezasDe(renglon);
   const desarrollo = leerNumero(resultado?.desarrolloCm);
   if (!(piezas > 0) || !(desarrollo > 0)) return null;
+  // Con una cantidad o un largo imposibles (error de tipeo) no se estima: el reparto pieza por pieza
+  // tardaría minutos y congelaría la pantalla. La validación ya marca el error.
+  if (piezas > (config.cantidadMaxima ?? 100000) || leerNumero(renglon.largoCm) > (config.largoMaximoPiezaCm ?? Infinity)) return null;
   const largoChapa = config.largoMaximoChapaCm;
   const anchoUtil = config.anchoChapaCm - (config.cantidadDeChapas?.margenEscuadreCm ?? 0);
   const tramos = renglon.tipoPieza === 'plegada' ? tramosDeChapa(renglon, config) : [leerNumero(renglon.largoCm)];

@@ -197,6 +197,8 @@ Detalle, fuentes y mediciones en `docs/CAMBIOS.md` (etapas D y E) y `docs/DIAGNO
 | 124 | **Las mediciones de tiempo son de modelo (KLM), no cronometradas.** Primera vez: 8 a 11 % menos; segunda nota del día: 54 s contra 90; "Repetir": 20 s. **Cronometrar con 3 o 4 vendedores** antes de dar los números por buenos | `herramientas/medir-flujo.mjs` |
 | 125 | **[SUPUESTO] El 3D del asistente arranca abierto en pantallas anchas y cerrado en el celular** (se recuerda lo que elija el vendedor) | `asistente.js` → `abierto3d` |
 | 127 | **Agrupamiento en HIPER y G-TEC:** los criterios (perfil, desarrollo, material, pliegues, herramental) son de la plegadora de Abasto; con ellos los trabajos de HIPER (artículos de depósito) y de G-TEC (corte, plegado CNC, soldadura) casi no forman lotes. **Definir con cada planta** qué comparten dos trabajos para hacerse juntos (por ejemplo, en G-TEC: mismo material y espesor en el láser) | `produccion.json` → `agrupamiento` (hoy uno para todas) |
+| 128 | **[SUPUESTO] Límites contra errores de tipeo:** tramo mínimo 0,5 cm; largo de 1 cm a 30 m por pieza; cantidad hasta 100.000 (aviso desde 1.000). **Confirmar** el largo máximo real que se vende en una pieza y el pedido más grande habitual de HIPER | `datos/config.json` |
+| 129 | **Dos pestañas con la misma nota:** la que guarda segunda no pisa a la primera; avisa y ofrece abrir lo guardado. Con Google (varios equipos) hará falta lo mismo en el servidor | `almacenamiento.js` → `guardarBorrador` |
 | 126 | En fin de semana la **demo** fecha las notas "de hoy" en el lunes siguiente (toma días hábiles). Ya pasaba antes; no afecta los cálculos | `logica/demo.js` |
 
 ## G. Para cuando se pase a Google (Apps Script)

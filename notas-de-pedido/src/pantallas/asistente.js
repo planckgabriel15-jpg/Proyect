@@ -18,7 +18,7 @@ import { svgDeEspecial, svgMiniaturaEspecial } from '../vistas2d/especialSvg.js'
 import { crearDibujoAMano } from '../vistas2d/dibujoAMano.js';
 import { cargar3d } from '../vistas3d/cargar3d.js';
 import { calcularRenglon } from '../logica/calculoRenglon.js';
-import { leerNumero, formatearNumero, formatearCorto } from '../logica/numeros.js';
+import { leerNumero, formatearNumero, formatearCorto, numeroOTexto, textoDeCantidad } from '../logica/numeros.js';
 import { crearRenglonDesdePlantilla, buscarPlantilla, filtrarPlantillas, agruparPlantillas } from '../logica/renglones.js';
 import { copiarPerfil } from '../logica/perfil.js';
 import { parametrosVisibles } from '../logica/piezasEspeciales.js';
@@ -34,6 +34,7 @@ import { cambiarTramo, agregarTramoEnExtremo } from '../logica/perfil.js';
 import { tienePendiente, perfilFinal, activarPendiente } from '../logica/pendiente.js';
 import { svgPendienteLateral } from '../vistas2d/pendienteSvg.js';
 import { estado } from './estado.js';
+import { medidasDibujables } from '../logica/fotoCalculo.js';
 import * as almacenamiento from '../datos/almacenamiento.js';
 import { empresaDeNota, plantillasVisibles, plantillaEsDeEmpresa, listaEmpresas, tipoDeRenglon } from '../logica/empresas.js';
 import { preferenciasVacias, materialPorDefecto, aplicarMaterial, recientesYFrecuentes } from '../logica/preferencias.js';
@@ -481,9 +482,9 @@ export function abrirAsistente(opciones) {
     const unidad = borrador.tipoPieza === 'servicio' ? UNIDADES_DE_SERVICIO[borrador.parametros?.unidad]?.plural : null;
     campos.append(h('label', { 'data-campo': 'cantidad' }, `Cantidad${unidad ? ` (${unidad})` : (borrador.usaLargo ? ' (piezas)' : '')} `, h('input', {
       type: 'text', inputmode: borrador.cantidadDecimal ? 'decimal' : 'numeric', class: 'campo-cantidad', 'aria-label': 'Cantidad',
-      value: String(borrador.cantidad ?? 1).replace('.', ','),
+      value: textoDeCantidad(borrador.cantidad ?? 1),
       onfocus: (e) => e.target.select(),
-      oninput: (e) => { borrador.cantidad = leerNumero(e.target.value); actualizar(); },
+      oninput: (e) => { borrador.cantidad = numeroOTexto(e.target.value); actualizar(); },
     })));
     if (borrador.usaPerfil) campos.append(selectorCopiarPerfil());
     encabezado.append(campos);
@@ -820,6 +821,9 @@ export function abrirAsistente(opciones) {
 
   function actualizar3d(reencuadrar) {
     if (!visor || !borrador) return;
+    // Con una medida que no es un número (o imposible) el 3D no se puede armar: queda el último bueno
+    // hasta que se corrija (el 2D y el error al lado del campo ya lo muestran).
+    if (!medidasDibujables(borrador, resultado)) return;
     try {
       visor.mostrar(borrador, datos, { reencuadrar });
       visor.resaltarTramo(resaltado);

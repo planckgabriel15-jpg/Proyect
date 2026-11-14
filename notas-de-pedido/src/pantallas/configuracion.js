@@ -66,6 +66,19 @@ async function recargarDatos() {
 }
 
 // ---------- Sucursales ----------
+
+/** Letras vacías o repetidas en la misma empresa (rompen el identificador AB-C-123). null si está todo bien. */
+export function problemaDeLetras(sucursales) {
+  const vacia = sucursales.find((s) => !String(s.letra || '').trim());
+  if (vacia) return `Falta la letra de ${vacia.nombre}`;
+  const vistas = new Map();
+  for (const s of sucursales) {
+    const clave = `${s.empresaId || ''}|${String(s.letra).trim().toUpperCase()}`;
+    if (vistas.has(clave)) return `La letra ${s.letra} está repetida (${vistas.get(clave)} y ${s.nombre}): cada sucursal de una empresa necesita la suya`;
+    vistas.set(clave, s.nombre);
+  }
+  return null;
+}
 async function seccionSucursales(cuerpo) {
   const { datos } = estado;
   const contadores = await almacenamiento.leerContadores(datos.sucursales);
@@ -92,7 +105,10 @@ async function seccionSucursales(cuerpo) {
           const ultimo = Number(f.campoUltimo.value);
           if (!Number.isInteger(ultimo) || ultimo < 0) { mostrarAviso(`Número inválido en ${f.sucursal.nombre}`, 'error'); return; }
         }
-        const nuevas = filas.map((f) => ({ ...f.sucursal, nombre: f.campoNombre.value.trim() || f.sucursal.nombre, letra: f.campoLetra.value.trim() }));
+        const nuevas = filas.map((f) => ({ ...f.sucursal, nombre: f.campoNombre.value.trim() || f.sucursal.nombre, letra: f.campoLetra.value.trim().toUpperCase() }));
+        // La letra arma el identificador de la nota (AB-C-123): no puede faltar ni repetirse dentro de la misma empresa.
+        const problema = problemaDeLetras(nuevas);
+        if (problema) { mostrarAviso(problema, 'error', 8); return; }
         await almacenamiento.guardarSucursales(nuevas);
         for (const f of filas) {
           const ultimo = Number(f.campoUltimo.value);

@@ -56,6 +56,22 @@ export function formatearCorto(numero, decimalesMaximos = 2) {
   return String(redondear(numero, decimalesMaximos)).replace('.', ',');
 }
 
+/**
+ * Lo que escribió el vendedor en un campo numérico: el número si lo es; si no, el texto tal cual
+ * (así se ve lo que escribió y la validación lo marca), nunca NaN.
+ */
+export function numeroOTexto(texto) {
+  const numero = leerNumero(texto);
+  return Number.isFinite(numero) ? numero : String(texto ?? '').trim();
+}
+
+/** Valor para mostrar en un campo de cantidad: "2,5", el texto tal cual o vacío (nunca "NaN" ni "null"). */
+export function textoDeCantidad(valor) {
+  if (valor === null || valor === undefined) return '';
+  if (typeof valor === 'number') return Number.isFinite(valor) ? String(valor).replace('.', ',') : '';
+  return String(valor);
+}
+
 /** Fecha en formato dd/mm/aaaa. */
 export function formatearFecha(fecha) {
   const dia = String(fecha.getDate()).padStart(2, '0');

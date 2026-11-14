@@ -397,3 +397,39 @@ dato aparece dos veces en la hoja impresa" (`tests/grupo-empresas.test.js` y `te
 canaleta + artículo de HIPER + servicio de G-TEC; hoja impresa a PDF en A4; celular de 360 px de ancho (sin
 desplazamiento horizontal); F1; producción con la demo de 600 notas en las tres plantas (tablero, lotes,
 asignación automática, operarios, material, indicadores, vista del operario y hoja de ruta).
+
+---
+
+## Uso rudo: probar el programa como un vendedor que intenta romperlo (14/11/2026)
+
+Se usó el programa en el navegador (Chromium automático) haciendo lo que no se debe: textos con código HTML,
+números absurdos, letras donde van números, doble clic, dos pestañas con la misma nota, direcciones inventadas,
+celular. Lo que **ya estaba bien** y no se tocó: el código HTML que se escribe en cliente, factura, observaciones o
+alcance de un servicio se muestra como texto y **nunca se ejecuta**; el doble clic en "Emitir e imprimir" emite una
+sola vez; una nota emitida no se puede abrir para editar; las direcciones inventadas muestran "No se encontró la
+nota"; ángulos fuera de 1° a 179°, medidas 0 o negativas y boquetas fuera de la canaleta ya se frenaban.
+
+Lo que **estaba mal** y se corrigió (cada uno con su prueba en `tests/pruebas-de-uso-rudo.test.js`):
+
+| # | Qué hizo el "vendedor" | Qué pasaba | Ahora |
+|---|---|---|---|
+| U1 | Emitir con un renglón incompleto | Se abría solo el asistente "Agregar pieza", tapando la nota | Se muestra qué falta; el renglón se abre solo si se toca el enlace |
+| U2 | Largo 99999 m | Se aceptaba y la descripción se llenaba con 40.000 "2,44 +" | Error "El largo es muy grande (máximo 30 m por pieza)" |
+| U3 | Largo 0,001 m | Se aceptaba ("0,00 mts canaleta") | Error "El largo es muy chico" |
+| U4 | Cantidad 99999999999999999999 | Se aceptaba; agregada a la nota **congelaba la pestaña** (el cálculo de chapa repartía pieza por pieza) | Error arriba de 100.000; aviso "¿sobra un cero?" desde 1.000; el cálculo de chapa no se intenta con valores imposibles |
+| U5 | Medida de tramo 0,0001 cm | Se aceptaba | Error "la medida mínima es 0,5 cm" |
+| U6 | Cantidad "abc" en la tarjeta | El campo mostraba "NaN" | Queda lo escrito ("abc") marcado como error |
+| U7 | La misma nota abierta en dos pestañas; una la emite | La otra repetía "No se pudo guardar" cada 5 s, para siempre, y en otras pantallas | Un solo cartel claro, se deja de guardar y hay un botón para ver la nota emitida |
+| U8 | La misma nota editada en dos pestañas sin emitir | La que guardaba última **borraba en silencio** lo de la otra | La segunda no pisa: avisa "se cambió en otra ventana" y ofrece abrir la versión guardada |
+| U9 | Confirmar la emisión y después borrar el cliente | Se podía emitir con datos ya no revisados | Cualquier cambio cierra la confirmación y al emitir se vuelve a revisar todo |
+| U10 | Misma factura en dos notas; entrega en 2020 | Sin ningún aviso | Aviso en la confirmación (no frena) |
+| U11 | Configuración: letra de sucursal vacía o repetida | Se guardaba, y dos sucursales daban el mismo identificador (AB-C-5) | No deja guardar y dice cuál está mal |
+| U12 | Escribir a mano `#nota/repetir-<id>` de otra empresa | Copiaba cliente y pedido de otra empresa del grupo | No lo copia y avisa |
+| U13 | Cliente o factura de 500 caracteres sin espacios | La hoja impresa medía 7 veces el ancho de la hoja | Se corta dentro de la hoja; los campos tienen tope (120 y 40) |
+| U14 | Inicio en el celular | La tabla de notas corría la página de costado (también pasaba antes) | La tabla se desplaza dentro de su recuadro; la página mide 360 px |
+| U15 | Pieza libre sin tramos o medida con letras | Error interno del 3D ("NaN") | El 3D no se intenta hasta que la medida sea válida (el 2D y el error se ven igual) |
+
+Los límites nuevos están en `datos/config.json` (`medidaMinimaTramoCm`, `largoMinimoPiezaCm`, `largoMaximoPiezaCm`,
+`cantidadMaxima`, `cantidadAvisoDesde`) y se pueden cambiar sin programar. **Producción no pierde nada:** ningún
+pedido real queda afuera (la canaleta más larga de la demo mide 4 m y el pedido más grande es de 200 piezas), y las
+175 pruebas pasan.

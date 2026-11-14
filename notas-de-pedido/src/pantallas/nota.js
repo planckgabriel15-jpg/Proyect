@@ -15,12 +15,14 @@ import { empresaDeSucursal, empresaDeNota, sucursalesDeEmpresa, repartoPorPlanta
 import { abrirAsistente } from './asistente.js';
 import * as almacenamiento from '../datos/almacenamiento.js';
 import { calcularRenglon } from '../logica/calculoRenglon.js';
-import { fotoDelCalculo, mostrar3d, OPCIONES_3D_NOTA } from '../logica/fotoCalculo.js';
+import { fotoDelCalculo, mostrar3d, medidasDibujables, OPCIONES_3D_NOTA } from '../logica/fotoCalculo.js';
 import { cantidadDeLaNota, explicarDiferencia } from '../logica/chapas.js';
 import { PRIORIDADES } from '../logica/produccion.js';
 import { tiempoDeRenglon, tiempoDeNota, textoDeTiempo } from '../logica/tiemposRenglon.js';
 import { cargarModelo } from './contextoProduccion.js';
-import { validarNota, faltantesDeNota } from '../logica/validaciones.js';
+import { validarNota, faltantesDeNota, avisosDeNota } from '../logica/validaciones.js';
+import { numeroOTexto, textoDeCantidad } from '../logica/numeros.js';
+import { diaDe } from '../logica/produccion.js';
 import { registrarUso, clientesConocidos } from '../logica/preferencias.js';
 import { siguienteNumeroNP } from '../logica/numeracion.js';
 import { fechaEntregaDe } from '../logica/produccion.js';
@@ -50,7 +52,12 @@ export async function pantallaNota(contenedor, notaId) {
     if (notaId.startsWith('repetir-')) {
       // "Lo mismo que la vez pasada": cliente y piezas de otra nota, en una nota nueva (la original no se toca).
       const original = await almacenamiento.leerNota(notaId.slice('repetir-'.length));
-      if (original) {
+      if (original && empresaDeNota(original, datos)?.id !== nota.empresaId) {
+        // No se copian clientes ni pedidos de otra empresa del grupo (se llega solo escribiendo la dirección a mano).
+        mostrarAviso('Esa nota es de otra empresa del grupo: no se puede repetir desde acá.', 'error', 8);
+      } else if (!original) {
+        mostrarAviso('No se encontró la nota para repetir: se abrió una nota nueva vacía.', 'info', 8);
+      } else if (original) {
         Object.assign(nota, datosParaRepetir(original));
         mostrarAviso(`Se copiaron ${nota.renglones.length} pieza(s) de la nota ${original.numero ?? 'en borrador'} de ${original.cliente || 'sin cliente'}. Revisá cantidades y cargá la factura nueva.`, 'ok', 8);
       }
@@ -69,9 +76,12 @@ export async function pantallaNota(contenedor, notaId) {
 
   let hayCambios = false;
   let asistenteAbierto = null;
+  let confirmando = false;   // está abierta la confirmación de emitir
+  let emitiendo = false;     // evita emitir dos veces con doble clic
   // Lo que se recuerda del vendedor (último material, piezas recientes…) y los clientes de notas anteriores.
   let preferencias = await almacenamiento.leerPreferencias(estado.sesion.vendedorId);
-  const clientes = clientesConocidos((await almacenamiento.listarNotas({})).filter((n) => empresaDeNota(n, datos)?.id === empresaDeSucursal(datos, estado.sesion.sucursalHoyId)?.id));
+  const todasLasNotas = await almacenamiento.listarNotas({});
+  const clientes = clientesConocidos(todasLasNotas.filter((n) => empresaDeNota(n, datos)?.id === empresaDeSucursal(datos, estado.sesion.sucursalHoyId)?.id));
   // Modelo de tiempos (con los parámetros que haya cambiado el jefe), para mostrar el tiempo estándar.
   const { modelo } = await cargarModelo();
   const contadores = await almacenamiento.leerContadores(datos.sucursales);
@@ -91,13 +101,43 @@ export async function pantallaNota(contenedor, notaId) {
       estadoGuardado.textContent = `Guardado ${new Date().toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}`;
       if (!silencioso) mostrarAviso('Borrador guardado', 'ok');
     } catch (error) {
+      if (error.message === almacenamiento.ERROR_NOTA_EMITIDA || error.message === almacenamiento.ERROR_NOTA_CAMBIADA) {
+        bloquearPorOtraVentana(error.message);
+        return;
+      }
       mostrarAviso(`No se pudo guardar: ${error.message}`, 'error', 8);
     }
   }
 
+  /**
+   * La nota se emitió o se cambió en otra ventana: se deja de guardar (para no pisar nada) y se
+   * explica una sola vez qué pasó y qué hacer, en vez de repetir el error cada 5 segundos.
+   */
+  let bloqueada = false;
+  function bloquearPorOtraVentana(motivo) {
+    if (bloqueada) return;
+    bloqueada = true;
+    hayCambios = false;
+    clearInterval(intervalo);
+    asistenteAbierto?.cerrar();
+    const emitida = motivo === almacenamiento.ERROR_NOTA_EMITIDA;
+    estadoGuardado.textContent = 'No se guardó: abierta en otra ventana';
+    zonaRecuperar.replaceChildren(h('div', { class: 'aviso-caja error-caja', role: 'alert' },
+      h('strong', {}, emitida ? 'Esta nota ya se emitió en otra ventana o pestaña. ' : 'Esta nota se cambió en otra ventana o pestaña. '),
+      'Lo que cambiaste acá en los últimos segundos no se guardó, para no pisar lo de la otra ventana. ',
+      emitida
+        ? h('a', { class: 'boton principal', href: `#imprimir/${nota.id}` }, 'Ver la nota emitida')
+        : h('button', { type: 'button', class: 'boton principal', onclick: () => { window.dispatchEvent(new HashChangeEvent('hashchange')); } }, 'Abrir la versión guardada')));
+    contenedor.querySelectorAll('.encabezado-nota input, .encabezado-nota select, .lista-renglones button, .lista-renglones input, .barra-final button').forEach((x) => { x.disabled = true; });
+    zonaRecuperar.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+
   function marcarCambio() {
+    if (bloqueada) return;
     hayCambios = true;
     estadoGuardado.textContent = 'Cambios sin guardar…';
+    // Si estaba abierta la confirmación de emitir, cualquier cambio la cierra: hay que volver a revisar.
+    if (confirmando) { zonaErrores.replaceChildren(); confirmando = false; }
   }
 
   const intervalo = setInterval(() => { if (hayCambios) guardar(); }, (datos.config.autoguardadoSegundos || 5) * 1000);
@@ -111,11 +151,11 @@ export async function pantallaNota(contenedor, notaId) {
   // Cliente con sugerencias de notas anteriores (se puede escribir uno nuevo igual).
   const listaClientes = h('datalist', { id: 'clientes-conocidos' }, clientes.map((nombre) => h('option', { value: nombre })));
   const campoCliente = h('input', {
-    type: 'text', value: nota.cliente, placeholder: 'Nombre del cliente', autocomplete: 'off', list: 'clientes-conocidos',
+    type: 'text', value: nota.cliente, placeholder: 'Nombre del cliente', autocomplete: 'off', list: 'clientes-conocidos', maxlength: 120,
     oninput: (e) => { nota.cliente = e.target.value; marcarCambio(); quitarError('cliente'); },
   });
   const campoFactura = h('input', {
-    type: 'text', value: nota.factura, placeholder: 'Pegá el número de factura', autocomplete: 'off', inputmode: 'text',
+    type: 'text', value: nota.factura, placeholder: 'Pegá el número de factura', autocomplete: 'off', inputmode: 'text', maxlength: 40,
     oninput: (e) => { nota.factura = e.target.value.trim(); marcarCambio(); quitarError('factura'); },
   });
   const botonPegar = navigator.clipboard?.readText
@@ -124,7 +164,7 @@ export async function pantallaNota(contenedor, notaId) {
       onclick: async () => {
         try {
           const texto = (await navigator.clipboard.readText()).trim();
-          if (texto) { campoFactura.value = texto; nota.factura = texto; marcarCambio(); quitarError('factura'); }
+          if (texto) { campoFactura.value = texto.slice(0, 40); nota.factura = campoFactura.value; marcarCambio(); quitarError('factura'); }
         } catch { mostrarAviso('El navegador no dejó leer el portapapeles: pegalo con Ctrl+V', 'info'); }
       },
     }, 'Pegar')
@@ -213,7 +253,8 @@ export async function pantallaNota(contenedor, notaId) {
       const tiempo = tiempoDeRenglon(renglon, datos, modelo, r);
       const cantidad = cantidadDeLaNota(renglon, r, datos.config);
       const diferencia = explicarDiferencia(renglon, r, datos.config);
-      const con3d = mostrar3d(renglon, nota, datos);
+      // Sin medidas válidas no se intenta la foto 3D (queda el 2D).
+      const con3d = mostrar3d(renglon, nota, datos) && medidasDibujables(renglon, r);
       const miniatura = renglon.sinDibujo ? null : h('div', { class: 'miniatura-renglon', 'data-renglon': renglon.id, 'data-con3d': con3d ? 'si' : 'no',
         html: renglon.tipoPieza === 'plegada' || renglon.usaPerfil
           ? svgDelPerfil(renglon.perfil, { config: datos.config, ancho: 200, alto: 140, miniatura: true })
@@ -221,9 +262,9 @@ export async function pantallaNota(contenedor, notaId) {
       // Cantidad editable en la tarjeta: cambiarla no obliga a abrir la pieza.
       const campoCantidad = h('input', {
         type: 'text', inputmode: renglon.cantidadDecimal ? 'decimal' : 'numeric', class: 'campo-cantidad', 'aria-label': `Cantidad del renglón ${i + 1}`,
-        value: String(renglon.cantidad ?? '').replace('.', ','),
+        value: textoDeCantidad(renglon.cantidad),
         onfocus: (e) => e.target.select(),
-        onchange: (e) => { renglon.cantidad = leerNumero(e.target.value); marcarCambio(); dibujarRenglones(); },
+        onchange: (e) => { renglon.cantidad = numeroOTexto(e.target.value); marcarCambio(); dibujarRenglones(); },
       });
       const codigo = r.codigo.encontrado ? `${r.codigo.codigo}${r.codigo.generico ? ' (genérico)' : ''}` : (renglon.codigoPendiente ? 'PENDIENTE' : 'no encontrado');
       listaRenglones.append(h('article', { class: `tarjeta-renglon${r.errores.length ? ' con-error' : ''}`, 'data-renglon': renglon.id },
@@ -354,22 +395,24 @@ export async function pantallaNota(contenedor, notaId) {
       const irA = (f) => {
         if (f.donde === 'encabezado') { encabezado.querySelector(`[data-campo="${f.campo}"] input, [data-campo="${f.campo}"] select`)?.focus(); return; }
         if (f.donde === 'renglon') { editarRenglon(nota.renglones.find((r) => r.id === f.renglonId)); return; }
-        abrir(null);
+        if (f.donde === 'nota') abrir(null);
       };
       zonaErrores.append(h('div', { class: 'aviso-caja error-caja', role: 'alert' },
         h('strong', {}, `Para emitir falta${faltantes.length > 1 ? 'n' : ''} ${faltantes.length} cosa${faltantes.length > 1 ? 's' : ''}:`),
         h('ul', { class: 'lista-faltantes' }, faltantes.slice(0, 8).map((f) => h('li', {},
           h('button', { type: 'button', class: 'enlace-error', onclick: () => irA(f) }, `${f.donde === 'renglon' ? `Renglón ${f.numero}: ` : ''}${f.mensaje}`))),
           faltantes.length > 8 ? h('li', {}, `… y ${faltantes.length - 8} más`) : null)));
-      irA(faltantes[0].donde === 'encabezado' ? faltantes[0] : { donde: 'nada' });
+      // Solo se lleva el cursor a un campo del encabezado; un renglón se abre recién si el vendedor toca el enlace.
+      if (faltantes[0].donde === 'encabezado') irA(faltantes[0]);
       zonaErrores.scrollIntoView({ behavior: 'smooth', block: 'center' });
       return;
     }
     // Emitir no se puede deshacer (le pone el número): se confirma acá mismo, sin cartel del navegador.
     const validacion = validarNota(nota, resultados);
+    validacion.avisos.unshift(...avisosDeNota(nota, todasLasNotas, diaDe(new Date())));
     const sucursal = datos.sucursales.find((s) => s.id === nota.sucursalId);
     const proximo = siguienteNumeroNP(contadores, nota.sucursalId);
-    const confirmarBoton = h('button', { type: 'button', class: 'boton grande principal', onclick: () => emitirDeVerdad(resultados) }, 'Emitir e imprimir', etiquetaAtajo('Ctrl+Enter'));
+    const confirmarBoton = h('button', { type: 'button', class: 'boton grande principal', onclick: () => emitirDeVerdad() }, 'Emitir e imprimir', etiquetaAtajo('Ctrl+Enter'));
     zonaErrores.append(h('div', { class: 'aviso-caja caja-confirmar', role: 'alertdialog', 'aria-label': 'Confirmar emisión' },
       h('strong', {}, `Vas a emitir la nota Nº ${proximo} de ${sucursal?.nombre}. `), 'Después no se puede modificar.',
       validacion.avisos.length ? h('ul', { class: 'lista-mensajes' }, validacion.avisos.map((a) => h('li', { class: 'aviso' }, a))) : null,
@@ -380,9 +423,14 @@ export async function pantallaNota(contenedor, notaId) {
     zonaErrores.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }
 
-  let confirmando = false;
-  async function emitirDeVerdad(resultados) {
+  async function emitirDeVerdad() {
+    if (emitiendo || bloqueada) return;
     confirmando = false;
+    // Se vuelve a calcular y revisar en el momento de emitir: si algo cambió después de la confirmación
+    // (por ejemplo se borró el cliente), no se emite y se muestra qué falta.
+    const resultados = nota.renglones.map((r) => calcularRenglon(r, datos));
+    if (faltantesDeNota(nota, resultados).length) { emitir(); return; }
+    emitiendo = true;
     // Se guarda una "foto" de lo calculado, para que la nota impresa no cambie si mañana cambia la tabla de códigos.
     nota.renglones = nota.renglones.map((renglon, i) => ({ ...renglon, calculado: fotoDelCalculo(renglon, resultados[i], datos.config) }));
     delete nota.piezaEnCurso;
@@ -394,6 +442,8 @@ export async function pantallaNota(contenedor, notaId) {
       // "Emitir e imprimir": la hoja se abre y la ventana de impresión aparece sola.
       ir(`#imprimir/${emitida.id}/imprimir`);
     } catch (error) {
+      emitiendo = false;
+      if (error.message === almacenamiento.ERROR_NOTA_EMITIDA || error.message === almacenamiento.ERROR_NOTA_CAMBIADA) { bloquearPorOtraVentana(error.message); return; }
       mostrarAviso(`No se pudo emitir: ${error.message}`, 'error', 8);
     }
   }

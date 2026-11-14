@@ -111,3 +111,6 @@
 @media (max-width: 700px) {
   .hoja-lateral { grid-area: tres; }
 }
+/* Textos largos sin espacios (cliente, factura, descripción): se cortan dentro de la hoja, no la desbordan. */
+.hoja-cliente, .hoja-datos strong, .hoja-tabla td, .hoja-detalles li, .origen-grande { overflow-wrap: anywhere; word-break: break-word; }
+.hoja-datos { min-width: 0; max-width: 90mm; }

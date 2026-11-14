@@ -79,6 +79,15 @@ export const OPCIONES_3D_NOTA = [
   { valor: 'no', texto: 'Sin 3D (solo dibujo 2D)' },
 ];
 
+/**
+ * ¿Se puede armar el 3D de este renglón? No, si a un plegado le faltan los tramos o si alguna medida
+ * no es un número válido (el 3D quedaría con puntos "NaN"). El 2D y el error al lado del campo lo muestran.
+ */
+export function medidasDibujables(renglon, resultado) {
+  if ((renglon.tipoPieza === 'plegada' || renglon.usaPerfil) && !(renglon.perfil?.tramos?.length)) return false;
+  return !(resultado?.problemas || []).some((p) => p.nivel === 'error' && /^(largoCm|tramo\d+)$|Cm$|Mm$|Grados$/.test(p.campo || ''));
+}
+
 /** Lo que haría la regla automática para este renglón (sin elección del renglón ni de la nota). */
 export function mostrar3dPorDefecto(renglon, datos) {
   const apagados = datos.config.vista3d?.gruposApagadosPorDefecto || [];
