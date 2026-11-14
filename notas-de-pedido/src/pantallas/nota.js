@@ -390,8 +390,9 @@ export async function pantallaNota(contenedor, notaId) {
       await almacenamiento.guardarBorrador(nota);
       const emitida = await almacenamiento.emitirNota(nota, datos.sucursales);
       hayCambios = false;
-      mostrarAviso(`Nota emitida: NP Nº ${emitida.numero}`, 'ok', 6);
-      ir(`#imprimir/${emitida.id}`);
+      mostrarAviso(`Nota emitida: NP Nº ${emitida.numero}`, 'ok', 3);
+      // "Emitir e imprimir": la hoja se abre y la ventana de impresión aparece sola.
+      ir(`#imprimir/${emitida.id}/imprimir`);
     } catch (error) {
       mostrarAviso(`No se pudo emitir: ${error.message}`, 'error', 8);
     }

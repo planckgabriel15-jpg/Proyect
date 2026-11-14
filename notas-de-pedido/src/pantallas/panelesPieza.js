@@ -120,7 +120,12 @@ export function camposDeTapa(ctx, lado) {
 
   const zona = h('div', { class: 'campos-tapa' },
     h('div', { class: 'fila-campos' },
-      campoOpciones(`Tapa ${lado}`, config.accesoriosCanaleta.tiposDeTapa.map((t) => ({ valor: t, texto: t })), tipo, (v) => { acc[campoTipo] = v; ctx.alCambiar(true); }),
+      // Tres opciones: botones (se ven todas y se eligen con un toque).
+      h('div', { class: 'campo-parametro' }, h('span', {}, `Tapa ${lado}`),
+        h('div', { class: 'botonera', role: 'radiogroup', 'aria-label': `Tapa ${lado}` }, config.accesoriosCanaleta.tiposDeTapa.map((t) => h('button', {
+          type: 'button', role: 'radio', 'aria-checked': String(t === tipo), class: `boton chico${t === tipo ? ' elegido' : ''}`,
+          onclick: () => { acc[campoTipo] = t; ctx.alCambiar(true); },
+        }, t)))),
       tipo === 'ninguna' ? null : campoNumero('Pestaña de apoyo (cm)', medidas.pestanaCm, (v) => cambiarMedidas({ pestanaCm: v }, false)),
       tipo === 'ninguna' ? null : h('label', { class: 'casilla' },
         h('input', {

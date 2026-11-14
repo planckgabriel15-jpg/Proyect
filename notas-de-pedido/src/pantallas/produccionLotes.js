@@ -10,7 +10,7 @@ import { h, mostrarAviso, confirmar, fechaCorta, textoMinutos, textoPorcentaje }
 import { estado } from './estado.js';
 import * as almacenamiento from '../datos/almacenamiento.js';
 import { cargarContexto, nombreMaquina } from './contextoProduccion.js';
-import { CRITERIOS, proponerLotesProtegidos, totalesDeLotes, resumirLote, rearmarLotes, secuenciarLote } from '../logica/agrupamiento.js';
+import { CRITERIOS, proponerLotesProtegidos, totalesDeLotes, resumirLote, rearmarLotes, secuenciarLote, unirLotesPorPlanta } from '../logica/agrupamiento.js';
 
 export async function seccionLotes(contenedor, { refrescar }) {
   const ctx = await cargarContexto();
@@ -39,7 +39,7 @@ export async function seccionLotes(contenedor, { refrescar }) {
   const textoSimilitud = h('strong', {}, textoPorcentaje(opciones.similitudMinima));
   const campo = (etiqueta, clave, atributos) => h('label', { class: 'campo-parametro' }, h('span', {}, etiqueta),
     h('input', { type: 'number', value: opciones[clave], class: 'campo-chico', ...atributos, oninput: (e) => { opciones[clave] = Number(e.target.value) || 0; } }));
-  const panelCriterios = h('details', { class: 'panel-interno', open: !ctx.lotesGuardados.length },
+  const panelCriterios = h('details', { class: 'panel-interno', open: !lotes.some((l) => !l.suelto) },
     h('summary', {}, h('strong', {}, 'Criterios y restricciones')),
     h('table', { class: 'tabla-notas tabla-criterios' }, h('thead', {}, h('tr', {}, h('th', {}, 'Criterio (qué tienen que compartir)'), h('th', {}, 'Peso'), h('th', {}, 'Tolerancia'))), h('tbody', {}, filasCriterios)),
     h('label', { class: 'campo-parametro' }, h('span', {}, 'Nivel de similitud mínimo (todos los del lote entre sí): '), textoSimilitud,
@@ -72,7 +72,9 @@ export async function seccionLotes(contenedor, { refrescar }) {
   async function guardar(mensaje) {
     const conMiembros = lotes.filter((l) => l.trabajos.length);
     // Se guardan solo los lotes de más de un renglón (los demás se hacen solos).
-    await almacenamiento.guardarLotes(conMiembros.filter((l) => l.trabajos.length > 1).map((l) => ({ id: l.id, nombre: l.nombre || null, claves: l.trabajos.map((t) => t.clave), aceptado: Boolean(l.aceptado) })));
+    const deEstaPlanta = conMiembros.filter((l) => l.trabajos.length > 1).map((l) => ({ id: l.id, nombre: l.nombre || null, claves: l.trabajos.map((t) => t.clave), aceptado: Boolean(l.aceptado) }));
+    // Mirando una planta, los lotes guardados de las otras plantas quedan como estaban.
+    await almacenamiento.guardarLotes(unirLotesPorPlanta(await almacenamiento.leerLotes(), deEstaPlanta, ctx.trabajos.map((t) => t.clave)));
     lotes = rearmarLotes(conMiembros.filter((l) => l.trabajos.length > 1).map((l) => ({ id: l.id, nombre: l.nombre, claves: l.trabajos.map((t) => t.clave), aceptado: l.aceptado })), disponibles, tolerancia());
     if (mensaje) mostrarAviso(mensaje, 'ok');
     dibujar();

@@ -7,7 +7,7 @@
 // =============================================================
 
 import { h, selector, mostrarAviso, fechaCorta, textoMinutos, hoyIso } from './util.js';
-import { estado, ir } from './estado.js';
+import { estado, ir, plantaDeSesion } from './estado.js';
 import * as almacenamiento from '../datos/almacenamiento.js';
 import { cargarContexto, quienSoy, esJefe, nombreMaquina } from './contextoProduccion.js';
 import { marcarHecha, registrarEvento, registroVacio, capacidadDeOperario, diaDe } from '../logica/produccion.js';
@@ -18,9 +18,11 @@ export const LIMITE_CASILLA = 'Si solo marcás HECHA (sin Iniciar), el tiempo re
   + 'incluye pausas, esperas y lo que hayas hecho en el medio. Marcala apenas terminás cada trabajo, o usá Iniciar / Terminar para que el tiempo sea exacto.';
 
 export async function pantallaOperario(contenedor, operarioPedido) {
-  const prod = estado.datos.produccion;
   const sesion = estado.sesion || {};
-  const operarioId = esJefe() ? (operarioPedido || prod.operarios[0]?.id) : sesion.operarioId;
+  // El jefe ve los operarios de la planta que está mirando (todos, si eligió "todas las plantas").
+  const planta = plantaDeSesion();
+  const prod = { ...estado.datos.produccion, operarios: estado.datos.produccion.operarios.filter((o) => !esJefe() || !planta || o.planta === planta) };
+  const operarioId = esJefe() ? ((prod.operarios.some((o) => o.id === operarioPedido) && operarioPedido) || prod.operarios[0]?.id) : sesion.operarioId;
   const operario = prod.operarios.find((o) => o.id === operarioId);
   if (!operario) {
     contenedor.replaceChildren(h('p', { class: 'aviso-caja' }, 'Elegí tu nombre para ver tus trabajos.'), h('a', { href: '#ingreso', class: 'boton principal' }, 'Ingresar'));

@@ -17,7 +17,7 @@ import { fotoDelCalculo } from '../src/logica/fotoCalculo.js';
 import { prepararModelo } from '../src/logica/tiempos.js';
 import { tiempoDeRenglon } from '../src/logica/tiemposRenglon.js';
 import { armarTrabajos } from '../src/logica/produccion.js';
-import { motivoParaNoEntrar } from '../src/logica/agrupamiento.js';
+import { motivoParaNoEntrar, unirLotesPorPlanta } from '../src/logica/agrupamiento.js';
 import { generarDemo } from '../src/logica/demo.js';
 import { leerDatos, datosCompletos, crearMotorEnMemoria, renglonCanaletaNotaReal } from './ayudante.js';
 
@@ -391,4 +391,19 @@ test('demo: 50 notas por local de las tres empresas, sin errores y con cada plan
   // Semilla fija: dos corridas dan lo mismo.
   const otra = generarDemo(datos, { modelo, prod, operarios: prod.operarios }, { hoy: '2026-11-13' });
   assert.deepEqual(otra.notas.map((n) => n.renglones.map((r) => r.calculado.descripcion)), demo.notas.map((n) => n.renglones.map((r) => r.calculado.descripcion)));
+});
+
+test('lotes por planta: guardar los de una planta no borra los de las otras', () => {
+  const guardados = [
+    { id: 'L001', claves: ['a/1', 'a/2'], aceptado: true },   // taller de Abasto
+    { id: 'L002', claves: ['g/1', 'g/2'], aceptado: false },  // G-TEC
+  ];
+  // El jefe de G-TEC vuelve a proponer: ve solo los trabajos g/…
+  const nuevos = [{ id: 'L001', claves: ['g/1', 'g/3'], aceptado: false }];
+  const unidos = unirLotesPorPlanta(guardados, nuevos, ['g/1', 'g/2', 'g/3']);
+  assert.deepEqual(unidos.map((l) => [l.id, l.claves]), [['L001', ['a/1', 'a/2']], ['L001-2', ['g/1', 'g/3']]]);
+  assert.equal(unidos[0].aceptado, true, 'el lote de la otra planta queda intacto');
+  // Mirando todas las plantas se reemplaza todo, como antes.
+  assert.deepEqual(unirLotesPorPlanta(guardados, nuevos, ['a/1', 'a/2', 'g/1', 'g/2', 'g/3']), nuevos);
+  assert.deepEqual(unirLotesPorPlanta([], nuevos, ['g/1']), nuevos);
 });

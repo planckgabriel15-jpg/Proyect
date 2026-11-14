@@ -27,7 +27,8 @@ function textoParaCss(texto) {
   return String(texto).replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/\n/g, ' ');
 }
 
-export async function pantallaImpresion(contenedor, notaId) {
+/** @param {boolean} imprimirYa  abre la ventana de impresión apenas la hoja está lista (viene de "Emitir e imprimir") */
+export async function pantallaImpresion(contenedor, notaId, imprimirYa = false) {
   const { datos } = estado;
   const nota = await almacenamiento.leerNota(notaId);
   if (!nota) {
@@ -129,5 +130,10 @@ export async function pantallaImpresion(contenedor, notaId) {
     mostrarAviso('Sin 3D: se imprime solo el dibujo 2D (que es la referencia oficial).', 'info');
   }
 
+  if (imprimirYa) {
+    // Se saca "/imprimir" de la dirección para que recargar o volver no abra la impresión otra vez.
+    history.replaceState(null, '', `#imprimir/${nota.id}`);
+    setTimeout(() => window.print(), 150);
+  }
   return () => { document.title = 'Notas de pedido'; };
 }

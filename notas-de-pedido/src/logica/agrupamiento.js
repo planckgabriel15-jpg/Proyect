@@ -206,6 +206,27 @@ export function totalesDeLotes(lotes) {
  * se sacan; los pendientes que no están en ningún lote quedan como lotes de uno.
  * @param {Array<{id, claves: string[], aceptado?: boolean, nombre?: string}>} guardados
  */
+/**
+ * Lotes a guardar cuando se trabaja mirando UNA planta: los de esa planta (nuevos) más los
+ * guardados de las otras plantas, que no se tocan. Un lote es de "esta planta" si alguno de
+ * sus renglones está entre los que se ven. Si un id nuevo choca con uno que se conserva, se renombra.
+ * @param {Array} guardados  lotes guardados de todo el grupo [{id, claves, …}]
+ * @param {Array} nuevos     lotes de la planta que se está mirando
+ * @param {Iterable<string>} clavesVisibles  claves 'nota/renglón' de los trabajos de esa planta
+ */
+export function unirLotesPorPlanta(guardados, nuevos, clavesVisibles) {
+  const visibles = new Set(clavesVisibles);
+  const deOtras = (guardados || []).filter((lote) => !lote.claves.some((clave) => visibles.has(clave)));
+  const ocupados = new Set(deOtras.map((lote) => lote.id));
+  const propios = nuevos.map((lote) => {
+    let id = lote.id;
+    for (let n = 2; ocupados.has(id); n++) id = `${lote.id}-${n}`;
+    ocupados.add(id);
+    return id === lote.id ? lote : { ...lote, id };
+  });
+  return deOtras.concat(propios);
+}
+
 export function rearmarLotes(guardados, trabajos, toleranciaMm = 0) {
   const porClave = new Map(trabajos.map((t) => [t.clave, t]));
   const usados = new Set();

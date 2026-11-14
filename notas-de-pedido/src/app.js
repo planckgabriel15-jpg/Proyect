@@ -2,7 +2,7 @@
 // app.js
 // Arranque del programa y "router": según lo que va después de # en la
 // dirección se muestra una pantalla u otra.
-//   #inicio · #ingreso · #nota/<id> · #nota/nueva · #imprimir/<id>
+//   #inicio · #ingreso · #nota/<id> · #nota/nueva · #nota/repetir-<id> · #imprimir/<id>[/imprimir]
 //   #produccion[/<pestaña>] · #operario[/<id>] · #hoja-ruta/<operario|lote>/<id>/<día>
 //   #configuracion
 // Roles (sesión): comercial (carga notas), jefe de producción y operario.
@@ -83,7 +83,7 @@ async function mostrarPantalla() {
   try {
     if (ruta === '#ingreso') limpiarPantallaAnterior = await pantallaIngreso(principal);
     else if (ruta === '#nota') limpiarPantallaAnterior = await pantallaNota(principal, parametro || 'nueva');
-    else if (ruta === '#imprimir') limpiarPantallaAnterior = await pantallaImpresion(principal, parametro);
+    else if (ruta === '#imprimir') limpiarPantallaAnterior = await pantallaImpresion(principal, parametro, resto[0] === 'imprimir');
     else if (ruta === '#produccion') limpiarPantallaAnterior = await pantallaProduccion(principal, parametro);
     else if (ruta === '#operario') limpiarPantallaAnterior = await pantallaOperario(principal, parametro);
     else if (ruta === '#hoja-ruta') limpiarPantallaAnterior = await pantallaHojaRuta(principal, parametro, resto[0], resto[1]);
