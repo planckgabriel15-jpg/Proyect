@@ -179,6 +179,26 @@ Se eligió lo más recomendado en cada caso. Detalle y fuentes en `docs/CATALOGO
 | 113 | **Demo:** ahora son 600 notas (50 por local: 10 de Abasto, HIPER y G-TEC). Las 500 de Abasto salen **idénticas** a antes; las de HIPER son pedidos mayoristas de catálogo y las de G-TEC piezas y servicios con textos de ejemplo | `logica/demo.js` |
 | 114 | Se quitó `marca` de `config.json`: logo y colores ahora están **una sola vez**, en `empresas.json` (la de Abasto conserva los mismos valores) | `datos/empresas.json` |
 
+## J. Rediseño para el comercial (14/11/2026): decisiones tomadas sin poder consultar
+
+Detalle, fuentes y mediciones en `docs/CAMBIOS.md` (etapas D y E) y `docs/DIAGNOSTICO.md`.
+
+| # | Decisión o supuesto | Dónde se cambia |
+|---|---|---|
+| 115 | **[SUPUESTO] La pieza se carga en una sola ficha** (medidas, material y cantidad juntos), en lugar de 3 pasos. Tapas y boquetas, cortes, pendiente, desarrollo a mano y observaciones quedan plegados con su resumen a la vista. **Validar con vendedores** si algo de lo plegado se usa tanto que conviene dejarlo abierto | `src/pantallas/asistente.js` → `dibujarPaso2`, `plegable` |
+| 116 | **[SUPUESTO] Tabla de tramos en vista simple** (N°, medida y ángulo) para las piezas del catálogo; las demás columnas con un botón. Cargar un corte láser pide un toque más | `editorTramos.js` → `vistaSimple` |
+| 117 | **[SUPUESTO] Material recordado:** una pieza nueva arranca con el material de la pieza anterior de la nota o, si no hay, el último del vendedor. Se avisa en la ficha. Riesgo: que se pase por alto un material equivocado; por eso está a la vista y en la descripción. Si en la práctica genera errores, se puede apagar | `logica/preferencias.js` → `materialPorDefecto` |
+| 118 | **[SUPUESTO] Se puede agregar a la nota una pieza a la que le falta algo** (queda marcada "Falta: … Corregir"). Lo que NO se puede es **emitir** (regla de siempre). Antes preguntaba con un cartel | `asistente.js` → `siguiente`; `nota.js` → `emitir` |
+| 119 | **La descripción repite las tapas y boquetas** que además tienen su fila con código ("c/ tapa izq. soldada y 1 boqueta" + "+ tapa izq. soldada… TS60N"). **No se cambió** porque la descripción es una regla confirmada y la foto de lo facturado. **¿Se puede acortar la descripción a "c/ accesorios" o quitarlo?** | `logica/descripcion.js` → `describirAccesorios` |
+| 120 | **Hoja impresa:** se quitaron los textos que repetían lo del dibujo (tramos, desarrollo, lado de pintura, tapas, posición de boquetas, corte láser) y se agregó la **ficha de material** junto al 2D, la **entrega** y **URGENTE**. **Confirmar con producción** que la hoja nueva se lee bien en el taller (probarla una semana al lado de la de papel) | `logica/hojaImpresa.js`, `vistas2d/hojaSvg.js` |
+| 121 | **[SUPUESTO] "Emitir e imprimir"** abre la ventana de impresión sola. La confirmación de emitir se mantiene (en la página, con el número que va a salir) | `nota.js` → `emitir`; `impresion.js` |
+| 122 | **[SUPUESTO] El comercial ve solo el estado de SUS notas** en Producción (puede tildar "las de otros vendedores"). ¿Tiene que ver las de toda su sucursal por defecto? | `contextoProduccion.js` → `soloMias` |
+| 123 | **[SUPUESTO] Clientes sugeridos:** todos los de notas anteriores de la empresa (no hay una lista de clientes). Cuando haya conexión con facturación, tomarlos de ahí | `logica/preferencias.js` → `clientesConocidos` |
+| 124 | **Las mediciones de tiempo son de modelo (KLM), no cronometradas.** Primera vez: 8 a 11 % menos; segunda nota del día: 54 s contra 90; "Repetir": 20 s. **Cronometrar con 3 o 4 vendedores** antes de dar los números por buenos | `herramientas/medir-flujo.mjs` |
+| 125 | **[SUPUESTO] El 3D del asistente arranca abierto en pantallas anchas y cerrado en el celular** (se recuerda lo que elija el vendedor) | `asistente.js` → `abierto3d` |
+| 127 | **Agrupamiento en HIPER y G-TEC:** los criterios (perfil, desarrollo, material, pliegues, herramental) son de la plegadora de Abasto; con ellos los trabajos de HIPER (artículos de depósito) y de G-TEC (corte, plegado CNC, soldadura) casi no forman lotes. **Definir con cada planta** qué comparten dos trabajos para hacerse juntos (por ejemplo, en G-TEC: mismo material y espesor en el láser) | `produccion.json` → `agrupamiento` (hoy uno para todas) |
+| 126 | En fin de semana la **demo** fecha las notas "de hoy" en el lunes siguiente (toma días hábiles). Ya pasaba antes; no afecta los cálculos | `logica/demo.js` |
+
 ## G. Para cuando se pase a Google (Apps Script)
 
 - La numeración tiene que hacerse en el servidor con `LockService`, que es un candado para que dos vendedores no saquen el mismo número a la vez.

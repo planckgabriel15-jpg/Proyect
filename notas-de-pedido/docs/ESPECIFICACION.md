@@ -394,3 +394,20 @@ Permite editar sucursales y último número por sucursal, y ver las tablas de c�
 - Guía Leroy Merlin: desarrollos de canalón de 16, 25 y 33 cm según la superficie del techo: https://biblioteca.org.ar/libros/210136.pdf
 - Tabla de chapas de acero, Facultad de Ingeniería – UNCuyo (espesores por calibre): https://aulaabierta.ingenieria.uncuyo.edu.ar/mod/resource/view.php?id=6819
 - Documentación de Three.js – ExtrudeGeometry: https://threejs.org/docs/pages/ExtrudeGeometry.html
+
+---
+
+## 15. Registro de cambios posteriores a esta especificación
+
+Esta especificación es el pedido original y **no se reescribe**. Acá se anota qué se agregó después y, sobre todo,
+si se tocó alguna **regla confirmada de la sección 5**.
+
+| Fecha | Cambio | ¿Toca una regla de la sección 5? | Detalle |
+|---|---|---|---|
+| 16 al 21/10/2026 | Logo, catálogo real, código genérico, tapas y boquetas, editor 3D, pendiente, cortes y empalme | No | `PENDIENTES.md`, secciones F a F4 |
+| 28/10/2026 | Gestión de producción: tiempos, lotes, asignación, operarios, indicadores | **Sí, con pedido de la empresa:** la columna "Cantidad" pasó a ser **cantidad de chapas** (piezas × largo ÷ 2,44); las piezas quedan en su columna | `docs/PRODUCCION.md`; `PENDIENTES.md`, punto 77 |
+| 13/11/2026 | **Grupo de empresas** (Abasto, HIPER, G-TEC), catálogo unificado, pieza metalmecánica a medida y servicio, plantas | **No.** 5.1 Numeración: sigue correlativa por sucursal; se agrega el prefijo de la empresa al identificador (`AB-C-123`), no al número. 5.2 Desarrollo, 5.3 Banda, 5.4 Código (se busca en la tabla): sin cambios. Los productos relevados sin código salen "código pendiente" (5.4 ya lo preveía) | `docs/CATALOGO_GRUPO.md`; `docs/CAMBIOS.md`, etapa C; `PENDIENTES.md`, sección I |
+| 14/11/2026 | **Rediseño para el comercial:** asistente de 2 pasos (ficha única), datos recordados, repetir nota, errores en su lugar, hoja impresa sin datos repetidos | **No.** La descripción, el código, la banda y la cantidad se calculan igual; cambia dónde y cuántas veces se muestran. La sección 8 (pantallas) describía un asistente de 3 pasos: ahora son 2, con los mismos datos | `docs/DIAGNOSTICO.md`, `docs/REFERENCIAS.md`; `docs/CAMBIOS.md`, etapas D y E; `PENDIENTES.md`, sección J |
+
+Los 16 casos de prueba obligatorios de la sección 11 siguen pasando sin modificaciones (`tests/casos-obligatorios.test.js`).
+

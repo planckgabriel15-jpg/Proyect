@@ -1,21 +1,34 @@
-# Notas de pedido – Abasto Soluciones (prototipo)
+# Notas de pedido – Grupo HIPER · Abasto · G-TEC (prototipo)
 
-Programa web que reemplaza la nota de pedido en papel. El vendedor:
+Programa web que reemplaza la nota de pedido en papel, para las tres empresas del grupo: **Abasto Soluciones**
+(venta al público y plegados a medida), **HIPER Argentina** (zinguería y perfiles para construcción en seco, venta
+mayorista) y **G-TEC** (piezas metalmecánicas a medida y servicios industriales). Cada vendedor entra con su empresa:
+ve su logo, su catálogo (con "ver todo el grupo" ve el de las tres) y sus sucursales; la hoja impresa sale con el
+encabezado de la empresa que emite y cada renglón va solo a la planta que lo fabrica. Qué vende y fabrica cada una,
+con fuentes: [`docs/CATALOGO_GRUPO.md`](docs/CATALOGO_GRUPO.md).
+
+El vendedor:
 
 1. completa el encabezado casi sin escribir (origen, fecha y número salen solos; la factura se pega);
-2. elige la pieza de una galería con los productos que fabrica la empresa (primero los **estándar de la plegadora**: cumbrera D30, media cumbrera D33, limahoya, canaleta Hiper, esquinero americano, babeta y cumbrera articulada T101; después canaletas con sus tapas y boquetas, babetas, cumbreras, limahoya, cenefas, chapa lisa, boquetas, troneras, caños, curvas, codos, ramales, tapas y sombreros circulares o rectangulares), o dibuja una a mano;
-3. carga las medidas en una tabla y ve **al mismo tiempo** el dibujo 2D acotado y la pieza en 3D **con todas sus cotas**; si prefiere, abre el **editor 3D** a pantalla completa (también en el celular) y cambia las medidas tocando las cotas, agrega tramos con "+" o borra la parte que elija;
+2. elige la pieza de una galería (arriba, **lo último que usó y lo que más usa**; el buscador entiende varias palabras y el vocabulario del mostrador: "extractor 150", "durlock"), con los productos de su empresa (primero los **estándar de la plegadora**: cumbrera D30, media cumbrera D33, limahoya, canaleta Hiper, esquinero americano, babeta y cumbrera articulada T101; después canaletas con sus tapas y boquetas, babetas, cumbreras, limahoya, cenefas, chapa lisa, boquetas, troneras, caños, curvas, codos, ramales, tapas y sombreros circulares o rectangulares), o dibuja una a mano;
+3. carga largo, cantidad, medidas y material en **una sola ficha** (el material arranca como el de la pieza anterior; lo que se usa poco está plegado) y ve **al mismo tiempo** el dibujo 2D acotado y la pieza en 3D **con todas sus cotas**; si prefiere, abre el **editor 3D** a pantalla completa (también en el celular) y cambia las medidas tocando las cotas, agrega tramos con "+" o borra la parte que elija;
    los plegados pueden ser **con pendiente**: se cargan las medidas de las dos puntas y el 3D muestra cómo cambia la pieza a lo largo;
    a cualquier plegado se le pueden hacer **cortes** (con pared o aletas alrededor); las canaletas llevan **tapas** (también a medida) y **boquetas** de cualquier tipo, en el fondo o en una tapa, y la chapa queda cortada donde van; si la pieza mide más que la chapa, se arma el **empalme** (2,44 + resto, partes iguales o a mano);
 4. obtiene solo el **desarrollo**, la **banda** y el **código** (de la tabla de facturación o, si el producto no está, un código genérico como CL1010N);
 5. elige material, calibre, color y cantidad de piezas (la nota muestra además la **cantidad de chapas** = piezas × largo ÷ 2,44 y el **tiempo estándar** de fabricación);
-6. emite e imprime (o guarda en PDF) una nota prolija para producción (el 3D es opcional por nota y por renglón).
+6. emite e imprime (o guarda en PDF) una nota prolija para producción, **con cada dato una sola vez** (el 3D es opcional por nota y por renglón); si falta algo, se marca al lado del campo;
+7. puede **repetir** una nota anterior (mismo cliente y mismas piezas) y ve en Inicio el **estado de producción** de sus notas.
 
-Y en **Producción** (sección 8), el jefe de producción ve el tablero de estados, agrupa renglones de distintas notas en **lotes** para hacer el setup una sola vez, asigna a los operarios por día y turno, mide la **eficiencia** y la chapa necesaria; cada operario marca sus trabajos como **HECHA** desde el celular.
+Además de piezas plegadas y especiales, una nota puede llevar **artículos de reventa**, **piezas metalmecánicas a
+medida** (descripción, medidas, material, espesor en mm, procesos y plano) y **servicios** (alcance, horas o
+unidades y lugar).
+
+Y en **Producción** (sección 8), el jefe de producción de cada planta (taller de Abasto, HIPER o G-TEC) ve el tablero de estados, agrupa renglones de distintas notas en **lotes** para hacer el setup una sola vez, asigna a los operarios por día y turno, mide la **eficiencia** y la chapa necesaria; cada operario marca sus trabajos como **HECHA** desde el celular.
 
 > **Para probarlo en 10 minutos:** seguí [`GUIA-PRUEBA-10-MIN.md`](GUIA-PRUEBA-10-MIN.md).
 > **Lo que falta confirmar con la empresa:** [`PENDIENTES.md`](PENDIENTES.md).
 > **Producción por dentro:** [`docs/PRODUCCION.md`](docs/PRODUCCION.md) y [`docs/AGRUPAMIENTO.md`](docs/AGRUPAMIENTO.md).
+> **Por qué se cambió cada cosa (con mediciones y fuentes):** [`docs/DIAGNOSTICO.md`](docs/DIAGNOSTICO.md), [`docs/REFERENCIAS.md`](docs/REFERENCIAS.md) y [`docs/CAMBIOS.md`](docs/CAMBIOS.md).
 
 ---
 
@@ -29,8 +42,9 @@ Y en **Producción** (sección 8), el jefe de producción ve el tablero de estad
 | Inicio | Alt+K | Ir al buscador de notas |
 | Nota | Alt+P | Agregar pieza |
 | Nota | Ctrl+S | Guardar borrador |
-| Nota | Ctrl+Enter | Emitir nota |
-| Asistente | Alt+flecha derecha / Alt+flecha izquierda | Paso siguiente (o "Agregar a la nota") / paso anterior |
+| Nota | Ctrl+Enter | Emitir nota (la segunda vez confirma: "Emitir e imprimir") |
+| Asistente | Ctrl+Enter (o Alt+flecha derecha) | Agregar la pieza a la nota |
+| Asistente | Alt+flecha izquierda | Volver a la galería |
 | Asistente | Esc | Cerrar el asistente |
 | Tabla de tramos | Alt+T / Alt+I / Alt+B | Agregar tramo / insertar antes / borrar tramo |
 | Tabla de tramos | Ctrl+Z / Ctrl+Y | Deshacer / rehacer |
@@ -231,7 +245,9 @@ El prototipo guarda las notas **en el navegador de cada equipo** (localStorage).
 - cada PC o celular tiene **sus propias** notas y su **propia** numeración;
 - si se borran los datos del navegador, se pierden las notas: en **Configuración → Datos** se puede bajar una copia de seguridad;
 - lo de producción (asignaciones, HECHA, lotes, incidencias, parámetros editados) también queda en el navegador: el jefe y los operarios tienen que usar **el mismo equipo** hasta pasar a Google;
-- los datos de demostración ocupan unos 2 MB (el navegador da unos 5 MB): se borran desde Producción → Datos de demostración;
+- los datos de demostración (600 notas de las tres empresas) ocupan unos 2,6 MB (el navegador da unos 5 MB): se borran desde Producción → Datos de demostración;
+- también se guarda, por vendedor, lo que el programa **recuerda** (último material, piezas recientes y frecuentes, última boqueta); entra en la copia de seguridad;
+- al abrir una versión nueva, las notas guardadas se **completan solas una vez** (versión de datos 3: se les agrega la empresa y la planta de cada renglón; número, descripción, código y cantidad no se tocan);
 - los borradores se guardan solos cada 5 segundos, y también la pieza que se está cargando. Si se corta la luz o internet, al volver a abrir la nota aparece "Quedó una pieza sin terminar → Recuperarla".
 
 Esto se resuelve en la versión con Google (ver "Próximos pasos").

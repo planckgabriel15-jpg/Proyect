@@ -163,7 +163,7 @@ productos estándar; mantenimiento preventivo de máquinas.
 
 ## 7. Datos de demostración (REQ F)
 
-`logica/demo.js`: 50 notas emitidas por cada uno de los 10 locales, semilla fija
+`logica/demo.js`: 50 notas emitidas por cada local (los 10 de Abasto, el de HIPER y el de G-TEC: 600 en total), semilla fija
 (20261028), marcadas `demo: true`, número propio (`D-C001`), sin usar los contadores. Mezcla:
 ~45 % productos de siempre con la misma medida (familias), ~35 % variantes, ~20 % distintos.
 Las viejas quedan terminadas con un tiempo real simulado (ritmo propio de cada operario), las
@@ -176,3 +176,11 @@ máximo 2 h 27 min). Distribución: 27 notas de 0 a 10 min, 140 de 10 a 20, 204 
 40 a 60, 43 de 60 a 120 y 3 de más de 120. Con los 237 renglones pendientes se forman **35
 lotes**, con un ahorro de setup de **583 min (9 h 43 min)**: 16 % del tiempo total y 56 % del setup.
 Ocupan unos 2 MB del navegador (el límite es de unos 5 MB).
+
+**Con las tres empresas (13/11/2026, hoy = 13/11/2026):** 600 notas (las 500 de Abasto salen idénticas a antes;
+50 de HIPER con pedidos mayoristas de su catálogo y 50 de G-TEC con piezas a medida y servicios), 1.218 renglones,
+0 con error, 774 h de tiempo estándar. El promedio por nota sube a 77 min (mediana 31 min) por G-TEC: sus piezas y
+servicios usan el tiempo provisorio de 15 min + 10 min por unidad **[SUPUESTO]** y hay pedidos de 50 piezas o de
+4 horas de servicio. En el taller de Abasto se forman 39 lotes con 559 min de ahorro (54 % del setup); en HIPER
+(artículos que salen de depósito) y en G-TEC no se forman lotes con los criterios de la plegadora: hacen falta
+criterios propios de cada planta (`PENDIENTES.md`, punto 127). Unos 2,6 MB del navegador.

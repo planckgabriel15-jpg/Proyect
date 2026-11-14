@@ -174,3 +174,226 @@ Todas las demás pasan sin cambios. Estas cuatro medían, justamente, el dato qu
 | "catálogo: cada plantilla da un renglón sin errores y con código" | todas dan un código | las que no tienen código de facturación dan **"código pendiente"** (y ningún código); las "a medida" se prueban aparte porque nacen con datos por completar | No inventar códigos |
 
 La prueba de la demo ("50 notas por local") no se tocó: sigue pidiendo 50 por cada sucursal y ahora son 12.
+
+---
+
+## Etapa D: rediseño para el comercial
+
+Cada idea del pedido se **evaluó**; las que no se justificaban se descartaron y está dicho por qué (al final).
+
+### D1. Asistente de 2 pasos: una sola ficha para medidas, material y cantidad
+
+- **Qué cambió.** Antes: 1) galería, 2) medidas y dibujo, 3) material y cantidad. Ahora: 1) galería y 2) **la pieza**,
+  con largo y cantidad arriba, la tabla de medidas, el material y el dibujo 2D en la misma pantalla.
+  "Agregar a la nota" está siempre a la vista (Ctrl+Enter).
+- **Problema.** F1 y F2 del diagnóstico: el artículo de reventa pasaba por 3 pantallas para elegir un modelo y una
+  cantidad; el material estaba escondido en otro paso.
+- **En qué se apoya.** Fuente 8 (los asistentes por pasos sirven para tareas que se hacen pocas veces; molestan a
+  quien la repite todo el día), fuente 4 (formularios: lo relacionado junto), fuente 9 (aceleradores para el experto).
+- **Producción no pierde nada.** El renglón que se guarda tiene exactamente los mismos campos (medidas, ángulos,
+  largo, material, calibre, terminación, color, lado de pintura, cantidad, observaciones, accesorios, cortes,
+  empalme, pendiente). Las pruebas de cálculo, tiempos y agrupamiento no se tocaron y pasan.
+  Una pieza a medio cargar guardada en el viejo "paso 3" se abre en la ficha.
+
+### D2. Lo que se usa poco está plegado, con su resumen a la vista
+
+- **Qué cambió.** Tapas y boquetas, cortes en la chapa y "más opciones" (con pendiente, desarrollo a mano,
+  observaciones) son secciones plegadas. El título dice lo que tienen adentro ("Tapas y boquetas: tapa izq. soldada y
+  1 boqueta", "Cortes en la chapa: ninguno") y se abren solas si ya tienen algo cargado, con un error adentro o al
+  usar su atajo (Alt+Q, Alt+R, Alt+L). El empalme sigue apareciendo solo cuando la pieza supera la chapa.
+- **Problema.** F2: 59 controles a la vista en una canaleta sin tocar nada.
+- **En qué se apoya.** Divulgación progresiva (fuente 2) y ley de Hick (fuente 16).
+- **Producción no pierde nada.** Nada se quitó: está a un toque. El resumen evita que algo cargado quede escondido.
+
+### D3. Tabla de tramos en "vista simple"
+
+- **Qué cambió.** Para una pieza del catálogo la tabla muestra N°, medida y ángulo. Sentido, tipo, láser,
+  observación, "arranca hacia", aletas, dobladillos, espejar y dibujar a mano aparecen con "Ver todas las columnas y
+  herramientas" (se recuerda la elección del vendedor). Se pasa sola a la tabla completa al **agregar un tramo** y
+  arranca completa si la pieza tiene corte láser u observaciones o es una pieza libre (sin tramos).
+- **Problema.** F3: 8 columnas siempre visibles para cambiar una medida.
+- **Producción no pierde nada.** Las columnas ocultas conservan su valor; el tipo de tramo además está escrito en el
+  2D. Nunca se oculta una columna que tenga algo cargado fuera de lo común (láser u observación).
+- **Costo reconocido.** Cargar un corte láser pide un toque más (ver la medición del caso 2).
+
+### D4. El material no se vuelve a cargar
+
+- **Qué cambió.** Una pieza nueva arranca con el material, calibre, terminación, color y lado de pintura de la
+  **pieza anterior de la misma nota**; si la nota está vacía, con los últimos que usó el vendedor. Un cartel chico lo
+  avisa ("Igual que la pieza anterior de esta nota. Si es otro, cambialo acá"). También se recuerda la última
+  boqueta (forma y medidas, no la posición).
+- **Problema.** F5 y R19/R20: cada pieza arrancaba en galvanizado C25 natural.
+- **En qué se apoya.** Fuente 3 (valores por defecto: la mayoría los deja como están, por eso tienen que ser los
+  más probables) y fuente 15 (reducir la carga de memoria).
+- **Riesgo y cómo se cubre.** Un valor por defecto equivocado se puede pasar por alto (fuente 6, "slips"). Por eso
+  el material está **a la vista en la misma ficha**, con el aviso de dónde salió, y figura en la descripción del pie.
+  Si el material recordado ya no existe en `materiales.json`, no se usa.
+- **Producción no pierde nada.** Son los mismos campos del renglón, con otro valor inicial. Prueba: "preferencias:
+  se recuerda el último material…".
+
+### D5. Lo último y lo más usado, arriba de la galería
+
+- **Qué cambió.** Sin texto en el buscador, la galería empieza con "Lo último que usaste" y "Lo que más usás"
+  (hasta 6 cada una, por vendedor, solo de lo que puede ver).
+- **Problema.** F4: la galería no recordaba nada.
+- **En qué se apoya.** Fuente 7 (reconocer es más fácil que recordar) y fuente 9 (aceleradores).
+- **Prueba.** "preferencias: recientes… y frecuentes…".
+
+### D6. Cliente con sugerencias
+
+- **Qué cambió.** Al escribir el cliente se ofrecen los de notas anteriores de la empresa (los más recientes
+  primero). Se puede escribir uno nuevo igual.
+- **Problema.** F6. **En qué se apoya.** Fuente 11 (autocompletar: menos tipeo y menos variantes del mismo nombre).
+- **Producción no pierde nada.** El cliente sigue siendo texto libre. Prueba: "clientes conocidos…".
+
+### D7. Repetir una nota
+
+- **Qué cambió.** Botón "Repetir" en la lista de notas y en la hoja: arma una nota **nueva** con el mismo cliente
+  y las mismas piezas. No copia número, factura, fecha de entrega ni prioridad (son de cada pedido), ni la foto del
+  cálculo (se calcula con los códigos de hoy).
+- **Problema.** F11. **Prueba.** "repetir una nota…": la original queda idéntica y la copia tarda y se agrupa igual.
+
+### D8. Lo que falta se marca en su lugar; no se puede emitir lo que no se puede fabricar
+
+- **Qué cambió.** (a) En la ficha, cada problema aparece **al lado del campo** y en una lista corta al pie que
+  lleva al campo con un toque. (b) Ya no hay cartel "La pieza tiene problemas… ¿Agregarla igual?": la pieza se
+  agrega y queda marcada en la nota con "Falta: … [Corregir]". (c) Al emitir, lo que falta se marca en el encabezado
+  y en una lista que lleva a cada renglón. (d) Emitir sigue **bloqueado** mientras haya un error (regla sin cambios),
+  incluidos los límites de planta de G-TEC.
+- **Problema.** F9: los errores aparecían al final, en un cartel del navegador, lejos del dato.
+- **En qué se apoya.** Fuentes 5, 13 y 14 (el mensaje junto al campo, diciendo qué falta y cómo se arregla) y
+  fuente 17 (poka-yoke).
+- **Producción no pierde nada.** `validarNota` no se tocó; la lista nueva (`faltantesDeNota`) da los mismos
+  errores con su lugar. Prueba: "faltantes: dicen DÓNDE se corrige…".
+
+### D9. Hoja impresa: cada dato una sola vez
+
+- **Qué cambió.** El contenido de la hoja lo arma un módulo nuevo y puro (`logica/hojaImpresa.js`), que se prueba
+  sin navegador. Tabla de lo que se quitó y dónde quedó cada dato:
+
+| Dato | Antes | Ahora (una vez) | ¿Producción lo sigue viendo? |
+|---|---|---|---|
+| Desarrollo (R1) | Descripción, "Desarrollo: 60 cm" y "= 60" | Descripción ("D60") | Sí. Si se corrigió a mano, queda el aviso |
+| Medidas de tramos (R2) | Cotas del 2D y texto "Tramos: 1 + 20 + 32 + 7" | Cotas del 2D | Sí: el 2D es la referencia oficial |
+| Lado de pintura (R3) | Leyenda del 2D, detalle y flecha | **Ficha de material** + flecha en el dibujo | Sí, más visible (recuadro junto al 2D) |
+| Material, calibre, color (R4) | Solo abreviados en la descripción | Descripción + **ficha** con el nombre completo y el espesor en mm | Sí, mejor que antes |
+| Tapas (R6) | Descripción, fila con código, 2 líneas de detalle y vista desde arriba | Fila con código (factura) + vista desde arriba (fabrica) | Sí. Pestaña especial o tapa a medida: siguen escritas |
+| Boquetas (R7) | Descripción, fila con código, detalle largo, vista desde arriba y cara | Fila con código + vista desde arriba (tamaño y posición a lo largo) + cara (posición a través) + nota con la **boca** | Sí: cada cota una vez |
+| Cortes (R8) | Descripción, detalle y cara | Cara acotada; nota solo si lleva **pared** | Sí |
+| Corte láser | Texto y vista de frente | Vista de frente (onda y valles) | Sí |
+| Largo (R9) | Descripción y en cada vista extra | Descripción + una vista | Sí |
+| Código pendiente / genérico (R11, R12) | Columna, detalle y aviso | Columna: "PENDIENTE" o "CL1010N (genérico)" | Sí |
+| Fecha (R13) | Encabezado y pie | Encabezado; en el pie, la **hora** | Sí |
+| Empalme (R15) | Descripción, detalle y aviso | Descripción ("empalme 2,44 + 0,56") | Sí |
+| Recuadro "sin dibujo" de un artículo | Media hoja | No se imprime | No lo necesitaba |
+
+- **Se agregó** (no estaba y producción lo usa): **entrega comprometida** y **URGENTE** en el encabezado, si se
+  cargaron; y qué planta hace cada renglón cuando la nota se reparte.
+- **No se tocó:** la descripción (es la "foto" de lo facturado y una regla confirmada), las columnas Piezas y
+  Cantidad (R10: no son el mismo dato; el título ahora dice "Cantidad (chapas)"), los ángulos, las observaciones,
+  el vendedor y el 3D opcional.
+- **Única superposición que queda**, pedida en el encargo: material, calibre y color figuran abreviados en la
+  descripción y completos en la ficha junto al 2D. También la descripción nombra tapas y boquetas que después tienen
+  su fila con código: es la regla confirmada de la descripción; anotado en `PENDIENTES.md` (punto 119).
+- **Cómo se verificó.** Prueba "hoja impresa: ningún dato aparece dos veces": arma la hoja del caso 1 con sus
+  dibujos, cuenta cuántas veces aparece cada dato en la zona de fabricación (una) y comprueba que **los 18 datos
+  que antes se imprimían siguen estando**. Otras dos pruebas cubren código pendiente, genérico, empalme, cortes con
+  pared, láser, observaciones, tapa a medida y que una nota emitida sigue mostrando su foto aunque cambie la tabla
+  de códigos. Se imprimió a PDF en A4 y se revisó en blanco y negro (todo es texto y línea negra; el color no lleva
+  información).
+
+### D10. Resultado en una línea, con "ver cálculo"
+
+- **Qué cambió.** Al pie de la ficha: la descripción y el código. Desarrollo, fórmula, banda, códigos de tapas y
+  boquetas y avisos están en "ver cálculo". En la tarjeta del renglón: descripción, código y cantidad; el tiempo
+  estándar y el consumo físico de chapa pasaron a "ver cálculo" (y siguen en Producción).
+- **Problema.** F7, R16, R17 y R18. **Producción no pierde nada:** los cálculos son los mismos; solo cambia dónde se ven.
+
+### D11. Cantidad editable en la tarjeta y botones en vez de listas cortas
+
+- **Qué cambió.** La cantidad se cambia en la tarjeta del renglón sin abrir la pieza. Terminación, lado de pintura y
+  tipo de tapa son botones (2 o 3 opciones a la vista) en lugar de listas desplegables.
+- **En qué se apoya.** Fuente 12 (las listas desplegables son el último recurso con pocas opciones).
+
+### D12. Emitir: confirmación en la página y la impresión se abre sola
+
+- **Qué cambió.** "Emitir nota" muestra, en la misma pantalla, "Vas a emitir la nota Nº 124 de Colón. Después no
+  se puede modificar", con los avisos y el botón "Emitir e imprimir" (Ctrl+Enter dos veces). Al emitir, la hoja se
+  abre con la ventana de impresión ya abierta.
+- **Se evaluó quitar la confirmación** (F8) y se **mantuvo**: emitir asigna el número correlativo y no se deshace
+  (fuente 15: las acciones irreversibles se confirman). Lo que se quitó es el cartel del navegador, que no decía el
+  número ni dejaba ver la nota, y el clic de "Imprimir".
+
+### D13. El comercial ve el estado de sus notas
+
+- **Qué cambió.** La lista de Inicio muestra el estado de producción de cada nota emitida (pendiente, programada,
+  en curso, hecha, demorada). En Producción, el comercial ve "Estado de mis notas" (solo las suyas; puede tildar
+  "ver también las de otros vendedores") y "Notas emitidas". El jefe y el operario no cambian.
+- **Problema.** F10: con la demo, el comercial veía un tablero de 500 notas de todas las sucursales.
+
+### D14. El 3D se carga cuando se pide
+
+- **Qué cambió.** El 3D del asistente se baja al abrir su panel (abierto por defecto en pantallas anchas, cerrado en
+  el celular; se recuerda) o el editor 3D. Un artículo o un servicio nunca lo cargan. El 3D sigue siendo opcional por
+  nota y por renglón, como antes.
+- **Producción no pierde nada.** El 2D acotado es la referencia oficial y está siempre.
+
+### Ideas evaluadas y descartadas (o achicadas)
+
+| Idea | Decisión | Por qué |
+|---|---|---|
+| Edición de todo en la tarjeta del renglón, sin asistente | **Solo la cantidad** | Medidas y tramos necesitan el dibujo al lado para no equivocarse; en la tarjeta no hay lugar |
+| Quitar la confirmación de emitir | **Se mantiene**, en la página | Emitir no se deshace |
+| Agregar un artículo directo desde la galería, sin ficha | **Descartado por ahora** | Casi todos tienen modelo o medida para elegir; saltear la ficha haría cargar un modelo equivocado |
+| Abrir "Tapas y boquetas" siempre en las canaletas | **Descartado** | Vuelve a los 59 controles; un toque lo abre y el resumen dice qué tiene |
+| Quitar la columna "Piezas" | **Descartado** | No es el mismo dato que "Cantidad (chapas)" (R10) |
+| Sacar tapas y boquetas de la descripción | **No se hace sin la empresa** | La descripción es una regla confirmada y la foto de lo facturado |
+| Guardar el archivo del plano | **Solo el nombre o enlace** | El navegador da unos 5 MB para todo |
+
+---
+
+## Etapa E: mediciones antes y después
+
+Mismos tres casos y mismos datos que en el diagnóstico, con la misma herramienta
+(`node herramientas/medir-flujo.mjs despues`) y el mismo modelo de tiempo (KLM, fuente 18;
+"orientarse en una pantalla nueva" = 1,5 s es [SUPUESTO]). Vendedor que entra por primera vez, sin nada recordado.
+**Son estimaciones de modelo, no cronometraje con vendedores**: sirven para comparar, no como tiempo real.
+
+| Caso | | Clics | Listas | Campos | Teclas | Decisiones | Pantallas | Tiempo estimado |
+|---|---|---|---|---|---|---|---|---|
+| 1. Canaleta con tapas y boqueta | antes | 11 | 5 | 5 | 36 | 8 | 9 | 90 s |
+| | después | 13 | 2 | 5 | 36 | 8 | 7 | **80 s (−11 %)** |
+| 2. Babeta a medida con corte láser | antes | 10 | 3 | 7 | 43 | 6 | 9 | 88 s |
+| | después | 10 | 2 | 7 | 43 | 6 | 7 | **81 s (−8 %)** |
+| 3. Artículo de reventa sin dibujo | antes | 9 | 2 | 4 | 39 | 4 | 9 | 70 s |
+| | después | 7 | 2 | 4 | 39 | 4 | 7 | **62 s (−11 %)** |
+
+Lectura honesta: la **primera** vez la mejora es chica (8 a 11 %): salen dos pantallas, el clic de imprimir y varias
+listas, pero se suma un toque para abrir "Tapas y boquetas" (caso 1) y otro para ver la columna del láser (caso 2).
+La mejora grande está en lo que el programa **ahora recuerda**, que antes no existía:
+
+| Situación (caso 1) | Clics | Listas | Campos | Teclas | Pantallas | Tiempo estimado |
+|---|---|---|---|---|---|---|
+| Segunda nota del día: pieza en "lo último que usaste", material y boqueta recordados, cliente sugerido | 11 | 0 | 3 | 20 | 6 | **54 s** |
+| "Repetir" la nota de la vez pasada (solo se carga la factura nueva) | 3 | 0 | 1 | 15 | 3 | **20 s** |
+
+(Estas dos no incluyen elegir el vendedor al entrar, unos 8 s que se hacen una vez por día; "antes" esa misma
+segunda nota costaba los 90 s completos menos esos 8.)
+
+**Controles a la vista** (campos, listas, casillas y botones; mismo método de conteo):
+
+| Pantalla | Antes | Después |
+|---|---|---|
+| Galería | 55 (51 plantillas, todas) | 43 (de 219 plantillas de Abasto se ven 40; el resto, en 8 grupos plegados o por el buscador) |
+| Canaleta sin tocar nada | 59 (medidas) + 37 (material) en dos pantallas | **38 en una sola** |
+| Canaleta con 2 tapas, boqueta y prepintada | 74 + 37 | 68 en una sola |
+| Artículo de reventa | 2 pantallas | **12 en una** |
+
+**Pruebas automáticas:** 137 al empezar → **166** (29 nuevas). Los 16 casos obligatorios de la especificación pasan
+sin cambios. Pruebas nuevas pedidas: empresa y numeración, catálogo filtrado, tipos de renglón, migración y "ningún
+dato aparece dos veces en la hoja impresa" (`tests/grupo-empresas.test.js` y `tests/rediseno-comercial.test.js`).
+
+**Revisado a mano en el navegador** (Chromium automático, sin errores de consola): los tres roles; nota con
+canaleta + artículo de HIPER + servicio de G-TEC; hoja impresa a PDF en A4; celular de 360 px de ancho (sin
+desplazamiento horizontal); F1; producción con la demo de 600 notas en las tres plantas (tablero, lotes,
+asignación automática, operarios, material, indicadores, vista del operario y hoja de ruta).
