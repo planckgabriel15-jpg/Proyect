@@ -550,3 +550,44 @@ tr.destino td { border-top: 3px solid var(--acento); }
 .paso2-grilla.sin-dibujo, .paso3-grilla.sin-dibujo { grid-template-columns: minmax(0, 720px); grid-template-areas: none; }
 .paso2-grilla.sin-dibujo .panel-2d, .paso2-grilla.sin-dibujo .panel-3d, .paso3-grilla.sin-dibujo .panel-2d, .paso3-grilla.sin-dibujo .panel-3d { display: none; }
 .paso2-grilla.sin-dibujo .panel-medidas { grid-area: auto; display: block; }
+
+/* ---------- Tabla de tramos: vista simple (solo N°, medida y ángulo) ---------- */
+.editor-tramos.vista-simple .col-extra, .editor-tramos.vista-simple .solo-vista-completa { display: none; }
+.boton-vista-tabla { margin-top: .4rem; }
+
+/* ---------- Etapa D: ficha única, secciones plegadas y errores en su lugar ---------- */
+details.plegable { border: 1.5px solid var(--borde-suave); border-radius: var(--radio); margin-top: .5rem; background: var(--fondo); }
+details.plegable > summary { cursor: pointer; padding: .55rem .7rem; font-weight: 700; min-height: 44px; display: flex; align-items: center; }
+details.plegable > summary::before { content: "▸"; margin-right: .5rem; }
+details.plegable[open] > summary::before { content: "▾"; }
+details.plegable > summary::-webkit-details-marker { display: none; }
+details.plegable > :not(summary) { padding: 0 .7rem .6rem; }
+details.plegable h3 { display: none; } /* el título ya está en el resumen */
+.panel-3d > summary { cursor: pointer; font-weight: 700; padding: .2rem 0; min-height: 40px; display: flex; align-items: center; }
+.panel-3d:not([open]) { align-self: start; }
+.formulario-material { margin-top: .75rem; border-top: 2px solid var(--borde-suave); padding-top: .5rem; }
+.formulario-material h3 { margin: 0 0 .3rem; }
+.fila-material { display: flex; flex-wrap: wrap; gap: .5rem 1rem; align-items: flex-end; }
+.nota-recordado { margin: 0 0 .4rem; background: #fff8d6; border-left: 4px solid #c79a00; padding: .25rem .5rem; }
+.botonera { display: flex; flex-wrap: wrap; gap: .3rem; }
+.botonera .boton.elegido, .boton.chico.elegido { background: var(--principal); color: var(--principal-texto); border-color: var(--principal); }
+.campo-cantidad { width: 5.5rem; text-align: right; font-weight: 700; }
+.campo-en-linea .campo-cantidad { min-height: 36px; }
+.campo-con-error input, .campo-con-error select, .campo-con-error textarea { border-color: var(--peligro); box-shadow: 0 0 0 2px rgba(180, 0, 0, .15); }
+.error-campo { display: block; color: var(--peligro); font-weight: 700; font-size: .85rem; margin-top: .15rem; }
+.error-campo::before { content: "⚠ "; }
+.lista-faltantes { margin: .2rem 0; padding-left: 1.1rem; }
+.enlace-error { background: none; border: 0; padding: .15rem 0; font: inherit; color: var(--peligro); font-weight: 700; text-decoration: underline; cursor: pointer; text-align: left; }
+.resultado-linea { display: flex; flex-wrap: wrap; gap: .25rem 1rem; align-items: baseline; }
+.resultado-linea .descripcion-viva { margin: 0; font-weight: 700; }
+.ver-calculo > summary { cursor: pointer; color: var(--principal); text-decoration: underline; display: inline-block; padding: .15rem 0; }
+.ver-calculo .resultados-datos { display: flex; flex-wrap: wrap; gap: .2rem 1rem; }
+.boton.con-faltantes { background: #6b6b6b; border-color: #6b6b6b; }
+.linea-renglon { display: flex; flex-wrap: wrap; align-items: center; gap: .2rem .35rem; }
+.caja-confirmar { border-color: var(--principal); background: #eef4fa; }
+.grupo-rapido { color: var(--principal); }
+.tarjetas-rapidas .tarjeta-plantilla { min-height: 0; }
+.tarjetas-rapidas .tarjeta-plantilla .miniatura { height: 60px; }
+.etiqueta-produccion { font-size: .8rem; }
+/* Lo marcado como oculto no se muestra aunque su clase diga otra cosa (botones Atrás/Agregar en la galería). */
+[hidden] { display: none !important; }

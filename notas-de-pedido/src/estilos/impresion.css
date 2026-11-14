@@ -94,3 +94,20 @@
 .hoja-logo.logo-texto { height: 12mm; box-sizing: border-box; font-size: 15pt; color: #000; border-color: #000; }
 .hoja-empresa-nombre { font-size: 9pt; }
 .hoja-dibujos.sin-dibujo { display: block; }
+
+/* ---------- Hoja sin repeticiones (Etapa D) ---------- */
+/* Al lado del 2D: ficha de material (siempre) y, debajo, la imagen 3D (si el renglón la lleva). */
+.hoja-lateral { grid-area: tres; display: flex; flex-direction: column; gap: 3mm; }
+.hoja-lateral .hoja-3d { grid-area: auto; }
+.hoja-dibujos.sin-3d .hoja-3d { display: none; }
+.hoja-ficha { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: .6mm 3mm; border: 1.5px solid #000; padding: 2mm 3mm; font-size: 10.5pt; align-self: start; }
+.hoja-ficha dt { font-size: 8.5pt; text-transform: uppercase; align-self: center; }
+.hoja-ficha dd { margin: 0; font-weight: 700; }
+/* Sin dibujo (artículo, servicio, pieza con plano): la ficha y las notas ocupan el ancho. */
+.hoja-dibujos.sin-dibujo { display: block; }
+.hoja-dibujos.sin-dibujo .hoja-detalles { margin-top: 0; }
+.hoja-urgente { font-weight: 900; border: 2px solid #000; padding: 0 2mm; align-self: flex-end; }
+.col-cantidad { width: 24mm; }
+@media (max-width: 700px) {
+  .hoja-lateral { grid-area: tres; }
+}

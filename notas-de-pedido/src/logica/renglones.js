@@ -110,3 +110,22 @@ export function duplicarRenglon(renglon) {
   copia.id = crearId('r');
   return copia;
 }
+
+/**
+ * "Repetir" una nota (lo mismo que la vez pasada): copia los renglones a una nota NUEVA.
+ * Cada renglón sale con id nuevo y SIN la foto del cálculo ni la elección de 3D del renglón:
+ * se vuelve a calcular con los códigos y la configuración de hoy. La nota original no se toca.
+ * @returns {{cliente: string, mostrar3d: string, renglones: Array}} lo que se copia a la nota nueva
+ *   (número, factura, fecha de entrega y prioridad NO se copian: son de cada pedido)
+ */
+export function datosParaRepetir(nota) {
+  return {
+    cliente: nota.cliente || '',
+    mostrar3d: nota.mostrar3d || 'auto',
+    renglones: (nota.renglones || []).map((renglon) => {
+      const copia = duplicarRenglon(renglon);
+      delete copia.calculado;
+      return copia;
+    }),
+  };
+}

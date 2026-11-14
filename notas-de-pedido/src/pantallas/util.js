@@ -113,6 +113,7 @@ export function hoyIso() {
 export function enterPasaAlSiguiente(contenedor) {
   contenedor.addEventListener('keydown', (evento) => {
     if (evento.key !== 'Enter' || evento.target.tagName === 'TEXTAREA' || evento.target.tagName === 'BUTTON') return;
+    if (evento.ctrlKey || evento.metaKey || evento.altKey) return; // Ctrl+Enter es un atajo (agregar o emitir), no "pasar al siguiente"
     const campos = [...contenedor.querySelectorAll('input:not([type=hidden]):not([disabled]), select:not([disabled])')];
     const posicion = campos.indexOf(evento.target);
     if (posicion >= 0) {

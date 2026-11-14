@@ -10,6 +10,8 @@ import { estado, ir, vendedorActual, sucursalActual, empresaActual } from './est
 import { listaEmpresas, listaPlantas, sucursalesDeEmpresa, identificadorDeNota } from '../logica/empresas.js';
 import { registrarAtajos, etiquetaAtajo } from './atajos.js';
 import * as almacenamiento from '../datos/almacenamiento.js';
+import { cargarContexto } from './contextoProduccion.js';
+import { etiquetaEstado } from './produccionTablero.js';
 
 /**
  * Ingreso del prototipo: elegir el ROL y quién es. (Con Google será la cuenta de la empresa.)
@@ -126,6 +128,9 @@ export async function pantallaInicio(contenedor) {
   const selectorEstado = selector([{ valor: '', texto: 'Todas' }, { valor: 'borrador', texto: 'Borradores' }, { valor: 'emitida', texto: 'Emitidas' }], '', { 'aria-label': 'Estado', onchange: () => llenar() });
   const lista = h('div', { class: 'lista-notas' });
 
+  // Estado de producción de las notas emitidas (pendiente, programada, en curso, hecha, demorada).
+  const estadoDeNota = new Map((await cargarContexto({ soloMias: false })).notasEstado.map((n) => [n.notaId, n.estado]));
+
   async function llenar() {
     const notas = await almacenamiento.listarNotas({
       sucursalId: estado.sesion.sucursalHoyId,
@@ -140,7 +145,7 @@ export async function pantallaInicio(contenedor) {
       return;
     }
     lista.append(h('table', { class: 'tabla-notas' },
-      h('thead', {}, h('tr', {}, h('th', {}, 'Estado'), h('th', {}, 'NP Nº'), h('th', {}, 'Fecha'), h('th', {}, 'Cliente'), h('th', {}, 'Factura'), h('th', {}, 'Renglones'), h('th', {}, ''))),
+      h('thead', {}, h('tr', {}, h('th', {}, 'Estado'), h('th', {}, 'NP Nº'), h('th', {}, 'Fecha'), h('th', {}, 'Cliente'), h('th', {}, 'Factura'), h('th', {}, 'Renglones'), h('th', {}, 'Producción'), h('th', {}, ''))),
       h('tbody', {}, notas.map((n) => h('tr', {},
         h('td', {}, h('span', { class: `etiqueta-estado ${n.estado}` }, n.estado === 'emitida' ? 'EMITIDA' : 'borrador')),
         h('td', { title: n.numero ? `Identificador completo: ${identificadorDeNota(n, datos)}` : '' }, n.numero ? String(n.numero) : '—', n.demo ? h('span', { class: 'etiqueta-demo' }, 'DEMO') : null),
@@ -148,8 +153,11 @@ export async function pantallaInicio(contenedor) {
         h('td', {}, n.cliente || '(sin cliente)'),
         h('td', {}, n.factura || '—'),
         h('td', {}, String(n.renglones?.length || 0)),
+        h('td', {}, estadoDeNota.has(n.id) ? etiquetaEstado(estadoDeNota.get(n.id)) : '—'),
         h('td', { class: 'acciones' },
           h('a', { class: 'boton chico', href: n.estado === 'emitida' ? `#imprimir/${n.id}` : `#nota/${n.id}` }, n.estado === 'emitida' ? 'Ver / imprimir' : 'Abrir'),
+          // "Lo mismo que la vez pasada": nota nueva con el mismo cliente y las mismas piezas.
+          n.renglones?.length ? h('a', { class: 'boton chico', href: `#nota/repetir-${n.id}`, title: 'Nota nueva con el mismo cliente y las mismas piezas' }, 'Repetir') : null,
           n.estado === 'borrador' ? h('button', {
             type: 'button', class: 'boton chico peligro',
             onclick: async () => {

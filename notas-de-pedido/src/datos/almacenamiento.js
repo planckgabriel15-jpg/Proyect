@@ -15,6 +15,7 @@ import { asignarNumeroNP, contadoresDesdeSucursales } from '../logica/numeracion
 import { crearId } from '../logica/renglones.js';
 import { completarFotoVieja } from '../logica/fotoCalculo.js';
 import { empresaDeSucursal, abastecimientoDe } from '../logica/empresas.js';
+import { preferenciasVacias } from '../logica/preferencias.js';
 
 const PREFIJO = 'notasPedido.';
 
@@ -145,6 +146,24 @@ export async function leerSesion() {
 
 export async function guardarSesion(sesion) {
   await guardar('sesion', sesion);
+}
+
+// =============================================================
+// PREFERENCIAS DE CADA VENDEDOR (último material, piezas recientes y frecuentes…)
+// La lógica está en logica/preferencias.js; acá solo se guarda y se lee.
+// =============================================================
+
+/** @returns {Promise<object>} preferencias de ese vendedor (vacías si nunca usó el programa) */
+export async function leerPreferencias(vendedorId) {
+  const todas = await leer('preferencias', {});
+  return { ...preferenciasVacias(), ...(todas[vendedorId] || {}) };
+}
+
+export async function guardarPreferencias(vendedorId, preferencias) {
+  if (!vendedorId) return;
+  const todas = await leer('preferencias', {});
+  todas[vendedorId] = preferencias;
+  await guardar('preferencias', todas);
 }
 
 // =============================================================
@@ -490,6 +509,7 @@ export async function exportarTodo() {
     cambiosTiempos: await leer('cambiosTiempos', null),
     operariosEditados: await leer('operariosEditados', null),
     criteriosAgrupamiento: await leer('criteriosAgrupamiento', null),
+    preferencias: await leer('preferencias', {}),
   };
 }
 

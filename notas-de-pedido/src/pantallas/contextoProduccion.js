@@ -39,15 +39,18 @@ export async function cargarModelo() {
  * @returns {Promise<{hoy, datos, prod, prodCompleto, planta, modelo, cambios, notas, registros, lotesGuardados, lotes,
  *   trabajos, notasEstado, incidencias, porClave: Map}>}
  */
-export async function cargarContexto() {
+export async function cargarContexto(opciones = {}) {
   const datos = estado.datos;
+  // El comercial ve el estado de SUS notas (no el tablero de todo el grupo), salvo que pida verlas todas.
+  const soloMias = opciones.soloMias ?? (estado.sesion?.rol === 'comercial' && !estado.sesion.verTodasLasNotas);
   const { modelo, cambios } = await cargarModelo();
-  const [notas, registros, lotesGuardados, incidencias] = await Promise.all([
+  const [todasLasNotas, registros, lotesGuardados, incidencias] = await Promise.all([
     almacenamiento.listarNotas({ estado: 'emitida' }),
     almacenamiento.leerRegistros(),
     almacenamiento.leerLotes(),
     almacenamiento.leerIncidencias(),
   ]);
+  const notas = soloMias ? todasLasNotas.filter((n) => n.vendedorId === estado.sesion.vendedorId) : todasLasNotas;
   // Cada planta ve SUS trabajos, operarios y máquinas (el jefe puede elegir "todas las plantas").
   const planta = plantaDeSesion();
   const dePlanta = (x) => !planta || (x.planta || 'taller_abasto') === planta;
@@ -67,7 +70,7 @@ export async function cargarContexto() {
   }
   const hoy = diaDe(new Date());
   return {
-    hoy, datos, prod, prodCompleto, planta, modelo, cambios, notas, registros, lotesGuardados, lotes, trabajos,
+    hoy, datos, prod, prodCompleto, planta, soloMias, modelo, cambios, notas, registros, lotesGuardados, lotes, trabajos,
     notasEstado: notasConEstado(trabajos, hoy), incidencias,
     porClave: new Map(trabajos.map((t) => [t.clave, t])),
   };

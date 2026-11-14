@@ -156,6 +156,25 @@ export function validarNota(nota, resultadosRenglones) {
   return { puedeEmitir: errores.length === 0, errores, avisos };
 }
 
+/**
+ * Lo que falta para poder emitir, con el LUGAR donde se corrige (para llevar al vendedor ahí,
+ * en vez de mostrarle una lista suelta).
+ * @returns {Array<{donde: 'encabezado'|'nota'|'renglon', campo: string|null, renglonId?: string, numero?: number, mensaje: string}>}
+ */
+export function faltantesDeNota(nota, resultadosRenglones) {
+  const faltantes = validarEncabezado(nota).map((p) => ({ donde: 'encabezado', campo: p.campo, mensaje: p.mensaje }));
+  if (!nota.renglones || nota.renglones.length === 0) {
+    faltantes.push({ donde: 'nota', campo: null, mensaje: 'La nota no tiene renglones: agregá al menos una pieza' });
+  }
+  (resultadosRenglones || []).forEach((resultado, i) => {
+    const errores = (resultado.problemas || resultado.errores.map((mensaje) => ({ nivel: 'error', mensaje, campo: null }))).filter((p) => p.nivel === 'error');
+    for (const p of errores) {
+      faltantes.push({ donde: 'renglon', campo: p.campo ?? null, renglonId: nota.renglones[i]?.id, numero: i + 1, mensaje: p.mensaje });
+    }
+  });
+  return faltantes;
+}
+
 /** Mensaje corto para mostrar la medida de un tramo (lo usan las pantallas). */
 export function textoMedida(medidaCm) {
   const medida = leerNumero(medidaCm);

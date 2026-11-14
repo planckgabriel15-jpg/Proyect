@@ -1,10 +1,13 @@
 // =============================================================
 // asistente.js
-// Asistente "Agregar pieza" en 3 pasos:
-//   1) ¿Qué pieza?        galería de plantillas con buscador
-//   2) Medidas y dibujo   tabla de tramos (o parámetros) + 2D acotado + 3D, en vivo
-//   3) Material y cantidad
-// El panel de resultados (desarrollo, banda y código) está siempre visible.
+// Asistente "Agregar pieza" en 2 pasos:
+//   1) ¿Qué pieza?   galería con buscador; arriba, lo último y lo que más usa el vendedor
+//   2) La pieza      UNA sola ficha: largo, cantidad, medidas y material a la vista, con el
+//                    material de la pieza anterior ya puesto. Lo que se usa poco (tapas y
+//                    boquetas, cortes, pendiente, observaciones, 3D) está plegado y se abre
+//                    con un toque. El 2D acotado se actualiza en vivo.
+// Al pie, una línea con la descripción y el código ("ver cálculo" muestra el resto).
+// Lo que falta se marca al lado del campo (no en un cartel al final).
 // =============================================================
 
 import { h, selector, ayuda, mostrarAviso, confirmar, enterPasaAlSiguiente } from './util.js';
@@ -33,8 +36,12 @@ import { svgPendienteLateral } from '../vistas2d/pendienteSvg.js';
 import { estado } from './estado.js';
 import * as almacenamiento from '../datos/almacenamiento.js';
 import { empresaDeNota, plantillasVisibles, plantillaEsDeEmpresa, listaEmpresas, tipoDeRenglon } from '../logica/empresas.js';
+import { preferenciasVacias, materialPorDefecto, aplicarMaterial, recientesYFrecuentes } from '../logica/preferencias.js';
+import { UNIDADES_DE_SERVICIO } from '../logica/chapas.js';
+import { describirAccesorios } from '../logica/accesoriosCanaleta.js';
+import { describirCortes } from '../logica/cortes.js';
 
-const NOMBRES_PASOS = ['¿Qué pieza?', 'Medidas y dibujo', 'Material y cantidad'];
+const NOMBRES_PASOS = ['¿Qué pieza?', 'Medidas, material y cantidad'];
 
 /**
  * Abre el asistente encima de la pantalla de la nota.
@@ -46,13 +53,18 @@ const NOMBRES_PASOS = ['¿Qué pieza?', 'Medidas y dibujo', 'Material y cantidad
  *   alGuardar: (renglon) => void,
  *   alCerrar: () => void,
  *   alCambiarBorrador?: (renglon, paso) => void,  // para no perder lo cargado si se corta
+ *   preferencias?: object,        // lo que se recuerda del vendedor (logica/preferencias.js)
+ *   alCambiarPreferencias?: (cambios) => void,    // tabla completa o simple, 3D abierto o cerrado
  * }} opciones
  */
 export function abrirAsistente(opciones) {
   const { nota, datos } = opciones;
   const editando = Boolean(opciones.renglon && nota.renglones.some((r) => r.id === opciones.renglon.id));
   let borrador = opciones.renglon ? JSON.parse(JSON.stringify(opciones.renglon)) : null;
-  let paso = borrador ? (opciones.paso || 2) : 1;
+  // Antes había un paso 3 (material y cantidad): una pieza a medio cargar guardada ahí se abre en la ficha.
+  let paso = borrador ? Math.min(opciones.paso || 2, 2) : 1;
+  const preferencias = { ...preferenciasVacias(), ...(opciones.preferencias || {}) };
+  const recordar = (cambios) => { Object.assign(preferencias, cambios); opciones.alCambiarPreferencias?.(cambios); };
   let resultado = null;
   let resaltado = null;
   let editor = null;
@@ -61,6 +73,7 @@ export function abrirAsistente(opciones) {
   let pestanaCelular = 'medidas';
   let editor3d = null;          // editor 3D a pantalla completa (si está abierto)
   let campoLargo = null;        // campos del paso 2 que el editor 3D puede cambiar
+  let materialRecordado = null; // de dónde salió el material con el que arrancó la pieza (para avisarlo)
   let formularioActual = null;
   // Contexto de los paneles de tapas, boquetas, cortes y empalme (ver panelesPieza.js).
   const contextoPieza = {
@@ -101,7 +114,8 @@ export function abrirAsistente(opciones) {
   // Atajos de teclado del asistente (F1 muestra la lista).
   const quitarAtajos = registrarAtajos('Asistente "Agregar pieza"', [
     { teclas: 'Escape', descripcion: 'Cerrar el asistente', accion: () => cerrar() },
-    { teclas: 'Alt+ArrowRight', descripcion: 'Siguiente paso / agregar a la nota', accion: () => siguiente() },
+    { teclas: 'Ctrl+Enter', descripcion: 'Agregar la pieza a la nota', accion: () => siguiente() },
+    { teclas: 'Alt+ArrowRight', descripcion: 'Agregar la pieza a la nota (igual que Ctrl+Enter)', accion: () => siguiente() },
     { teclas: 'Alt+ArrowLeft', descripcion: 'Paso anterior', accion: () => { if (paso > 1) irAPaso(paso - 1); } },
     { teclas: 'Alt+Q', descripcion: 'Agregar boqueta a la canaleta', accion: () => agregarBoqueta() },
     { teclas: 'Alt+R', descripcion: 'Agregar un corte en la chapa', accion: () => agregarCorte() },
@@ -114,30 +128,36 @@ export function abrirAsistente(opciones) {
     { teclas: 'Alt+L', descripcion: 'Plegado con pendiente (sí / no)', accion: () => alternarPendiente() },
   ]);
 
-  // El 3D se carga una sola vez y se reutiliza en los pasos 2 y 3.
-  cargar3d().then((modulo) => {
-    if (!modulo) {
-      contenedor3d.replaceChildren(h('p', { class: 'aviso-caja' }, 'El 3D no está disponible (¿sin internet?). El dibujo 2D sigue siendo la referencia para fabricar.'));
-      return;
-    }
-    contenedor3d.replaceChildren();
-    visor = modulo.crearVisor3d(contenedor3d, {
-      alTocarTramo: (indice) => seleccionarParte({ tipo: 'tramo', indice }),
-      alTocarAccesorio: (clave) => {
-        const [tipo, dato] = clave.split(':');
-        seleccionarParte(tipo === 'tapa' ? { tipo: 'tapa', lado: dato } : { tipo, indice: Number(dato) });
-      },
-      alTocarVacio: () => { if (editor3d) seleccionarParte(null); },
-      alPasarSobreTramo: (indice) => { if (indice !== null && !editor3d) resaltar(indice); },
-      alUsarCota: (editar, valor) => usarCota(editar, valor),
+  // El 3D se carga recién cuando se abre su panel (o el editor 3D): la ficha aparece al instante
+  // y un artículo de catálogo nunca lo carga.
+  let carga3d = null;
+  function asegurar3d() {
+    carga3d ||= cargar3d().then((modulo) => {
+      if (!modulo) {
+        contenedor3d.replaceChildren(h('p', { class: 'aviso-caja' }, 'El 3D no está disponible (¿sin internet?). El dibujo 2D sigue siendo la referencia para fabricar.'));
+        return null;
+      }
+      contenedor3d.replaceChildren();
+      visor = modulo.crearVisor3d(contenedor3d, {
+        alTocarTramo: (indice) => seleccionarParte({ tipo: 'tramo', indice }),
+        alTocarAccesorio: (clave) => {
+          const [tipo, dato] = clave.split(':');
+          seleccionarParte(tipo === 'tapa' ? { tipo: 'tapa', lado: dato } : { tipo, indice: Number(dato) });
+        },
+        alTocarVacio: () => { if (editor3d) seleccionarParte(null); },
+        alPasarSobreTramo: (indice) => { if (indice !== null && !editor3d) resaltar(indice); },
+        alUsarCota: (editar, valor) => usarCota(editar, valor),
+      });
+      actualizar3d(true);
+      return visor;
     });
-    actualizar3d(true);
-  });
+    return carga3d;
+  }
 
   // ---------- navegación ----------
 
   function irAPaso(nuevo) {
-    if (nuevo < 1 || nuevo > 3) return;
+    if (nuevo < 1 || nuevo > 2) return;
     if (nuevo === 1 && borrador && !confirmar('Si volvés a elegir la pieza se pierde lo que cargaste. ¿Seguir?')) return;
     if (nuevo === 1) borrador = null;
     paso = nuevo;
@@ -146,16 +166,12 @@ export function abrirAsistente(opciones) {
 
   function siguiente() {
     if (paso === 1) return; // en el paso 1 se avanza tocando una tarjeta
-    if (paso === 2) { irAPaso(3); return; }
-    // Paso 3: guardar
+    // Ficha: se agrega a la nota. Si falta algo se agrega igual (queda marcado en la nota y no deja emitir):
+    // lo que falta ya está señalado al lado de cada campo, sin cartel que frene.
     resultado = calcularRenglon(borrador, datos);
-    if (resultado.errores.length > 0) {
-      const lista = resultado.errores.slice(0, 5).map((e) => `• ${e}`).join('\n');
-      if (!confirmar(`La pieza tiene problemas:\n${lista}\n\n¿Agregarla igual? No vas a poder emitir la nota hasta corregirlos.`)) return;
-    }
     const guardado = JSON.parse(JSON.stringify(borrador));
     terminar();
-    opciones.alGuardar(guardado);
+    opciones.alGuardar(guardado, resultado);
   }
 
   function cerrar() {
@@ -180,7 +196,7 @@ export function abrirAsistente(opciones) {
       h('li', { class: i + 1 === paso ? 'actual' : (i + 1 < paso ? 'hecho' : '') }, `${i + 1}. ${nombre}`)));
     botonAtras.hidden = paso === 1;
     botonSiguiente.hidden = paso === 1;
-    botonSiguiente.replaceChildren(paso === 3 ? (editando ? 'Guardar cambios' : 'Agregar a la nota') : 'Siguiente', etiquetaAtajo('Alt+ArrowRight'));
+    botonSiguiente.replaceChildren(editando ? 'Guardar cambios' : 'Agregar a la nota', etiquetaAtajo('Ctrl+Enter'));
     contenido.replaceChildren();
     editor = null;
     quitarAtajosEditor?.();
@@ -190,7 +206,6 @@ export function abrirAsistente(opciones) {
     botonEditor3d.hidden = paso !== 2;
     if (paso === 1) dibujarPaso1();
     if (paso === 2) dibujarPaso2();
-    if (paso === 3) dibujarPaso3();
     actualizar();
     contenido.scrollTop = 0;
   }
@@ -217,6 +232,13 @@ export function abrirAsistente(opciones) {
     function llenar(texto) {
       zonaGrupos.replaceChildren();
       const visibles = plantillasVisibles(datos.catalogo, empresa?.id, verTodo);
+      if (!texto.trim()) {
+        // Lo de todos los días, arriba: reconocer es más rápido que buscar.
+        const { recientes, frecuentes } = recientesYFrecuentes(preferencias, visibles);
+        for (const [titulo, lista] of [['Lo último que usaste', recientes], ['Lo que más usás', frecuentes]]) {
+          if (lista.length) zonaGrupos.append(h('h3', { class: 'grupo-titulo grupo-rapido' }, titulo), h('div', { class: 'tarjetas tarjetas-rapidas' }, lista.map((p) => tarjetaDePlantilla(p, empresa))));
+        }
+      }
       const encontradas = filtrarPlantillas(datos.catalogo, texto, visibles);
       const grupos = agruparPlantillas(datos.catalogo, encontradas);
       if (!grupos.length) {
@@ -244,6 +266,9 @@ export function abrirAsistente(opciones) {
   function tarjetaDePlantilla(plantilla, empresa) {
     const elegir = () => {
       borrador = crearRenglonDesdePlantilla(plantilla, datos.config);
+      // Arranca con el material de la pieza anterior de esta nota o el último que usó el vendedor (se ve y se cambia en la ficha).
+      materialRecordado = materialPorDefecto(nota, preferencias, datos.materiales);
+      aplicarMaterial(borrador, materialRecordado);
       paso = 2;
       dibujarPaso();
     };
@@ -271,18 +296,28 @@ export function abrirAsistente(opciones) {
       ajena);
   }
 
-  // ===== PASO 2: medidas y dibujo =====
+  // ===== PASO 2: la ficha de la pieza (medidas, material y cantidad en una sola pantalla) =====
   function dibujarPaso2() {
     const plantilla = buscarPlantilla(datos.catalogo, borrador.plantillaId);
     const esPlegada = borrador.tipoPieza === 'plegada';
     const usaPerfil = esPlegada || borrador.usaPerfil;
+    const conDibujo = !borrador.sinDibujo;
 
     const panelMedidas = h('section', { class: 'panel panel-medidas', 'data-panel': 'medidas' });
     const panel2d = h('section', { class: 'panel panel-2d', 'data-panel': '2d' }, h('h3', {}, 'Dibujo 2D acotado'));
     const zonaSvg = h('div', { class: 'zona-svg' });
     const zonaLaser = h('div', { class: 'zona-laser' });
     panel2d.append(zonaSvg, zonaLaser);
-    const panel3d = h('section', { class: 'panel panel-3d', 'data-panel': '3d' }, h('h3', {}, 'Vista 3D'), contenedor3d, botones3d);
+    // El 3D es una ayuda visual: va plegado y se carga recién al abrirlo. Se recuerda cómo lo dejó el vendedor.
+    const abierto3d = conDibujo && (preferencias.ver3d ?? window.innerWidth >= 1100);
+    const panel3d = h('details', {
+      class: 'panel panel-3d', 'data-panel': '3d', open: abierto3d,
+      ontoggle: (e) => {
+        if (e.target.open) asegurar3d().then(() => actualizar3d(true));
+        if (e.isTrusted) recordar({ ver3d: e.target.open });
+      },
+    }, h('summary', {}, 'Vista 3D (ayuda visual)'), contenedor3d, botones3d);
+    if (abierto3d) asegurar3d();
 
     // 2D interactivo: tocar un tramo lo marca en la tabla y en el 3D.
     zonaSvg.addEventListener('click', (e) => {
@@ -294,7 +329,7 @@ export function abrirAsistente(opciones) {
       if (indice !== undefined) resaltar(Number(indice));
     });
 
-    // --- Encabezado del paso: nombre, largo y "con pendiente" ---
+    // --- Encabezado: nombre, largo y cantidad (lo que se carga siempre) ---
     const encabezado = encabezadoPaso2(plantilla);
 
     // --- Medidas: tabla de tramos o formulario de parámetros ---
@@ -309,6 +344,9 @@ export function abrirAsistente(opciones) {
         alResaltar: (indice) => resaltar(indice),
         alDibujarAMano: () => abrirDibujoAMano(panelMedidas),
         conPendiente: esPlegada && borrador.conPendiente,
+        // Una pieza del catálogo: alcanza con medidas y ángulos. La pieza libre arranca con la tabla completa.
+        vistaSimple: !preferencias.tablaCompleta && !borrador.conPendiente,
+        alCambiarVista: (simple) => recordar({ tablaCompleta: !simple }),
       });
       panelMedidas.append(editor.elemento);
       quitarAtajosEditor = registrarAtajos('Tabla de tramos', editor.listaAtajos);
@@ -317,34 +355,101 @@ export function abrirAsistente(opciones) {
       formularioActual = formularioParametros(plantilla);
       panelMedidas.append(formularioActual);
     }
+
+    // --- Material (misma pantalla; arranca con el de la pieza anterior) ---
+    panelMedidas.append(bloqueMaterial());
+    // Código que no está en la tabla: la casilla "código pendiente" aparece sola, a la vista.
+    panelMedidas.append(h('div', { class: 'zona-pendiente' }));
+
+    // --- Lo que se usa poco va plegado; se abre solo si ya tiene algo cargado ---
     if (esPlegada) {
       // Empalme (aparece solo si la pieza es más larga que la chapa).
       panelMedidas.append(h('div', { 'data-contenedor': 'empalme' }, seccionEmpalme(contextoPieza)));
     }
     if (borrador.accesorios) {
-      panelMedidas.append(panelAccesorios());
+      const tiene = borrador.accesorios.tapaIzquierda !== 'ninguna' || borrador.accesorios.tapaDerecha !== 'ninguna' || borrador.accesorios.boquetas.length > 0;
+      panelMedidas.append(plegable('accesorios', tiene, panelAccesorios()));
     }
     if (esPlegada) {
-      panelMedidas.append(seccionCortes(contextoPieza, { agregarCorte }));
+      panelMedidas.append(plegable('cortes', borrador.cortes?.length > 0, seccionCortes(contextoPieza, { agregarCorte })));
     }
+    panelMedidas.append(plegable('mas', Boolean(borrador.conPendiente || borrador.observaciones || borrador.desarrolloManualCm), seccionMasOpciones()));
 
     // --- Pestañas para celular ---
     const pestanas = h('div', { class: 'pestanas-celular', role: 'tablist' },
-      ...[['medidas', 'Medidas'], ['2d', '2D'], ['3d', '3D']].map(([id, texto]) =>
+      ...[['medidas', 'Datos'], ['2d', '2D'], ['3d', '3D']].map(([id, texto]) =>
         h('button', {
           type: 'button', role: 'tab', class: `pestana${pestanaCelular === id ? ' activa' : ''}`,
           onclick: (e) => {
             pestanaCelular = id;
             grilla.dataset.pestana = id;
             pestanas.querySelectorAll('.pestana').forEach((b) => b.classList.toggle('activa', b === e.currentTarget));
+            if (id === '3d') panel3d.open = true;
           },
         }, texto)));
 
     // Sin dibujo (artículo, servicio, pieza con plano): solo el formulario, sin paneles 2D ni 3D.
-    const grilla = h('div', { class: `paso2-grilla${borrador.sinDibujo ? ' sin-dibujo' : ''}`, 'data-pestana': borrador.sinDibujo ? 'medidas' : pestanaCelular }, panelMedidas, panel2d, panel3d);
-    pestanas.hidden = Boolean(borrador.sinDibujo);
+    const grilla = h('div', { class: `paso2-grilla${conDibujo ? '' : ' sin-dibujo'}`, 'data-pestana': conDibujo ? pestanaCelular : 'medidas' }, panelMedidas, panel2d, panel3d);
+    pestanas.hidden = !conDibujo;
     contenido.append(encabezado, pestanas, grilla);
+    enterPasaAlSiguiente(panelMedidas);
     dibujar2d();
+    // El cursor arranca en lo primero que hay que cargar.
+    (campoLargo || contenido.querySelector('.formulario-parametros input, .formulario-parametros select, .campo-cantidad'))?.focus();
+  }
+
+  /** Sección plegada con un resumen de lo que tiene adentro (se actualiza sola). */
+  function plegable(id, abierta, cuerpo) {
+    return h('details', { class: 'plegable', 'data-plegable': id, open: abierta }, h('summary', {}, tituloDePlegable(id)), cuerpo);
+  }
+
+  function tituloDePlegable(id) {
+    if (id === 'accesorios') {
+      const texto = describirAccesorios(borrador.accesorios).replace(/^c\/ /, '');
+      return `Tapas y boquetas: ${texto || 'ninguna'}`;
+    }
+    if (id === 'cortes') {
+      const texto = describirCortes(borrador.cortes).replace(/^c\/ /, '');
+      return `Cortes en la chapa: ${texto || 'ninguno'}`;
+    }
+    const partes = [];
+    if (borrador.conPendiente) partes.push('con pendiente');
+    if (borrador.desarrolloManualCm) partes.push('desarrollo a mano');
+    if (borrador.observaciones) partes.push('con observaciones');
+    return `Más opciones${partes.length ? `: ${partes.join(', ')}` : ' (pendiente, observaciones…)'}`;
+  }
+
+  function actualizarPlegables() {
+    for (const detalle of contenido.querySelectorAll('details[data-plegable]')) {
+      detalle.querySelector('summary').textContent = tituloDePlegable(detalle.dataset.plegable);
+    }
+  }
+
+  /** Lo que casi nunca se toca: pendiente, desarrollo a mano y observaciones. */
+  function seccionMasOpciones() {
+    const seccion = h('section', { class: 'panel-mas-opciones' });
+    if (borrador.tipoPieza === 'plegada') {
+      // Plegado con pendiente: el perfil cambia de una punta a la otra.
+      seccion.append(h('button', {
+        type: 'button', class: `boton boton-pendiente${borrador.conPendiente ? ' activo' : ''}`, 'aria-pressed': String(Boolean(borrador.conPendiente)),
+        title: 'La pieza cambia de perfil de una punta a la otra (por ejemplo, una canaleta más honda hacia la bajada)',
+        onclick: () => alternarPendiente(),
+      }, borrador.conPendiente ? 'Con pendiente: sí' : 'Con pendiente', etiquetaAtajo('Alt+L')));
+    }
+    // Desarrollo manual (solo piezas especiales que tienen desarrollo).
+    if (borrador.tipoPieza === 'especial' && borrador.calculoDesarrollo !== 'unidad') {
+      seccion.append(h('label', { class: 'campo-parametro' }, h('span', {}, 'Corregir desarrollo a mano (cm, opcional)', ayuda(datos.glosario, 'desarrollo')),
+        h('input', {
+          type: 'text', inputmode: 'decimal', value: borrador.desarrolloManualCm ? String(borrador.desarrolloManualCm).replace('.', ',') : '',
+          placeholder: 'vacío = usa la fórmula',
+          oninput: (e) => { const n = leerNumero(e.target.value); borrador.desarrolloManualCm = n > 0 ? n : null; actualizar(); },
+        })));
+    }
+    seccion.append(h('label', { class: 'campo-parametro' }, h('span', {}, 'Observaciones'), h('textarea', {
+      rows: 2, maxlength: 300, placeholder: 'Ej.: entregar con la tapa puesta',
+      oninput: (e) => { borrador.observaciones = e.target.value; actualizar(); },
+    }, borrador.observaciones || '')));
+    return seccion;
   }
 
   /** Encabezado del paso 2. Se puede rehacer solo (al prender la pendiente) sin perder la tabla. */
@@ -362,6 +467,7 @@ export function abrirAsistente(opciones) {
         type: 'text', inputmode: 'decimal', class: 'campo-largo',
         value: leerNumero(borrador.largoCm) > 0 ? formatearNumero(borrador.largoCm / 100, 2) : '',
         'aria-label': 'Largo de la pieza en metros',
+        onfocus: (e) => e.target.select(),
         oninput: (e) => {
           const metros = leerNumero(e.target.value);
           borrador.largoCm = Number.isFinite(metros) ? Math.round(metros * 10000) / 100 : null;
@@ -369,17 +475,17 @@ export function abrirAsistente(opciones) {
           contenido.querySelector('[data-contenedor="empalme"]')?.replaceChildren(...[seccionEmpalme(contextoPieza)].filter(Boolean));
         },
       });
-      campos.append(h('label', {}, 'Largo de la pieza (m) ', campoLargo));
+      campos.append(h('label', { 'data-campo': 'largoCm' }, 'Largo de la pieza (m) ', campoLargo));
     }
+    // Cantidad: junto al largo (son los dos datos que se cargan siempre).
+    const unidad = borrador.tipoPieza === 'servicio' ? UNIDADES_DE_SERVICIO[borrador.parametros?.unidad]?.plural : null;
+    campos.append(h('label', { 'data-campo': 'cantidad' }, `Cantidad${unidad ? ` (${unidad})` : (borrador.usaLargo ? ' (piezas)' : '')} `, h('input', {
+      type: 'text', inputmode: borrador.cantidadDecimal ? 'decimal' : 'numeric', class: 'campo-cantidad', 'aria-label': 'Cantidad',
+      value: String(borrador.cantidad ?? 1).replace('.', ','),
+      onfocus: (e) => e.target.select(),
+      oninput: (e) => { borrador.cantidad = leerNumero(e.target.value); actualizar(); },
+    })));
     if (borrador.usaPerfil) campos.append(selectorCopiarPerfil());
-    if (esPlegada) {
-      // Plegado con pendiente: el perfil cambia de una punta a la otra.
-      campos.append(h('button', {
-        type: 'button', class: `boton boton-pendiente${borrador.conPendiente ? ' activo' : ''}`, 'aria-pressed': String(Boolean(borrador.conPendiente)),
-        title: 'La pieza cambia de perfil de una punta a la otra (por ejemplo, una canaleta más honda hacia la bajada)',
-        onclick: () => alternarPendiente(),
-      }, borrador.conPendiente ? 'Con pendiente: sí' : 'Con pendiente', etiquetaAtajo('Alt+L')));
-    }
     encabezado.append(campos);
     if (esPlegada && borrador.conPendiente) {
       encabezado.append(h('p', { class: 'aviso-caja nota-pendiente', role: 'note' },
@@ -429,6 +535,7 @@ export function abrirAsistente(opciones) {
   function agregarCorte() {
     if (paso !== 2 || borrador?.tipoPieza !== 'plegada') return null;
     const indice = agregarCorteA(borrador, datos.config);
+    contenido.querySelector('details[data-plegable="cortes"]')?.setAttribute('open', '');
     refrescarSecciones();
     actualizar();
     if (editor3d) editor3d.seleccionar({ tipo: 'corte', indice });
@@ -438,7 +545,8 @@ export function abrirAsistente(opciones) {
   /** @returns {number|null} el número de la boqueta nueva (empieza en 0) */
   function agregarBoqueta() {
     if (paso !== 2 || !borrador?.accesorios) return null;
-    borrador.accesorios.boquetas.push(crearBoqueta(datos.config));
+    borrador.accesorios.boquetas.push({ ...crearBoqueta(datos.config), ...(preferencias.boqueta || {}) });
+    contenido.querySelector('details[data-plegable="accesorios"]')?.setAttribute('open', '');
     refrescarSecciones();
     actualizar();
     const indice = borrador.accesorios.boquetas.length - 1;
@@ -505,7 +613,7 @@ export function abrirAsistente(opciones) {
             }, d.etiqueta.split(' ')[0])));
         }
       }
-      formulario.append(h('label', { class: 'campo-parametro' },
+      formulario.append(h('label', { class: 'campo-parametro', 'data-campo': definicion.id },
         h('span', {}, `${definicion.etiqueta}${definicion.unidad ? ` (${definicion.unidad})` : ''}${definicion.opcional ? ' (opcional)' : ''}`),
         campo,
         definicion.ayuda ? h('span', { class: 'texto-chico' }, definicion.ayuda) : null));
@@ -529,87 +637,69 @@ export function abrirAsistente(opciones) {
     panelMedidas.append(panel);
   }
 
-  // ===== PASO 3: material y cantidad =====
-  function dibujarPaso3() {
-    const formulario = h('div', { class: 'formulario-material' });
+  // ===== Material (antes era el paso 3; ahora es un bloque de la ficha) =====
+  function bloqueMaterial() {
+    const formulario = h('div', { class: 'formulario-material', 'data-seccion': 'material' });
     const { materiales } = datos;
+    if (borrador.sinMaterial) {
+      formulario.append(h('p', { class: 'texto-chico' }, {
+        servicio: 'Servicio: no lleva chapa. El material y el espesor, si hacen falta, se cargan arriba.',
+        metalmecanica: 'Pieza a medida: el material y el espesor (en mm) se cargan arriba.',
+      }[borrador.tipoPieza] || 'Artículo de catálogo: no lleva material, calibre ni color.'));
+      return formulario;
+    }
     const material = materiales.materiales.find((m) => m.id === borrador.materialId) || materiales.materiales[0];
-
-    const campo = (texto, control, idAyuda) => h('label', { class: 'campo-parametro' },
+    const campo = (texto, control, idAyuda, idCampo) => h('label', { class: 'campo-parametro', 'data-campo': idCampo },
       h('span', {}, texto, idAyuda ? ayuda(datos.glosario, idAyuda) : null), control);
+    const cambiar = (cambio) => { cambio(); materialRecordado = null; refrescarMaterial(); actualizar(); };
+    // Pocas opciones → botones (se ven todas y se eligen con un toque); muchas → lista.
+    const botonera = (opcionesBotonera, valor, alElegir, nombre) => h('div', { class: 'botonera', role: 'radiogroup', 'aria-label': nombre },
+      opcionesBotonera.map((o) => h('button', {
+        type: 'button', role: 'radio', 'aria-checked': String(o.valor === valor), class: `boton chico${o.valor === valor ? ' elegido' : ''}`,
+        onclick: () => cambiar(() => alElegir(o.valor)),
+      }, o.texto)));
 
-    if (!borrador.sinMaterial) {
-    formulario.append(campo('Material', selector(materiales.materiales.map((m) => ({ valor: m.id, texto: m.nombre })), borrador.materialId, {
-      onchange: (e) => {
+    formulario.append(h('h3', {}, 'Material'));
+    if (materialRecordado) {
+      formulario.append(h('p', { class: 'texto-chico nota-recordado', role: 'note' },
+        materialRecordado.origen === 'nota' ? 'Igual que la pieza anterior de esta nota. ' : 'El último que usaste. ', 'Si es otro, cambialo acá.'));
+    }
+    const fila = h('div', { class: 'fila-material' });
+    fila.append(campo('Material', selector(materiales.materiales.map((m) => ({ valor: m.id, texto: m.nombre })), borrador.materialId, {
+      onchange: (e) => cambiar(() => {
         borrador.materialId = e.target.value;
         const nuevo = materiales.materiales.find((m) => m.id === e.target.value);
         if (!nuevo.terminaciones.includes(borrador.terminacion)) borrador.terminacion = nuevo.terminaciones[0];
-        dibujarPaso();
-      },
-    }), 'galvanizada'));
-
-    formulario.append(campo('Calibre', selector(materiales.calibres.map((c) => ({
+      }),
+    }), 'galvanizada', 'materialId'));
+    fila.append(campo('Calibre', selector(materiales.calibres.map((c) => ({
       valor: c.id, texto: `C${c.numero} (${formatearCorto(c.espesorMm)} mm)${c.supuesto ? ' *' : ''}`,
-    })), borrador.calibreId, { onchange: (e) => { borrador.calibreId = e.target.value; actualizar(); } }), 'calibre'));
-
-    formulario.append(campo('Terminación', selector(material.terminaciones.map((t) => ({
-      valor: t, texto: materiales.terminaciones.find((x) => x.codigo === t)?.nombre || t,
-    })), borrador.terminacion, {
-      onchange: (e) => {
-        borrador.terminacion = e.target.value;
-        if (borrador.terminacion === 'P' && !borrador.colorId) borrador.colorId = materiales.colores[0].id;
-        dibujarPaso();
-      },
-    }), 'prepintada'));
+    })), borrador.calibreId, { onchange: (e) => cambiar(() => { borrador.calibreId = e.target.value; }) }), 'calibre', 'calibreId'));
+    if (material.terminaciones.length > 1) {
+      fila.append(campo('Terminación', botonera(material.terminaciones.map((t) => ({ valor: t, texto: materiales.terminaciones.find((x) => x.codigo === t)?.nombre || t })),
+        borrador.terminacion, (valor) => {
+          borrador.terminacion = valor;
+          if (valor === 'P' && !borrador.colorId) borrador.colorId = materiales.colores[0].id;
+        }, 'Terminación'), 'prepintada', 'terminacion'));
+    }
+    formulario.append(fila);
 
     if (borrador.terminacion === 'P') {
       formulario.append(campo('Color', h('div', { class: 'muestras-color', role: 'radiogroup' },
         materiales.colores.map((c) => h('button', {
           type: 'button', role: 'radio', 'aria-checked': String(borrador.colorId === c.id),
           class: `muestra-color${borrador.colorId === c.id ? ' elegido' : ''}`,
-          onclick: () => { borrador.colorId = c.id; dibujarPaso(); },
-        }, h('span', { class: 'cuadradito', style: `background:${c.hex}` }), c.nombre)))));
-      formulario.append(campo('Lado de la pintura', h('div', { class: 'opciones-radio' },
-        datos.config.ladosPintura.map((opcion) => h('label', { class: 'casilla' },
-          h('input', { type: 'radio', name: 'lado-pintura', value: opcion.valor, checked: borrador.ladoPintura === opcion.valor, onchange: () => { borrador.ladoPintura = opcion.valor; actualizar(); } }),
-          ` ${opcion.texto}`))), 'lado_pintura'));
+          onclick: () => cambiar(() => { borrador.colorId = c.id; }),
+        }, h('span', { class: 'cuadradito', style: `background:${c.hex}` }), c.nombre))), null, 'colorId'));
+      formulario.append(campo('Lado de la pintura', botonera(datos.config.ladosPintura.map((o) => ({ valor: o.valor, texto: o.texto })),
+        borrador.ladoPintura, (valor) => { borrador.ladoPintura = valor; }, 'Lado de la pintura'), 'lado_pintura', 'ladoPintura'));
     }
-    } else {
-      formulario.append(h('p', { class: 'texto-chico' }, {
-        servicio: 'Servicio: no lleva chapa. El material y el espesor, si hacen falta, se cargan en los datos del servicio.',
-        metalmecanica: 'Pieza a medida: el material y el espesor (en mm) se cargan en los datos de la pieza.',
-      }[borrador.tipoPieza] || 'Artículo de catálogo: no lleva material, calibre ni color.'));
-    }
+    return formulario;
+  }
 
-    const unidadServicio = { hora: 'horas', pieza: 'piezas', metro: 'metros', global: 'trabajos' }[borrador.parametros?.unidad];
-    formulario.append(campo(borrador.tipoPieza === 'servicio' && unidadServicio ? `Cantidad (${unidadServicio})` : 'Cantidad', h('input', {
-      type: 'text', inputmode: 'numeric', value: String(borrador.cantidad ?? 1),
-      oninput: (e) => { borrador.cantidad = leerNumero(e.target.value); actualizar(); },
-    })));
-
-    // Desarrollo manual (solo piezas especiales que tienen desarrollo).
-    if (borrador.tipoPieza === 'especial' && borrador.calculoDesarrollo !== 'unidad') {
-      formulario.append(campo('Corregir desarrollo a mano (cm, opcional)', h('input', {
-        type: 'text', inputmode: 'decimal', value: borrador.desarrolloManualCm ? String(borrador.desarrolloManualCm).replace('.', ',') : '',
-        placeholder: 'vacío = usa la fórmula',
-        oninput: (e) => { const n = leerNumero(e.target.value); borrador.desarrolloManualCm = n > 0 ? n : null; actualizar(); },
-      }), 'desarrollo'));
-    }
-
-    formulario.append(campo('Observaciones', h('textarea', {
-      rows: 3, maxlength: 300, placeholder: 'Ej.: entregar con la tapa puesta',
-      oninput: (e) => { borrador.observaciones = e.target.value; },
-    }, borrador.observaciones || '')));
-
-    // Código pendiente (si el código no está en la tabla).
-    const zonaPendiente = h('div', { class: 'zona-pendiente' });
-    formulario.append(zonaPendiente);
-    enterPasaAlSiguiente(formulario);
-
-    const vista2d = h('section', { class: 'panel panel-2d' }, h('h3', {}, 'Dibujo 2D'), h('div', { class: 'zona-svg' }), h('div', { class: 'zona-laser' }));
-    const vista3d = h('section', { class: 'panel panel-3d' }, h('h3', {}, 'Vista 3D'), contenedor3d, botones3d);
-    contenido.append(h('div', { class: `paso3-grilla${borrador.sinDibujo ? ' sin-dibujo' : ''}` }, h('section', { class: 'panel' }, h('h3', {}, 'Material y cantidad'), formulario), vista2d, vista3d));
-    dibujar2d();
+  /** Vuelve a armar SOLO el bloque de material (la tabla de tramos y su "deshacer" no se tocan). */
+  function refrescarMaterial() {
+    contenido.querySelector('[data-seccion="material"]')?.replaceWith(bloqueMaterial());
   }
 
   // ---------- actualización en vivo ----------
@@ -625,32 +715,68 @@ export function abrirAsistente(opciones) {
     editor?.mostrarProblemas(resultado.problemasTramos);
     dibujar2d();
     dibujarZonaPendiente();
+    marcarErroresEnCampos();
+    actualizarPlegables();
     clearTimeout(temporizador3d);
     temporizador3d = setTimeout(() => actualizar3d(false), 120);
     editor3d?.refrescar();
     opciones.alCambiarBorrador?.(borrador, paso);
   }
 
+  /**
+   * Resultado en UNA línea: la descripción (lo que va a decir la nota) y el código.
+   * Desarrollo, banda, fórmula, códigos de tapas y boquetas y avisos están en "ver cálculo".
+   * Lo que falta se lista acá, corto, y además queda marcado al lado de cada campo.
+   */
+  let calculoAbierto = false;
   function dibujarResultados() {
     const r = resultado;
-    const partes = [];
-    partes.push(h('span', { class: 'resultado-dato' }, 'Desarrollo ',
-      h('strong', {}, r.porUnidad ? 'por unidad' : (r.desarrolloCm > 0 ? `D = ${formatearCorto(r.desarrolloCm, 1)} cm${r.desarrolloEsManual ? ' (a mano)' : ''}` : '—'))));
-    partes.push(h('span', { class: 'resultado-dato' }, 'Banda ',
-      h('strong', {}, r.banda.numero ? `${r.banda.nombre} (${r.banda.numero})` : r.banda.nombre)));
-    partes.push(h('span', { class: 'resultado-dato' }, 'Código ',
-      h('strong', { class: r.codigo.encontrado ? 'codigo-ok' : 'codigo-falta' },
-        r.codigo.encontrado ? r.codigo.codigo : (borrador.codigoPendiente ? 'PENDIENTE' : 'no encontrado')),
-      r.codigo.generico ? h('span', { class: 'texto-chico' }, ' (genérico)') : null,
-      ...r.codigosAdicionales.map((c) => h('span', { class: 'texto-chico codigo-extra' }, ` + ${c.codigo} x${c.cantidad} (${c.descripcion})`))));
-    const mensajes = [
-      ...r.errores.map((m) => h('li', { class: 'error' }, h('strong', {}, 'Error: '), m)),
-      ...r.avisos.filter((m) => !m.startsWith('Código genérico')).map((m) => h('li', { class: 'aviso' }, h('strong', {}, 'Aviso: '), m)),
-    ];
-    panelResultados.replaceChildren(
-      h('div', { class: 'resultados-datos' }, ...partes),
-      h('div', { class: 'descripcion-viva' }, r.descripcion),
-      h('ul', { class: 'lista-mensajes', hidden: mensajes.length === 0 }, mensajes));
+    const errores = r.problemas.filter((p) => p.nivel === 'error');
+    const avisos = r.avisos.filter((m) => !m.startsWith('Código genérico') && !m.startsWith('Código pendiente'));
+    const codigo = r.codigo.encontrado ? `${r.codigo.codigo}${r.codigo.generico ? ' (genérico)' : ''}` : (borrador.codigoPendiente ? 'PENDIENTE' : 'no encontrado');
+    const linea = h('div', { class: 'resultado-linea' },
+      h('span', { class: 'descripcion-viva' }, r.descripcion),
+      h('span', { class: 'resultado-dato' }, 'Código ', h('strong', { class: r.codigo.encontrado ? 'codigo-ok' : 'codigo-falta' }, codigo)));
+    const detalle = h('details', { class: 'ver-calculo', open: calculoAbierto, ontoggle: (e) => { calculoAbierto = e.target.open; } },
+      h('summary', {}, `ver cálculo${avisos.length ? ` · ${avisos.length} aviso${avisos.length > 1 ? 's' : ''}` : ''}`),
+      h('div', { class: 'resultados-datos' },
+        h('span', { class: 'resultado-dato' }, 'Desarrollo ',
+          h('strong', {}, r.porUnidad ? 'por unidad' : (r.desarrolloCm > 0 ? `D = ${formatearCorto(r.desarrolloCm, 1)} cm${r.desarrolloEsManual ? ' (a mano)' : ''}` : '—')),
+          r.porUnidad ? null : h('span', { class: 'texto-chico' }, ` (${r.formulaDesarrollo})`)),
+        h('span', { class: 'resultado-dato' }, 'Banda ', h('strong', {}, r.banda.numero ? `${r.banda.nombre} (${r.banda.numero})` : r.banda.nombre)),
+        ...r.codigosAdicionales.map((c) => h('span', { class: 'resultado-dato codigo-extra' }, `+ ${c.codigo} x${c.cantidad} (${c.descripcion})`))),
+      avisos.length ? h('ul', { class: 'lista-mensajes' }, avisos.map((m) => h('li', { class: 'aviso' }, h('strong', {}, 'Aviso: '), m))) : null);
+    const faltan = errores.length ? h('ul', { class: 'lista-faltantes' }, errores.slice(0, 4).map((p) => h('li', {},
+      h('button', { type: 'button', class: 'enlace-error', onclick: () => irAlCampo(p.campo) }, p.mensaje))),
+      errores.length > 4 ? h('li', {}, `… y ${errores.length - 4} más`) : null) : null;
+    panelResultados.replaceChildren(linea, faltan || '', detalle);
+    botonSiguiente.classList.toggle('con-faltantes', errores.length > 0);
+    botonSiguiente.title = errores.length ? 'Se puede agregar igual, pero la nota no se va a poder emitir hasta corregirlo' : '';
+  }
+
+  /** Marca cada campo con su error, al lado (y lo desmarca cuando se corrige). */
+  function marcarErroresEnCampos() {
+    for (const marcado of contenido.querySelectorAll('.campo-con-error')) {
+      marcado.classList.remove('campo-con-error');
+      marcado.querySelector('.error-campo')?.remove();
+    }
+    for (const p of resultado.problemas.filter((x) => x.nivel === 'error' && x.campo)) {
+      const campo = contenido.querySelector(`[data-campo="${p.campo}"]`);
+      if (!campo || campo.classList.contains('campo-con-error')) continue;
+      campo.classList.add('campo-con-error');
+      campo.append(h('span', { class: 'error-campo', role: 'alert' }, p.mensaje));
+    }
+  }
+
+  /** Lleva al campo donde está el problema (abre la sección plegada si hace falta). */
+  function irAlCampo(idCampo) {
+    const indiceTramo = /^tramo(\d+)$/.exec(idCampo || '')?.[1];
+    if (indiceTramo !== undefined) { editor?.resaltarFila(Number(indiceTramo)); contenido.querySelector(`.fila-tramo[data-tramo="${indiceTramo}"] input`)?.focus(); return; }
+    const campo = idCampo ? contenido.querySelector(`[data-campo="${idCampo}"]`) : null;
+    if (!campo) return;
+    campo.closest('details')?.setAttribute('open', '');
+    campo.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    campo.querySelector('input, select, textarea, button')?.focus();
   }
 
   function dibujarZonaPendiente() {
@@ -836,15 +962,21 @@ export function abrirAsistente(opciones) {
     editor?.establecerPendiente(borrador.conPendiente);
     // Se redibuja el encabezado (botón y explicación) sin perder la tabla ni su historial.
     contenido.querySelector('.paso2-encabezado')?.replaceWith(encabezadoPaso2(buscarPlantilla(datos.catalogo, borrador.plantillaId)));
+    contenido.querySelector('.panel-mas-opciones')?.replaceWith(seccionMasOpciones());
+    contenido.querySelector('details[data-plegable="mas"]')?.setAttribute('open', '');
     actualizar();
     actualizar3d(true);
     editor3d?.refrescar({ forzar: true });
   }
 
   function abrirEdicion3d() {
-    if (editor3d || paso !== 2 || !borrador) return;
+    if (editor3d || paso !== 2 || !borrador || borrador.sinDibujo) return;
     if (!visor) {
-      mostrarAviso('El 3D todavía no cargó (o no está disponible sin internet).', 'info');
+      // El 3D se carga a pedido: se abre el editor apenas esté listo.
+      asegurar3d().then((listo) => {
+        if (listo) abrirEdicion3d();
+        else mostrarAviso('El 3D no está disponible (¿sin internet?).', 'info');
+      });
       return;
     }
     const plantilla = buscarPlantilla(datos.catalogo, borrador.plantillaId);

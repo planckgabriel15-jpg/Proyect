@@ -16,14 +16,14 @@ import { escaparTexto } from './perfilSvg.js';
 const r1 = (n) => Math.round(n * 10) / 10;
 
 /** Una vista por cada cara con agujeros. '' si no hay agujeros. */
-export function svgCaras(renglon, config, ancho = 640) {
+export function svgCaras(renglon, config, ancho = 640, opciones = {}) {
   const huecos = huecosEnCaras(renglon, config);
   if (!huecos.length) return '';
   const caras = [...new Set(huecos.map((h) => h.tramo))].sort((a, b) => a - b);
-  return caras.map((tramo) => svgDeUnaCara(renglon, tramo, huecos.filter((h) => h.tramo === tramo), ancho)).join('');
+  return caras.map((tramo) => svgDeUnaCara(renglon, tramo, huecos.filter((h) => h.tramo === tramo), ancho, opciones)).join('');
 }
 
-function svgDeUnaCara(renglon, tramo, huecos, ancho) {
+function svgDeUnaCara(renglon, tramo, huecos, ancho, opciones = {}) {
   const largo = leerNumero(renglon.largoCm) > 0 ? leerNumero(renglon.largoCm) : 100;
   const medida = huecos[0].medidaCara;
   const margenX = 80;
@@ -38,7 +38,8 @@ function svgDeUnaCara(renglon, tramo, huecos, ancho) {
   partes.push(`<text class="laser-titulo" x="8" y="18">Cara ${tramo + 1} (${formatearCorto(medida)} cm) vista de frente, con sus cortes — medidas en cm</text>`);
   partes.push(`<rect class="pieza" x="${x(0)}" y="${y(0)}" width="${r1(largo * escala)}" height="${r1(altoCara)}"/>`);
   partes.push(`<text class="nota" x="${x(0) - 6}" y="${y(0) + 10}" text-anchor="end">comienzo</text>`);
-  partes.push(`<text class="nota" x="${x(largo)}" y="${arriba - 6}" text-anchor="end">largo ${formatearNumero(largo / 100, 2)} m</text>`);
+  // opciones.sinLargo: el largo ya está escrito en otra vista de la misma hoja.
+  if (!opciones.sinLargo) partes.push(`<text class="nota" x="${x(largo)}" y="${arriba - 6}" text-anchor="end">largo ${formatearNumero(largo / 100, 2)} m</text>`);
 
   huecos.forEach((h, i) => {
     const cx = x(h.centroZ);
@@ -57,7 +58,7 @@ function svgDeUnaCara(renglon, tramo, huecos, ancho) {
     }
     const nombre = h.origen.tipo === 'corte'
       ? `C${h.origen.indice + 1} ${medidaDeCorte(renglon.cortes[h.origen.indice])}`
-      : `B${h.origen.indice + 1} ${medidaDeBoqueta(normalizarBoqueta(renglon.accesorios.boquetas[h.origen.indice]))}`;
+      : `B${h.origen.indice + 1}${opciones.soloNombreDeBoquetas ? '' : ` ${medidaDeBoqueta(normalizarBoqueta(renglon.accesorios.boquetas[h.origen.indice]))}`}`;
     // Nombre arriba de la cara, sobre el agujero.
     partes.push(`<text class="cota-texto" x="${cx}" y="${arriba - 6}" text-anchor="middle">${escaparTexto(nombre)}</text>`);
     // Desde el comienzo de la cara hasta el centro: a la derecha del agujero.
@@ -65,7 +66,9 @@ function svgDeUnaCara(renglon, tramo, huecos, ancho) {
     partes.push(`<line class="cota-guia" x1="${cx}" y1="${cy}" x2="${xLado + 4}" y2="${cy}"/>`);
     partes.push(`<line class="cota" x1="${xLado}" y1="${y(0)}" x2="${xLado}" y2="${cy}"/>`);
     partes.push(`<text class="cota-texto" x="${xLado + 4}" y="${r1((y(0) + cy) / 2 + 5)}">${formatearCorto(h.centroU)}</text>`);
-    // Desde la punta izquierda hasta el centro: abajo.
+    // Desde la punta izquierda hasta el centro: abajo. En la hoja impresa, la posición de una boqueta a lo
+    // largo ya está acotada en la vista desde arriba: acá no se repite (opciones.soloNombreDeBoquetas).
+    if (opciones.soloNombreDeBoquetas && h.origen.tipo !== 'corte') return;
     const yCota = r1(y(medida) + 26 + i * 20);
     partes.push(`<line class="cota" x1="${x(0)}" y1="${yCota}" x2="${cx}" y2="${yCota}"/>`);
     partes.push(`<line class="cota-guia" x1="${cx}" y1="${r1(cy + medioAlto)}" x2="${cx}" y2="${yCota + 4}"/>`);

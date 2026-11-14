@@ -32,8 +32,9 @@ const PESTANAS_JEFE = [
   ['demo', 'Datos de demostración', seccionDemo],
   ['emitidas', 'Notas emitidas', seccionEmitidas],
 ];
+// El comercial solo necesita saber cómo van SUS notas y volver a imprimirlas.
 const PESTANAS_COMERCIAL = [
-  ['tablero', 'Tablero', seccionTablero],
+  ['tablero', 'Estado de mis notas', seccionTablero],
   ['emitidas', 'Notas emitidas', seccionEmitidas],
 ];
 
@@ -74,6 +75,14 @@ export async function pantallaProduccion(contenedor, pestanaPedida) {
   contenedor.replaceChildren(h('section', { class: 'panel' },
     h('div', { class: 'titulo-pantalla' }, h('h1', {}, 'Producción'),
       selectorPlanta ? h('label', { class: 'campo-en-linea' }, 'Planta ', selectorPlanta) : null,
+      estado.sesion?.rol === 'comercial' ? h('label', { class: 'casilla' }, h('input', {
+        type: 'checkbox', checked: Boolean(estado.sesion.verTodasLasNotas),
+        onchange: async (e) => {
+          estado.sesion.verTodasLasNotas = e.target.checked;
+          await almacenamiento.guardarSesion(estado.sesion);
+          mostrar(ultimaPestana);
+        },
+      }), ' Ver también las notas de otros vendedores') : null,
       h('span', { class: 'texto-chico' }, esJefe() ? 'Jefe de producción' : 'Vista del área comercial (solo mirar)')),
     barra, cuerpo));
   const inicial = pestanas.some(([p]) => p === pestanaPedida) ? pestanaPedida : (pestanas.some(([p]) => p === ultimaPestana) ? ultimaPestana : 'tablero');

@@ -33,6 +33,7 @@ const r1 = (n) => Math.round(n * 10) / 10; // redondeo para que el SVG no tenga 
  *   ancho, alto    tamaño del dibujo en píxeles (por defecto 640 × 420)
  *   resaltado      índice del tramo a resaltar (o null)
  *   ladoPintura    'afuera' | 'adentro' | null (null = no es prepintada)
+ *   sinLeyendaPintura  true = no escribe "Pintura AFUERA" al pie (la flecha sí)
  *   miniatura      true = sin cotas ni textos (para la galería)
  *   interactivo    true = cada tramo tiene data-tramo para hacer clic
  * @returns {string} el SVG
@@ -107,7 +108,8 @@ export function svgDelPerfil(perfil, opciones) {
     }
     // Leyenda abajo (texto: se lee en blanco y negro).
     const leyenda = [`Medidas EXTERIORES en cm`, `punto = inicio del tramo 1`];
-    if (opciones.ladoPintura) leyenda.push(opciones.ladoPintura === 'ambos' ? 'Pintura DE LOS DOS LADOS' : `Pintura ${opciones.ladoPintura.toUpperCase()}`);
+    // En la hoja impresa el lado de la pintura va en la ficha de material (una sola vez): acá queda la flecha.
+    if (opciones.ladoPintura && !opciones.sinLeyendaPintura) leyenda.push(opciones.ladoPintura === 'ambos' ? 'Pintura DE LOS DOS LADOS' : `Pintura ${opciones.ladoPintura.toUpperCase()}`);
     partes.push(`<text class="perfil-leyenda" x="8" y="${alto - 8}">${escaparTexto(leyenda.join('  ·  '))}</text>`);
   }
 

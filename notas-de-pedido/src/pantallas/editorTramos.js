@@ -39,6 +39,9 @@ function valorNumerico(texto) {
  *   alDibujarAMano: () => void,
  *   conPendiente?: boolean,             // muestra las columnas de la punta final
  *   compacto?: boolean,                 // sin "Agregar rápido" ni dibujo a mano (por ejemplo, para una tapa a medida)
+ *   vistaSimple?: boolean,              // arranca mostrando solo N°, medida y ángulo (lo de todos los días);
+ *                                       // el resto aparece con "Ver todas las columnas" o al agregar un tramo
+ *   alCambiarVista?: (simple) => void,  // para recordar la elección del vendedor
  * }} opciones
  */
 export function crearEditorTramos(opciones) {
@@ -53,15 +56,36 @@ export function crearEditorTramos(opciones) {
   const historial = [copiarPerfil(perfil)];
   let posicionHistorial = 0;
 
+  // Vista simple: solo si no esconde nada cargado (corte láser, observación o un tipo de tramo especial se ven en la tabla
+  // completa; el tipo de tramo además está escrito en el 2D).
+  const tieneExtras = () => perfil.tramos.some((t) => t.corteLaser || t.observacion);
+  let vistaSimple = Boolean(opciones.vistaSimple) && perfil.tramos.length > 0 && !tieneExtras();
   const raiz = h('div', { class: 'editor-tramos' });
+  const botonVista = h('button', {
+    type: 'button', class: 'boton chico boton-vista-tabla',
+    onclick: () => { vistaSimple = !vistaSimple; aplicarVista(); opciones.alCambiarVista?.(vistaSimple); },
+  });
+  function aplicarVista() {
+    raiz.classList.toggle('vista-simple', vistaSimple);
+    botonVista.textContent = vistaSimple ? 'Ver todas las columnas y herramientas' : 'Vista simple (solo medidas y ángulos)';
+    botonVista.setAttribute('aria-pressed', String(!vistaSimple));
+  }
   const cuerpoTabla = h('tbody');
   const botonDeshacer = h('button', { type: 'button', class: 'boton chico', onclick: () => deshacer(), title: 'Deshacer (Ctrl+Z)' }, 'Deshacer');
   const botonRehacer = h('button', { type: 'button', class: 'boton chico', onclick: () => rehacer(), title: 'Rehacer (Ctrl+Y)' }, 'Rehacer');
 
   // ---------- cambios ----------
 
+  /** Al agregar un tramo hay que elegirle sentido y tipo: se pasa sola a la tabla completa. */
+  function mostrarTablaCompleta() {
+    if (!vistaSimple) return;
+    vistaSimple = false;
+    aplicarVista();
+  }
+
   /** Cambio que modifica la cantidad o el tipo de tramos: se redibuja la tabla. */
   function cambioEstructural(nuevoPerfil, nuevoSeleccionado = seleccionado) {
+    if (nuevoPerfil.tramos.length > perfil.tramos.length || nuevoPerfil.tramos.some((x) => x.corteLaser || x.observacion)) mostrarTablaCompleta();
     perfil = nuevoPerfil;
     seleccionado = nuevoSeleccionado;
     guardarEnHistorial();
@@ -209,10 +233,10 @@ export function crearEditorTramos(opciones) {
     h('td', {}, campoAngulo),
     h('td', { class: 'col-final' }, campoMedidaFinal),
     h('td', { class: 'col-final' }, campoAnguloFinal),
-    h('td', {}, campoSentido),
-    h('td', {}, campoTipo),
-    h('td', {}, campoLaser),
-    h('td', {}, campoObservacion));
+    h('td', { class: 'col-extra' }, campoSentido),
+    h('td', { class: 'col-extra' }, campoTipo),
+    h('td', { class: 'col-extra' }, campoLaser),
+    h('td', { class: 'col-extra' }, campoObservacion));
     return fila;
   }
 
@@ -342,7 +366,7 @@ export function crearEditorTramos(opciones) {
     botonDeshacer,
     botonRehacer);
 
-  const atajos = h('div', { class: 'barra-botones atajos' },
+  const atajos = h('div', { class: 'barra-botones atajos solo-vista-completa' },
     h('span', { class: 'texto-chico' }, 'Agregar rápido:'),
     boton('Aleta al inicio', 'Agregar aleta al inicio', acciones.aletaInicio, 'boton chico'),
     boton('Aleta al final', 'Agregar aleta al final', acciones.aletaFinal, 'boton chico'),
@@ -358,17 +382,19 @@ export function crearEditorTramos(opciones) {
       h('th', {}, 'Ángulo ', ayuda(datos.glosario, 'angulo_interior')),
       h('th', { class: 'col-final' }, 'Final: medida (cm)'),
       h('th', { class: 'col-final' }, 'Final: ángulo'),
-      h('th', {}, 'Sentido ', ayuda(datos.glosario, 'sentido')),
-      h('th', {}, 'Tipo ', ayuda(datos.glosario, 'dobladillo')),
-      h('th', {}, 'Láser ', ayuda(datos.glosario, 'corte_laser')),
-      h('th', {}, 'Observación'))),
+      h('th', { class: 'col-extra' }, 'Sentido ', ayuda(datos.glosario, 'sentido')),
+      h('th', { class: 'col-extra' }, 'Tipo ', ayuda(datos.glosario, 'dobladillo')),
+      h('th', { class: 'col-extra' }, 'Láser ', ayuda(datos.glosario, 'corte_laser')),
+      h('th', { class: 'col-extra' }, 'Observación'))),
     cuerpoTabla);
 
   raiz.append(
-    h('div', { class: 'fila-direccion' }, h('label', {}, 'El tramo 1 arranca hacia ', selectorDireccion, campoGrados)),
+    h('div', { class: 'fila-direccion solo-vista-completa' }, h('label', {}, 'El tramo 1 arranca hacia ', selectorDireccion, campoGrados)),
     h('div', { class: 'tabla-desplazable' }, tabla),
     barra);
   if (!opciones.compacto) raiz.append(atajos);
+  if (opciones.vistaSimple !== undefined) raiz.append(botonVista);
+  aplicarVista();
   enterPasaAlSiguiente(raiz);
 
   dibujarTabla();
